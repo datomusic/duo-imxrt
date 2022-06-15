@@ -42,6 +42,7 @@ int main(void)
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
+    BOARD_InitNeopixels();
 
     /* Set systick reload value to generate 1ms interrupt */
     if (SysTick_Config(SystemCoreClock / 1000U))
@@ -50,20 +51,28 @@ int main(void)
         {
         }
     }
+    
+    uint8_t teal[] = {0x00,0xf0,0xc0};
+    uint8_t yellow[] = {0xff,0xff,0x00};
+    uint8_t blue[] = {0x00,0x00,0xff};
+    uint8_t black[] = {0x00,0x00,0x00};
+    board_rgb_write(blue);
 
     while (1)
     {
         /* Delay 1000 ms */
 
-        SysTick_DelayTicks(50U);
+        SysTick_DelayTicks(500U);
         if (g_pinSet)
         {
             GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 0U);
+            board_rgb_write(black);
             g_pinSet = false;
         }
         else
         {
             GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 1U);
+            board_rgb_write(blue);
             g_pinSet = true;
         }
     }
