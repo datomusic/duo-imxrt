@@ -1,0 +1,29 @@
+Scanning dependencies of target blinky.elf
+[  4%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/board.c.obj
+[  9%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/blinky.c.obj
+[ 13%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/pin_mux.c.obj
+[ 27%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/drivers/fsl_common_arm.c.obj
+[ 27%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/clock_config.c.obj
+[ 27%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/drivers/fsl_gpio.c.obj
+[ 36%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/utilities/debug_console/fsl_debug_console.c.obj
+[ 36%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/drivers/fsl_clock.c.obj
+[ 40%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/drivers/fsl_common.c.obj
+[ 45%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/drivers/fsl_lpuart.c.obj
+[ 50%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/utilities/str/fsl_str.c.obj
+[ 54%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/components/serial_manager/fsl_component_serial_port_uart.c.obj
+[ 59%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/components/serial_manager/fsl_component_serial_manager.c.obj
+[ 63%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/components/uart/fsl_adapter_lpuart.c.obj
+[ 81%] Building ASM object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/gcc/startup_MIMXRT1011.S.obj
+[ 81%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/components/lists/fsl_component_generic_list.c.obj
+[ 81%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/system_MIMXRT1011.c.obj
+[ 81%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/xip/fsl_flexspi_nor_boot.c.obj
+[ 86%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/utilities/fsl_assert.c.obj
+[ 90%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/devices/MIMXRT1011/utilities/fsl_sbrk.c.obj
+[ 95%] Building C object CMakeFiles/blinky.elf.dir/Users/david/Development/duo-rt1011/blinky/xip/evkmimxrt1010_flexspi_nor_config.c.obj
+[100%] Linking C executable debug/blinky.elf
+Memory region         Used Size  Region Size  %age Used
+    m_interrupts:          1 KB         1 KB    100.00%
+          m_text:       15440 B        31 KB     48.64%
+          m_data:        2256 B        32 KB      6.88%
+         m_data2:          0 GB        64 KB      0.00%
+[100%] Built target blinky.elf
