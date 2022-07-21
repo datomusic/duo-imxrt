@@ -39,10 +39,12 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
 "${ProjDirPath}/../board.h"
 "${ProjDirPath}/../clock_config.c"
 "${ProjDirPath}/../clock_config.h"
+"${ProjDirPath}/../variant.c"
 )
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${ProjDirPath}/..
+    ${ProjDirPath}/../core/Arduino
 )
 
 set(CMAKE_MODULE_PATH
@@ -52,9 +54,14 @@ set(CMAKE_MODULE_PATH
     ${ProjDirPath}/../components/uart
     ${ProjDirPath}/../components/serial_manager
     ${ProjDirPath}/../components/lists
+    ${ProjDirPath}/../components/osa
     ${ProjDirPath}/../devices/MIMXRT1011/xip
     ${ProjDirPath}/../CMSIS/Core/Include
     ${ProjDirPath}/../xip
+    ${ProjDirPath}/../components/Arduino
+    ${ProjDirPath}/../components/FastLED
+    ${ProjDirPath}/../middleware/usb
+    ${ProjDirPath}/../middleware/usb/osa
 )
 
 # include modules
@@ -63,6 +70,8 @@ include(driver_igpio_MIMXRT1011)
 include(driver_clock_MIMXRT1011)
 
 include(driver_common_MIMXRT1011)
+
+include(driver_edma_MIMXRT1011)
 
 include(device_MIMXRT1011_CMSIS_MIMXRT1011)
 
@@ -94,6 +103,11 @@ include(utilities_misc_utilities_MIMXRT1011)
 
 include(device_MIMXRT1011_system_MIMXRT1011)
 
+include(driver_adc_12b1msps_sar_MIMXRT1011)
+
+include(component_Arduino_MIMXRT1011)
+
+# include(driver_FastLED_MIMXRT1011)
 
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--start-group)
 

@@ -17,7 +17,7 @@
             "interface": "swd",
             "serialNumber": "", // add J-Link serial number if having multiple attached the same time.
             "runToEntryPoint": "main",
-            "svdFile": "${workspaceRoot}/MIMXRT1011.svd",
+            "svdFile": "${workspaceRoot}/devices/MIMXRT1011/MIMXRT1011.svd",
             "showDevDebugOutput": "parsed",
 
         }

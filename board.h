@@ -96,9 +96,12 @@
 #define BOARD_SERIAL_MWM_RST_WRITE(output) GPIO_PinWrite(BOARD_SERIAL_MWM_RST_GPIO, BOARD_SERIAL_MWM_RST_PIN, output)
 
 #define NEOPIXEL_NUMBER       19
-#define NEOPIXEL_PINMUX       IOMUXC_GPIO_AD_07_GPIOMUX_IO21
-#define NEOPIXEL_PORT         GPIO1
-#define NEOPIXEL_PIN          21
+// #define NEOPIXEL_PINMUX       IOMUXC_GPIO_AD_07_GPIOMUX_IO21
+#define NEOPIXEL_PINMUX       IOMUXC_GPIO_SD_05_GPIO2_IO05
+// #define NEOPIXEL_PORT         GPIO1
+#define NEOPIXEL_PORT         GPIO2
+#define NEOPIXEL_PIN          5
+// #define NEOPIXEL_PIN          21
 #define NEOPIXEL_BRIGHTNESS   0xFF
 
 #if defined(__cplusplus)

@@ -1,7 +1,13 @@
-# i.MX RT MCUXpresso C++ Blinky
 
-Project for VSCode that blinks an LED on the i.MX RT1010 evaluation board. Based on Erich Styger's "Visual Studio Code for C/C++ with ARM Cortex-M" blog post series 
-https://mcuoneclipse.com/2021/05/01/visual-studio-code-for-c-c-with-arm-cortex-m-part-1/
+NXP MCUXpresso SDK
+https://github.com/NXPmicro/mcux-sdk
 
+ArduinoCore-imxrt 
+https://github.com/Seeed-Studio/ArduinoCore-imxrt
 
-Adapted the MCU Xpresso iled blinky demo to support C++ compilation
+Teensy 4 core and Audio library
+https://github.com/PaulStoffregen/cores
+https://github.com/PaulStoffregen/Audio
+- DMAChannel
+- memcpy_audio
+- AudioStream

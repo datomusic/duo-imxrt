@@ -58,21 +58,21 @@ void BOARD_InitPins(void) {
   CLOCK_EnableClock(kCLOCK_Iomuxc);           
 
   /* GPIO configuration of GPIO_11 on GPIO_11 (pin 1) */
-  gpio_pin_config_t GPIO_11_config = {
-      .direction = kGPIO_DigitalOutput,
-      .outputLogic = 0U,
-      .interruptMode = kGPIO_NoIntmode
-  };
+  // gpio_pin_config_t GPIO_11_config = {
+  //     .direction = kGPIO_DigitalOutput,
+  //     .outputLogic = 0U,
+  //     .interruptMode = kGPIO_NoIntmode
+  // };
   /* Initialize GPIO functionality on GPIO_11 (pin 1) */
-  GPIO_PinInit(GPIO1, 11U, &GPIO_11_config);
+  // GPIO_PinInit(GPIO1, 11U, &GPIO_11_config);
 
-  IOMUXC_SetPinMux(IOMUXC_GPIO_11_GPIOMUX_IO11, 0U); 
+  // IOMUXC_SetPinMux(IOMUXC_GPIO_11_GPIOMUX_IO11, 0U); 
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_09_ARM_TRACE_SWO, 0U); 
   IOMUXC_GPR->GPR26 = ((IOMUXC_GPR->GPR26 &
     (~(BOARD_INITPINS_IOMUXC_GPR_GPR26_GPIO_SEL_MASK))) 
       | IOMUXC_GPR_GPR26_GPIO_SEL(0x00U)      
     );
-  IOMUXC_SetPinConfig(IOMUXC_GPIO_11_GPIOMUX_IO11, 0x10A0U); 
+  // IOMUXC_SetPinConfig(IOMUXC_GPIO_11_GPIOMUX_IO11, 0x10A0U); 
   IOMUXC_SetPinConfig(IOMUXC_GPIO_AD_09_ARM_TRACE_SWO, 0x90B1U); 
 }
 
