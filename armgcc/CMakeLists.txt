@@ -23,9 +23,9 @@ SET(LIBRARY_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/arm-none-eabi-gcc.cmake)
 
-project(blinky)
+project(arduino-rt1011)
 
-set(MCUX_SDK_PROJECT_NAME blinky.elf)
+set(MCUX_SDK_PROJECT_NAME arduino-rt1011.elf)
 
 include(${ProjDirPath}/flags.cmake)
 

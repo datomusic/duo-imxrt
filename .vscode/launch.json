@@ -6,7 +6,7 @@
     "configurations": [
         {
             "cwd": "${workspaceRoot}",
-            "executable": "./armgcc/flexspi_nor_debug/blinky.elf",
+            "executable": "./armgcc/flexspi_nor_debug/arduino-rt1011.elf",
             "name": "Debug Microcontroller",
             "request": "launch",
             "type": "cortex-debug",
