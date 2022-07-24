@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "evkmimxrt1010_flexspi_nor_config.h"
+#include "duobrains2_flexspi_nor_config.h"
 
 /* Component ID definition, used by tools. */
 #ifndef FSL_COMPONENT_ID
@@ -22,22 +22,25 @@ __attribute__((section(".boot_hdr.conf"), used))
 #pragma location = ".boot_hdr.conf"
 #endif
 
+// SPI Flash config for Winbond W25Q16
+// Change .sflashA1Size 
 const flexspi_nor_config_t qspiflash_config = {
     .memConfig =
         {
             .tag              = FLEXSPI_CFG_BLK_TAG,
             .version          = FLEXSPI_CFG_BLK_VERSION,
-            .readSampleClkSrc = kFlexSPIReadSampleClk_LoopbackFromDqsPad,
+            .readSampleClkSrc = kFlexSPIReadSampleClk_LoopbackInternally,
             .csHoldTime       = 3u,
             .csSetupTime      = 3u,
+            .deviceType       = kFlexSpiDeviceType_SerialNOR,
             .sflashPadType    = kSerialFlash_4Pads,
-            .serialClkFreq    = kFlexSpiSerialClk_100MHz,
+            .serialClkFreq    = kFlexSpiSerialClk_60MHz,
             .sflashA1Size     = 16u * 1024u * 1024u,
             .lookupTable =
                 {
                     // Read LUTs
                     FLEXSPI_LUT_SEQ(CMD_SDR, FLEXSPI_1PAD, 0xEB, RADDR_SDR, FLEXSPI_4PAD, 0x18),
-                    FLEXSPI_LUT_SEQ(DUMMY_SDR, FLEXSPI_4PAD, 0x06, READ_SDR, FLEXSPI_4PAD, 0x04),
+                    FLEXSPI_LUT_SEQ(DUMMY_SDR, FLEXSPI_4PAD, 0x06, READ_SDR, FLEXSPI_4PAD, 0x04)
                 },
         },
     .pageSize           = 256u,

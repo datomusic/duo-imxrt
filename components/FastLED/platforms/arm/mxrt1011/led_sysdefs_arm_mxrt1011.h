@@ -16,10 +16,6 @@
 #define FASTLED_ACCURATE_CLOCK
 #endif
 
-#if (F_CPU == 96000000)
-#define CLK_DBL 1
-#endif
-
 
 // Define the register types
 typedef volatile       uint32_t RoReg; /**< Read only 8-bit register (volatile const unsigned int) */
