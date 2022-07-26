@@ -1,10 +1,10 @@
 #include "pin_mux.h"
-// #include "delay.h"
 #include "Arduino.h"
 // #include "AudioStream.h"
 // #include "DMAChannel.h"
 // #include "output_mqs.h"
 // #include <FastLED.h>
+#include "bs814a.h"
 
 /*!
  * @brief Main function
@@ -19,27 +19,18 @@ int main(void)
     BOARD_InitNeopixels();
     init(); // Seeeduino init
 
-    // uint8_t teal[] = {0x00,0xf0,0xc0};
-    // uint8_t yellow[] = {0xff,0xff,0x00};
     uint8_t blue[] = {0x00,0x00,0xff};
-    // uint8_t black[] = {0x00,0x00,0x00};
     board_rgb_write(blue);
-    // bool g_pinSet = false;
-    // unsigned long timenow;
-    pinMode(USER_LED, OUTPUT);
+    BS814A_begin();
 
     while (1)
     {
-        /* Delay 1000 ms */
-        digitalWrite(USER_LED, LOW);
-        delay(10);
-        uint32_t pot_value = analogRead(D11);
-        uint32_t pot_value2 = analogRead(D12);
-        uint8_t b = (uint8_t) (255-(pot_value >> 4));
-        uint8_t r = (uint8_t) (255-(pot_value2 >> 4));
-        uint8_t potRGB[] = {r,b,b};
+        uint8_t value = BS814A_readRaw();
+        uint8_t g = (1-bitRead(value, 1)) * 100;
+        uint8_t b = (1-bitRead(value, 2)) * 100;
+        uint8_t r = (1-bitRead(value, 3)) * 100;
+        uint8_t potRGB[] = {r,g,b};
         board_rgb_write(potRGB);
-        digitalWrite(USER_LED,HIGH);
         delay(10);
     }
 }
