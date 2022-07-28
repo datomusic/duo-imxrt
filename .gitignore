@@ -4,3 +4,4 @@ armgcc/Debug
 armgcc/Release
 armgcc/flexspi_nor_debug
 armgcc/flexspi_nor_release
+armgcc/build_log
