@@ -10,3 +10,4 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
 )
 
 include(driver_common_MIMXRT1011)
+include(component_Arduino_MIMXRT1011)

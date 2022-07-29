@@ -137,7 +137,7 @@ protected:
 
 
 #define AudioMemory(num) ({ \
-	static DMAMEM audio_block_t data[num]; \
+	static audio_block_t data[num]; \
 	AudioStream::initialize_memory(data, num); \
 })
 

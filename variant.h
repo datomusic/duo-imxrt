@@ -52,9 +52,9 @@ extern "C"
 #define D11 11U
 #define D12 12U
 
-#define A0 16U
-#define A1 17U
-#define A2 18U
+#define PIN_A0 16U
+#define PIN_A1 17U
+#define PIN_A2 18U
 #define A3 19U
 #define A4 20U
 #define A5 21U
