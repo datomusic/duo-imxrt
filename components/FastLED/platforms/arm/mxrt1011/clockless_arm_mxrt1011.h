@@ -1,15 +1,12 @@
 #ifndef __INC_CLOCKLESS_ARM_MXRT1011_H
 #define __INC_CLOCKLESS_ARM_MXRT1011_H
 
-FASTLED_NAMESPACE_BEGIN
-
-// Definition for a single channel clockless controller for the teensy4
+// Definition for a single channel clockless controller based on the teensy4
 // See clockless.h for detailed info on how the template parameters are used.
-#if defined(FASTLED_TEENSY4)
 
 #define FASTLED_HAS_CLOCKLESS 1
 
-#define _FASTLED_NS_TO_DWT(_NS) (((F_CPU_ACTUAL>>16)*(_NS)) / (1000000000UL>>16))
+#define _FASTLED_NS_TO_DWT(_NS) (((F_CPU>>16)*(_NS)) / (1000000000UL>>16))
 
 template <int DATA_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 50>
 class ClocklessController : public CPixelLEDController<RGB_ORDER> {
@@ -126,6 +123,3 @@ protected:
 };
 #endif
 
-FASTLED_NAMESPACE_END
-
-#endif

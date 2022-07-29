@@ -2,7 +2,7 @@
 #include "Arduino.h"
 #define TEENSYDUINO 999
 // #include "Audio.h"
-// #include <FastLED.h>
+#include <FastLED.h>
 #include "bs814a.h"
 
 // GUItool: begin automatically generated code
@@ -11,6 +11,8 @@
 // AudioConnection          patchCord1(sine1, 0, mqs1, 0);
 // AudioConnection          patchCord2(sine1, 0, mqs1, 1);
 // GUItool: end automatically generated code
+
+CRGB leds[19];
 
 /*!
  * @brief Main function
@@ -29,6 +31,8 @@ int main(void)
     board_rgb_write(blue);
     BS814A_begin();
 
+    // FastLED.addLeds<WS2812, 23, GRB>(leds, 19);
+    
     // AudioMemory(100);
     // sine1.amplitude(0.5F);
     // sine1.frequency(440.0F);
