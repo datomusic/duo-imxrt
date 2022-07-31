@@ -31,6 +31,16 @@
 #include "fsl_common.h"
 #include "fsl_gpio.h"
 
+// Used by FastLED for various timings.
+#define F_CPU DEFAULT_SYSTEM_CLOCK
+
+// Disable FastLED reliance on digitalPinToBitMask and friends.
+// These are only used in the FastLed Pin class, which is legacy code anyway,
+// replaced by FastPin.
+// Source: https://github.com/FastLED/FastLED/issues/766
+#define FASTLED_NO_PINMAP
+
+
 #define USB_VID 0x2886 // SeeedStudio
 #define USB_PID 0x802B // TODO: replace
 
@@ -52,9 +62,9 @@ extern "C"
 #define D11 11U
 #define D12 12U
 
-#define A0 16U
-#define A1 17U
-#define A2 18U
+#define PIN_A0 16U
+#define PIN_A1 17U
+#define PIN_A2 18U
 #define A3 19U
 #define A4 20U
 #define A5 21U

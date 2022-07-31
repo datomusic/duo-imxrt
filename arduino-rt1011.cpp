@@ -1,10 +1,18 @@
 #include "pin_mux.h"
 #include "Arduino.h"
-// #include "AudioStream.h"
-// #include "DMAChannel.h"
-// #include "output_mqs.h"
-// #include <FastLED.h>
+#define TEENSYDUINO 999
+// #include "Audio.h"
+#include <FastLED.h>
 #include "bs814a.h"
+
+// GUItool: begin automatically generated code
+// AudioSynthWaveformSine   sine1;          //xy=305,275
+// AudioOutputMQS           mqs1;           //xy=479,272
+// AudioConnection          patchCord1(sine1, 0, mqs1, 0);
+// AudioConnection          patchCord2(sine1, 0, mqs1, 1);
+// GUItool: end automatically generated code
+
+CRGB leds[19];
 
 /*!
  * @brief Main function
@@ -22,6 +30,12 @@ int main(void)
     uint8_t blue[] = {0x00,0x00,0xff};
     board_rgb_write(blue);
     BS814A_begin();
+
+    // FastLED.addLeds<WS2812, 23, GRB>(leds, 19);
+    
+    // AudioMemory(100);
+    // sine1.amplitude(0.5F);
+    // sine1.frequency(440.0F);
 
     while (1)
     {

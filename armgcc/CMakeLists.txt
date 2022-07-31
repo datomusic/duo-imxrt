@@ -57,11 +57,13 @@ set(CMAKE_MODULE_PATH
     ${ProjDirPath}/../components/osa
     ${ProjDirPath}/../devices/MIMXRT1011/xip
     ${ProjDirPath}/../CMSIS/Core/Include
+    ${ProjDirPath}/../CMSIS/DSP
     ${ProjDirPath}/../xip
     ${ProjDirPath}/../components/Arduino
     ${ProjDirPath}/../components/FastLED
     ${ProjDirPath}/../middleware/usb
     ${ProjDirPath}/../middleware/usb/osa
+    # ${ProjDirPath}/../components/Teensy_Audio
 )
 
 # include modules
@@ -99,6 +101,8 @@ include(driver_xip_board_evkmimxrt1010_MIMXRT1011)
 
 include(CMSIS_Include_core_cm_MIMXRT1011)
 
+include(CMSIS_DSP_Library)
+
 include(utilities_misc_utilities_MIMXRT1011)
 
 include(device_MIMXRT1011_system_MIMXRT1011)
@@ -107,7 +111,9 @@ include(driver_adc_12b1msps_sar_MIMXRT1011)
 
 include(component_Arduino_MIMXRT1011)
 
-# include(driver_FastLED_MIMXRT1011)
+include(driver_FastLED_MIMXRT1011)
+
+# include(component_Teensy_Audio_MIMXRT1011)
 
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--start-group)
 

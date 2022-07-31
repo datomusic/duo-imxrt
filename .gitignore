@@ -12,3 +12,4 @@ armgcc/cmake_install.cmake
 armgcc/output.map
 armgcc/debug/
 armgcc/release/
+.vscode/
