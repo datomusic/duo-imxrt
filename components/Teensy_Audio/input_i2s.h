@@ -1,5 +1,5 @@
 /* Audio Library for Teensy 3.X
- * Copyright (c) 2019, Paul Stoffregen, paul@pjrc.com
+ * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
  *
  * Development of this audio library was funded by PJRC.COM, LLC by sales of
  * Teensy and Audio Adaptor boards.  Please support PJRC's efforts to develop
@@ -23,35 +23,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/*
- (c) Frank B
-*/
-#ifndef imxr_hw_h_
-#define imxr_hw_h_
 
-#if defined(__IMXRT1062__)
-
-#define IMXRT_CACHE_ENABLED 2 // 0=disabled, 1=WT, 2= WB
+#ifndef _input_i2s_h_
+#define _input_i2s_h_
 
 #include <Arduino.h>
+#include <AudioStream.h>
+#include <DMAChannel.h>
 
-void set_audioClock(int nfact, int32_t nmult, uint32_t ndiv,  bool force = false); // sets PLL4
+class AudioInputI2S : public AudioStream
+{
+public:
+	AudioInputI2S(void) : AudioStream(0, NULL) { begin(); }
+	virtual void update(void);
+	void begin(void);
+protected:	
+	AudioInputI2S(int dummy): AudioStream(0, NULL) {} // to be used only inside AudioInputI2Sslave !!
+	static bool update_responsibility;
 
-
-#elif defined (__IMXRT1011__)
-#warning "Compiling imxrt_hw for RT1011"
-
-
-#define IMXRT_CACHE_ENABLED 0 // 0=disabled, 1=WT, 2= WB
-
-#include <Arduino.h>
-
-void set_audioClock(int nfact, int32_t nmult, uint32_t ndiv,  bool force = false); // sets PLL4
-
-
+#if !defined(KINETISL)
+	static DMAChannel dma;
+	static void isr(void);
 #else
-//No IMXRT
-#define IMXRT_CACHE_ENABLED 0
+	static DMAChannel dma1, dma2;
+	static void isr1(void);
+	static void isr2(void);
 #endif
-	
+
+private:
+	static audio_block_t *block_left;
+	static audio_block_t *block_right;
+#if !defined(KINETISL)	
+	static uint16_t block_offset;
+#endif	
+};
+
+
+class AudioInputI2Sslave : public AudioInputI2S
+{
+public:
+	AudioInputI2Sslave(void) : AudioInputI2S(0) { begin(); }
+	void begin(void);	
+};
+
 #endif
