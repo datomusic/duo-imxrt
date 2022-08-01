@@ -2,7 +2,7 @@
 #include "Arduino.h"
 #define TEENSYDUINO 999
 // #include "Audio.h"
-#include <FastLED.h>
+// #include <FastLED.h>
 #include "bs814a.h"
 
 // GUItool: begin automatically generated code
@@ -12,7 +12,7 @@
 // AudioConnection          patchCord2(sine1, 0, mqs1, 1);
 // GUItool: end automatically generated code
 
-CRGB leds[19];
+// CRGB leds[19];
 
 /*!
  * @brief Main function
@@ -31,6 +31,15 @@ int main(void)
     board_rgb_write(blue);
     BS814A_begin();
 
+    #define PIN_MQS_R D7
+    #define PIN_AMP_MUTE PIN_A2
+    #define PIN_HP_ENABLE 23U
+    pinMode(PIN_MQS_R, OUTPUT); // AD_02, MQS pin, pin 58
+    pinMode(PIN_AMP_MUTE, OUTPUT); // AD_10, /AMP_MUTE pin 47
+    pinMode(PIN_HP_ENABLE, OUTPUT); // AD_11, /HP_ENABLE pin 46
+    digitalWrite(PIN_AMP_MUTE, LOW);
+    digitalWrite(PIN_HP_ENABLE, HIGH);
+
     // FastLED.addLeds<WS2812, 23, GRB>(leds, 19);
     
     // AudioMemory(100);
@@ -44,7 +53,10 @@ int main(void)
         uint8_t b = (1-bitRead(value, 2)) * 100;
         uint8_t r = (1-bitRead(value, 3)) * 100;
         uint8_t potRGB[] = {r,g,b};
+        digitalWrite(PIN_MQS_R, LOW);
+        delayMicroseconds(2000);
         board_rgb_write(potRGB);
-        delay(10);
+        digitalWrite(PIN_MQS_R, HIGH);
+        delayMicroseconds(2020);
     }
 }

@@ -198,4 +198,11 @@ const PinDescription g_APinDescription[] =
           IOMUXC_GPIO_11_GPIOMUX_IO11
       }
   },
+  {   // 23U AD_11
+      .GROUP = GPIO1,
+      .PIN = 25,
+      .FUN_GPIO = {
+          IOMUXC_GPIO_AD_11_GPIOMUX_IO25
+      }
+  },
 };
