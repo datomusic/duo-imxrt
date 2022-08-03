@@ -30,15 +30,7 @@
 #include "fsl_lpuart.h"
 #include "fsl_common.h"
 #include "fsl_gpio.h"
-
-// Used by FastLED for various timings.
-#define F_CPU DEFAULT_SYSTEM_CLOCK
-
-// Disable FastLED reliance on digitalPinToBitMask and friends.
-// These are only used in the FastLed Pin class, which is legacy code anyway,
-// replaced by FastPin.
-// Source: https://github.com/FastLED/FastLED/issues/766
-#define FASTLED_NO_PINMAP
+#include "fastled_compat.h"
 
 
 #define USB_VID 0x2886 // SeeedStudio
