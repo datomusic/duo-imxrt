@@ -2,7 +2,7 @@
 #include "Arduino.h"
 #define TEENSYDUINO 999
 // #include "Audio.h"
-// #include <FastLED.h>
+#include <FastLED.h>
 #include "bs814a.h"
 
 // GUItool: begin automatically generated code
@@ -40,7 +40,7 @@ int main(void)
     digitalWrite(PIN_AMP_MUTE, LOW);
     digitalWrite(PIN_HP_ENABLE, HIGH);
 
-    // FastLED.addLeds<WS2812, 23, GRB>(leds, 19);
+    /* FastLED.addLeds<WS2812, 23, GRB>(leds, 19); */
     
     // AudioMemory(100);
     // sine1.amplitude(0.5F);
