@@ -2,7 +2,7 @@
 #include "Arduino.h"
 #define TEENSYDUINO 999
 // #include "Audio.h"
-#include <FastLED.h>
+/* #include <FastLED.h> */
 #include "bs814a.h"
 
 // GUItool: begin automatically generated code
