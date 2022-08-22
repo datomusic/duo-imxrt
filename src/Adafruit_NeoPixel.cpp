@@ -1811,7 +1811,7 @@ void Adafruit_NeoPixel::show(void) {
 
 #elif defined(TEENSYDUINO) && defined(__IMXRT1010__)
 
-neopixel_imxrt1010_show(pin, pixels, numBytes, is800KHz);
+neopixel_imxrt1010_show(pin, pixels, numBytes);
 
 #elif defined(TEENSYDUINO) && defined(__MKL26Z64__) // Teensy-LC
 
