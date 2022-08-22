@@ -28,22 +28,21 @@ project(arduino-rt1011)
 set(MCUX_SDK_PROJECT_NAME arduino-rt1011.elf)
 
 include(${ProjDirPath}/flags.cmake)
-
 include(${ProjDirPath}/config.cmake)
 
+SET(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/)
+
+file(GLOB SRC_FILES
+    ${SOURCE_DIR}/*.cpp
+    ${SOURCE_DIR}/*.c
+)
+
 add_executable(${MCUX_SDK_PROJECT_NAME} 
-"${ProjDirPath}/../arduino-rt1011.cpp"
-"${ProjDirPath}/../pin_mux.c"
-"${ProjDirPath}/../pin_mux.h"
-"${ProjDirPath}/../board.c"
-"${ProjDirPath}/../board.h"
-"${ProjDirPath}/../clock_config.c"
-"${ProjDirPath}/../clock_config.h"
-"${ProjDirPath}/../variant.c"
+    ${SRC_FILES}
 )
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
-    ${ProjDirPath}/..
+    ${SOURCE_DIR}
     ${ProjDirPath}/../core/Arduino
 )
 
