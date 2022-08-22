@@ -39,7 +39,6 @@
 #ifdef ARDUINO
 #if (ARDUINO >= 100)
 #include <Arduino.h>
-#include "neopixel_compat_imxrt1010.h"
 #else
 #include <WProgram.h>
 #include <pins_arduino.h>

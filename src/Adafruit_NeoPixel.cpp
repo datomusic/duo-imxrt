@@ -65,6 +65,11 @@
 #endif
 #endif
 
+
+#if defined(TEENSYDUINO) && defined(__IMXRT1010__)
+#include "neopixel_imxrt_1010.h"
+#endif
+
 /*!
   @brief   NeoPixel constructor when length, pin and pixel type are known
            at compile-time.
@@ -1803,6 +1808,10 @@ void Adafruit_NeoPixel::show(void) {
       ;
   }
 #endif // NEO_KHZ400
+
+#elif defined(TEENSYDUINO) && defined(__IMXRT1010__)
+
+neopixel_imxrt1010_show(pin, pixels, numBytes, is800KHz);
 
 #elif defined(TEENSYDUINO) && defined(__MKL26Z64__) // Teensy-LC
 
