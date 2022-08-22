@@ -342,13 +342,18 @@ static inline uint8_t apply_percentage(uint8_t brightness)
   return (uint8_t) ((brightness*NEOPIXEL_BRIGHTNESS) >> 8);
 }
 
-void board_rgb_write(uint8_t const rgb[])
-{
+void board_rgb_write(struct Pixel const* pixels, int pixel_count){
   // neopixel color order is GRB
-  uint8_t const pixels[3] = { apply_percentage(rgb[1]), apply_percentage(rgb[0]), apply_percentage(rgb[2]) };
-  uint32_t const numBytes = 3;
+  uint8_t pixel_bytes[pixel_count*3];
+  for (int i = 0; i < pixel_count; ++i) {
+    pixel_bytes[i*3] = apply_percentage(pixels[i].g);
+    pixel_bytes[i*3 + 1] = apply_percentage(pixels[i].r);
+    pixel_bytes[i*3 + 2] = apply_percentage(pixels[i].b);
+  }
 
-  uint8_t const *p = pixels, *end = p + numBytes;
+  uint32_t const numBytes = pixel_count * 3;
+
+  uint8_t const *p = pixel_bytes, *end = p + numBytes;
   uint8_t pix = *p++, mask = 0x80;
   uint32_t start = 0;
   uint32_t cyc = 0;
@@ -366,7 +371,7 @@ void board_rgb_write(uint8_t const rgb[])
   // Enable DWT in debug core. Useable when interrupts disabled, as opposed to Systick->VAL
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-  DWT->CYCCNT = 0;
+  /* DWT->CYCCNT = 0; */
 
   for(;;) {
     cyc = (pix & mask) ? t1 : t0;
