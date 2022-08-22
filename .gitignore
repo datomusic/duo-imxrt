@@ -4,7 +4,7 @@ armgcc/Debug
 armgcc/Release
 armgcc/flexspi_nor_debug
 armgcc/flexspi_nor_release
-armgcc/build_log.txt
+build_log.txt
 armgcc/CMakeCache.txt
 armgcc/CMakeFiles/
 armgcc/Makefile
@@ -13,3 +13,4 @@ armgcc/output.map
 armgcc/debug/
 armgcc/release/
 .vscode/
+.cache

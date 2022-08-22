@@ -60,7 +60,6 @@ set(CMAKE_MODULE_PATH
     ${ProjDirPath}/../CMSIS/DSP
     ${ProjDirPath}/../xip
     ${ProjDirPath}/../components/Arduino
-    ${ProjDirPath}/../components/FastLED
     ${ProjDirPath}/../middleware/usb
     ${ProjDirPath}/../middleware/usb/osa
     # ${ProjDirPath}/../components/Teensy_Audio
@@ -110,8 +109,6 @@ include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
 
 include(component_Arduino_MIMXRT1011)
-
-# include(driver_FastLED_MIMXRT1011)
 
 # include(component_Teensy_Audio_MIMXRT1011)
 
