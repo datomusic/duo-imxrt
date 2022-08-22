@@ -1,6 +1,7 @@
 # CROSS COMPILER SETTING
 SET(CMAKE_SYSTEM_NAME Generic)
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.0)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # THE VERSION NUMBER
 SET (Tutorial_VERSION_MAJOR 1)
@@ -40,6 +41,11 @@ file(GLOB SRC_FILES
 add_executable(${MCUX_SDK_PROJECT_NAME} 
     ${SRC_FILES}
 )
+
+add_definitions(-DARDUINO=100)
+add_definitions(-D__arm__)
+add_definitions(-DTEENSYDUINO)
+add_definitions(-D__IMXRT1062__)
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${SOURCE_DIR}
