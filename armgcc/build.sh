@@ -1,9 +1,7 @@
-./clean.sh
-
 BUILD_TYPE="$1"
 
 if [[ -z "$BUILD_TYPE" ]]; then
-  BUILD_TYPE=debug
+  BUILD_TYPE=flexspi_nor_debug
 fi
 
 TOOLCHAIN_DIR="${TOOLCHAIN_DIR:/usr}"
