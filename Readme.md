@@ -1,6 +1,7 @@
 # Requirements
 ## NXP MCUXpresso SDK
 https://github.com/NXPmicro/mcux-sdk
+
 API Docs: https://mcuxpresso.nxp.com/api_doc/dev/116/index.html
 
 ## ArduinoCore-imxrt 
