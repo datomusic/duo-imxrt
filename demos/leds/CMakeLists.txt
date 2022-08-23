@@ -45,11 +45,6 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
     ${LIB_SRC_FILES}
 )
 
-add_definitions(-DARDUINO=100)
-add_definitions(-D__arm__)
-add_definitions(-DTEENSYDUINO)
-add_definitions(-D__IMXRT1010__)
-
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/src/lib
 )
