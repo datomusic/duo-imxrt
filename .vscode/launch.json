@@ -11,7 +11,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "pyocd",
-            "armToolchainPath": "/usr/bin/",
+            "armToolchainPath": "/opt/homebrew/bin",
             "device": "mimxrt1010",
             "targetId": "mimxrt1010",
             "interface": "swd",
