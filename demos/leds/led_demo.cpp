@@ -1,5 +1,9 @@
 #include "Arduino.h"
 #include "pin_mux.h"
+#include "leds.h"
+
+using LEDs::Pixel;
+
 /* #define PIN        NEOPIXEL_PIN */
 /* #define NUMPIXELS 8 */
 
@@ -30,34 +34,23 @@ int main(void) {
   BOARD_InitBootPins();
   BOARD_InitBootClocks();
   BOARD_InitDebugConsole();
-  BOARD_InitNeopixels();
+  LEDs::init();
   init(); // Seeeduino init
 
   /* pixels.begin(); */
 
   int counter = 0;
-  int counter2 = 0;
 
   const int PIXEL_COUNT = 4;
-  Pixel pixels[PIXEL_COUNT] = {
-    Pixel{0, 0xFF, 0},
-    Pixel{0, 0, 0},
-    Pixel{0, 0xFF, 0},
-    Pixel{0xFF, 0x0, 0x0}
-  };
+  Pixel pixels[PIXEL_COUNT] = {Pixel{0, 0xFF, 0}, Pixel{0, 0, 0},
+                               Pixel{0, 0xFF, 0}, Pixel{0xFF, 0x0, 0x0}};
 
   while (1) {
     if (++counter > 1000) {
       ++pixels[1].b;
       counter = 0;
-      board_rgb_write(pixels, PIXEL_COUNT);
+      LEDs::show(pixels, PIXEL_COUNT);
     }
-
-    if (++counter2 > 4000) {
-      ++pixels[2].r;
-      counter2 = 0;
-    }
-
 
     delayMicroseconds(1);
   }
