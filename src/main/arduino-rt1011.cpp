@@ -76,7 +76,6 @@ int main(void) {
       counter2 = 0;
     }
 
-
     delayMicroseconds(1);
   }
 }
