@@ -30,8 +30,6 @@
 #include "fsl_lpuart.h"
 #include "fsl_common.h"
 #include "fsl_gpio.h"
-#include "fastled_compat.h"
-
 
 #define USB_VID 0x2886 // SeeedStudio
 #define USB_PID 0x802B // TODO: replace
