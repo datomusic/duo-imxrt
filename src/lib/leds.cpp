@@ -18,22 +18,24 @@ static inline uint8_t apply_percentage(uint8_t brightness) {
 namespace LEDs {
 
 void show(struct Pixel const *pixels, int pixel_count) {
-  uint8_t *pixel_bytes = (uint8_t *)pixels;
-  uint32_t const byte_count = pixel_count * 3;
-
-  uint8_t const *p = pixel_bytes, *end = p + byte_count;
-  uint8_t pix = *p++, mask = 0x80;
-  uint32_t start = 0;
-  uint32_t cyc = 0;
+  const uint8_t *const pixel_bytes = (uint8_t *)pixels;
+  const uint32_t byte_count = pixel_count * 3;
 
   // assumes 800_000Hz frequency
   // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
   // 1250000->0.8us
   // TODO: try to get dynamic weighting working again
-  uint32_t const sys_freq = SystemCoreClock;
-  uint32_t const interval = sys_freq / MAGIC_800_INT;
-  uint32_t const t0 = sys_freq / MAGIC_800_T0H;
-  uint32_t const t1 = sys_freq / MAGIC_800_T1H;
+  const uint32_t sys_freq = SystemCoreClock;
+  const uint32_t interval = sys_freq / MAGIC_800_INT;
+  const uint32_t t0 = sys_freq / MAGIC_800_T0H;
+  const uint32_t t1 = sys_freq / MAGIC_800_T1H;
+
+  const uint8_t *p = pixel_bytes;
+  const uint8_t *const end = p + byte_count;
+  uint8_t pix = *p++;
+  uint8_t mask = 0x80;
+  uint32_t start = 0;
+  uint32_t cyc = 0;
 
   __disable_irq();
 
@@ -56,8 +58,10 @@ void show(struct Pixel const *pixels, int pixel_count) {
       ;
 
     if (!(mask >>= 1)) {
-      if (p >= end)
+      if (p >= end) {
         break;
+      }
+
       pix = *p++;
       mask = 0x80;
     }
