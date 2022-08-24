@@ -11,13 +11,13 @@
 #define MAGIC_800_T0H 2800000 // ~0.36 us -> 0.44 field
 #define MAGIC_800_T1H 1350000 // ~0.74 us -> 0.84 field
 
-static inline uint8_t apply_percentage(uint8_t brightness) {
+static inline uint8_t apply_percentage(const uint8_t brightness) {
   return (uint8_t)((brightness * NEOPIXEL_BRIGHTNESS) >> 8);
 }
 
 namespace LEDs {
 
-void show(struct Pixel const *pixels, int pixel_count) {
+void show(const Pixel *const pixels, const int pixel_count) {
   const uint8_t *const pixel_bytes = (uint8_t *)pixels;
   const uint32_t byte_count = pixel_count * 3;
 

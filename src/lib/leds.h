@@ -3,18 +3,20 @@
 
 #include "fsl_common.h"
 
-// Control NeoPixel(WS2812) leds by bitbanging.
+// Control NeoPixel(WS2812) LEDs by bitbanging.
 
 namespace LEDs {
-// NeoPixel color order is GRB, and the order of fields in this struct matters.
+
+// NeoPixel color order is GRB, and is represented by the order of fields in
+// this struct.
 struct Pixel {
   uint8_t g;
   uint8_t r;
   uint8_t b;
 };
 
-void init(void);
-void show(Pixel const *pixels, int count);
+void init();
+void show(const Pixel *const pixels, int count);
 
 } // namespace LEDs
 
