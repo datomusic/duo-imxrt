@@ -5,15 +5,10 @@
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
-#define NEOPIXEL_BRIGHTNESS 0xFF
 
 #define MAGIC_800_INT 900000  // ~1.11 us -> 1.2  field
 #define MAGIC_800_T0H 2800000 // ~0.36 us -> 0.44 field
 #define MAGIC_800_T1H 1350000 // ~0.74 us -> 0.84 field
-
-static inline uint8_t apply_percentage(const uint8_t brightness) {
-  return (uint8_t)((brightness * NEOPIXEL_BRIGHTNESS) >> 8);
-}
 
 namespace LEDs {
 
