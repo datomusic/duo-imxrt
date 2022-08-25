@@ -74,7 +74,9 @@ synth_parameters synth;
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {}
 void note_off() {}
 
-int potRead(uint8_t num) {}
+int potRead(uint8_t num) {
+  return 0;
+}
 
 const int SYNC_DETECT = 0;
 const int SYNC_OUT_PIN = 0;
