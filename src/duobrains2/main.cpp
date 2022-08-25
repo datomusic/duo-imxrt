@@ -4,6 +4,9 @@
 #include "stubs/sequencer_stub.h"
 #include "Sequencer.h"
 
+#include "stubs/leds_stub.h"
+#include "Leds.h"
+
 static void init_board(){
   BOARD_ConfigMPU();
   BOARD_InitBootPins();
