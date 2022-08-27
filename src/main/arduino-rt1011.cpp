@@ -23,11 +23,11 @@ int main(void)
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
-    BOARD_InitNeopixels();
+    //BOARD_InitNeopixels();
     init(); // Seeeduino init
 
-    uint8_t blue[] = {0x00,0x00,0xff};
-    board_rgb_write(blue);
+    //uint8_t blue[] = {0x00,0x00,0xff};
+    // board_rgb_write(blue);
     BS814A_begin();
 
     #define PIN_MQS_R D7
@@ -45,14 +45,14 @@ int main(void)
 
     while (1)
     {
-        uint8_t value = BS814A_readRaw();
-        uint8_t g = (1-bitRead(value, 1)) * 100;
-        uint8_t b = (1-bitRead(value, 2)) * 100;
-        uint8_t r = (1-bitRead(value, 3)) * 100;
-        uint8_t potRGB[] = {r,g,b};
+        //uint8_t value = BS814A_readRaw();
+        //uint8_t g = (1-bitRead(value, 1)) * 100;
+        //uint8_t b = (1-bitRead(value, 2)) * 100;
+        //uint8_t r = (1-bitRead(value, 3)) * 100;
+        //uint8_t potRGB[] = {r,g,b};
         digitalWrite(PIN_MQS_R, LOW);
         delayMicroseconds(2000);
-        board_rgb_write(potRGB);
+        //board_rgb_write(potRGB);
         digitalWrite(PIN_MQS_R, HIGH);
         delayMicroseconds(2020);
     }
