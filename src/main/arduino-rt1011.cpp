@@ -1,18 +1,8 @@
 #include "pin_mux.h"
 #include "Arduino.h"
 #define TEENSYDUINO 999
-// #include "Audio.h"
 #include "sync.h"
 #include "board.h"
-
-// GUItool: begin automatically generated code
-// AudioSynthWaveformSine   sine1;          //xy=305,275
-// AudioOutputMQS           mqs1;           //xy=479,272
-// AudioConnection          patchCord1(sine1, 0, mqs1, 0);
-// AudioConnection          patchCord2(sine1, 0, mqs1, 1);
-// GUItool: end automatically generated code
-
-
 
 /*!
  * @brief Main function

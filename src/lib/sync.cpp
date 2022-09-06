@@ -21,4 +21,16 @@ namespace Sync {
         gpio_pin_config_t led2_config = { kGPIO_DigitalOutput, 0};
         GPIO_PinInit(LED2_PORT, LED2_PIN, &led2_config);
     }
+    
+    bool jackDetected() {
+        return (GPIO_PinRead(SYNC_DETECT_PORT, SYNC_DETECT_PIN) == 1U);
+    }
+
+    uint32_t read() {
+        return GPIO_PinRead(SYNC_IN_PORT, SYNC_IN_PIN);
+    }
+    
+    void write(uint8_t value) {
+        GPIO_PinWrite(SYNC_OUT_PORT, SYNC_OUT_PIN, value);
+    }
 }
