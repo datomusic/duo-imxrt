@@ -1,0 +1,3 @@
+namespace Sync {
+    void init();
+}
