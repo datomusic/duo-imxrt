@@ -75,6 +75,8 @@ include(driver_common_MIMXRT1011)
 
 include(driver_edma_MIMXRT1011)
 
+include(driver_sai_edma_MIMXRT1011)
+
 include(device_MIMXRT1011_CMSIS_MIMXRT1011)
 
 include(utility_debug_console_MIMXRT1011)
