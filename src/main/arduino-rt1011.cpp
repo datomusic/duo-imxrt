@@ -11,11 +11,13 @@ int main(void)
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
-    //BOARD_InitNeopixels();
     init(); // Seeeduino init
+
 
     while (1)
     {
 
     }
+
 }
+
