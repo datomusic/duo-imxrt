@@ -39,6 +39,7 @@ extern "C"
 {
 #endif // __cplusplus
 
+#define D0   0U
 #define D1   1U
 #define D2   2U
 #define D3   3U
@@ -63,25 +64,13 @@ extern "C"
 
 #define LED_BUILTIN USER_LED
 
-#define UART_INTERFACES_COUNT 3
+#define UART_INTERFACES_COUNT 1
 
 #define PIN_UART1_RX      D0 // GPIO_09
 #define PIN_UART1_TX      D1 // GPIO_10
 #define UART1_NUM         LPUART1
 #define UART1_IRQn        LPUART1_IRQn
 #define UART1_HANDLER     LPUART1_IRQHandler
-
-#define PIN_UART2_RX      J4_11 // GPIO_13
-#define PIN_UART2_TX      J4_10 // GPIO_AD_00
-#define UART2_NUM         LPUART2
-#define UART2_IRQn        LPUART2_IRQn
-#define UART2_HANDLER     LPUART2_IRQHandler
-
-#define PIN_UART3_RX      USER_LED // GPIO_11
-#define PIN_UART3_TX      J4_16 // GPIO_12
-#define UART3_NUM         LPUART3
-#define UART3_IRQn        LPUART3_IRQn
-#define UART3_HANDLER     LPUART3_IRQHandler
 
 #define I2C1    LPI2C1
 #define I2C1_SCL   

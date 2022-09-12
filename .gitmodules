@@ -1,0 +1,3 @@
+[submodule "components/arduino_midi_library"]
+	path = components/arduino_midi_library
+	url = https://github.com/datomusic/arduino_midi_library

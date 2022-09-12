@@ -10,6 +10,9 @@ const PinDescription g_APinDescription[] =
       .PIN = 9,
       .FUN_GPIO = {
           IOMUXC_GPIO_09_GPIOMUX_IO09
+      },
+      .FUN_UART = {
+        IOMUXC_GPIO_09_LPUART1_RXD
       }
   },
 {   //D1 GPIO_10 J56 #4
@@ -17,6 +20,9 @@ const PinDescription g_APinDescription[] =
       .PIN = 10,
       .FUN_GPIO = {
           IOMUXC_GPIO_10_GPIOMUX_IO10
+      },
+      .FUN_UART = {
+        IOMUXC_GPIO_10_LPUART1_TXD
       }
   },
 {   //D2 GPIO_AD_05 J56 #6
