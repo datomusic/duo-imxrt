@@ -1,6 +1,5 @@
 #include "pin_mux.h"
 #include "Arduino.h"
-#define TEENSYDUINO 999
 
 /*!
  * @brief Main function
@@ -17,6 +16,6 @@ int main(void)
 
     while (1)
     {
-       
+
     }
 }
