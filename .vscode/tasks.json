@@ -4,7 +4,7 @@
         {
             "type": "shell",
             "label": "Build FlexSPI Debug",
-            "command": "export ARMGCC_DIR=/opt/homebrew;./build_flexspi_nor_debug.sh",
+            "command": "export ARMGCC_DIR=/opt/homebrew;./build.sh flexspi_nor_debug",
             "options": {
                 "cwd": "${workspaceFolder}/armgcc"
             },
@@ -20,7 +20,7 @@
         {
             "type": "shell",
             "label": "Build Debug",
-            "command": "export ARMGCC_DIR=/opt/homebrew;./build_debug.sh",
+            "command": "export ARMGCC_DIR=/opt/homebrew;./build.sh debug",
             "options": {
                 "cwd": "${workspaceFolder}/armgcc"
             },

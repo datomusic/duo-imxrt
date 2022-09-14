@@ -28,22 +28,27 @@ project(arduino-rt1011)
 set(MCUX_SDK_PROJECT_NAME arduino-rt1011.elf)
 
 include(${ProjDirPath}/flags.cmake)
-
 include(${ProjDirPath}/config.cmake)
 
-add_executable(${MCUX_SDK_PROJECT_NAME} 
-"${ProjDirPath}/../arduino-rt1011.cpp"
-"${ProjDirPath}/../pin_mux.c"
-"${ProjDirPath}/../pin_mux.h"
-"${ProjDirPath}/../board.c"
-"${ProjDirPath}/../board.h"
-"${ProjDirPath}/../clock_config.c"
-"${ProjDirPath}/../clock_config.h"
-"${ProjDirPath}/../variant.c"
+SET(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/)
+
+file(GLOB SRC_FILES
+    ${SOURCE_DIR}/lib/*.cpp
+    ${SOURCE_DIR}/lib/*.c
+    ${SOURCE_DIR}/main/arduino-rt1011.cpp
 )
 
+add_executable(${MCUX_SDK_PROJECT_NAME} 
+    ${SRC_FILES}
+)
+
+add_definitions(-DARDUINO=100)
+add_definitions(-D__arm__)
+add_definitions(-DTEENSYDUINO)
+add_definitions(-D__IMXRT1010__)
+
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
-    ${ProjDirPath}/..
+    ${SOURCE_DIR}/lib
     ${ProjDirPath}/../core/Arduino
 )
 
@@ -60,10 +65,10 @@ set(CMAKE_MODULE_PATH
     ${ProjDirPath}/../CMSIS/DSP
     ${ProjDirPath}/../xip
     ${ProjDirPath}/../components/Arduino
-    ${ProjDirPath}/../components/FastLED
     ${ProjDirPath}/../middleware/usb
     ${ProjDirPath}/../middleware/usb/osa
     ${ProjDirPath}/../components/Teensy_Audio
+    ${ProjDirPath}/../components/arduino_midi_library/src
 )
 
 # include modules
@@ -112,8 +117,6 @@ include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
 
 include(component_Arduino_MIMXRT1011)
-
-# include(driver_FastLED_MIMXRT1011)
 
 include(component_Teensy_Audio_MIMXRT1011)
 
