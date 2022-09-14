@@ -67,8 +67,8 @@ set(CMAKE_MODULE_PATH
     ${ProjDirPath}/../components/Arduino
     ${ProjDirPath}/../middleware/usb
     ${ProjDirPath}/../middleware/usb/osa
+    ${ProjDirPath}/../components/Teensy_Audio
     ${ProjDirPath}/../components/arduino_midi_library/src
-    # ${ProjDirPath}/../components/Teensy_Audio
 )
 
 # include modules
@@ -79,6 +79,8 @@ include(driver_clock_MIMXRT1011)
 include(driver_common_MIMXRT1011)
 
 include(driver_edma_MIMXRT1011)
+
+include(driver_sai_edma_MIMXRT1011)
 
 include(device_MIMXRT1011_CMSIS_MIMXRT1011)
 
@@ -116,8 +118,7 @@ include(driver_adc_12b1msps_sar_MIMXRT1011)
 
 include(component_Arduino_MIMXRT1011)
 
-
-# include(component_Teensy_Audio_MIMXRT1011)
+include(component_Teensy_Audio_MIMXRT1011)
 
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--start-group)
 

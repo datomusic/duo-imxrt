@@ -26,11 +26,10 @@
 /*
  (c) Frank B
 */
-
-#if defined(__IMXRT1062__)
-
 #ifndef imxr_hw_h_
 #define imxr_hw_h_
+
+#if defined(__IMXRT1062__)
 
 #define IMXRT_CACHE_ENABLED 2 // 0=disabled, 1=WT, 2= WB
 
@@ -38,10 +37,21 @@
 
 void set_audioClock(int nfact, int32_t nmult, uint32_t ndiv,  bool force = false); // sets PLL4
 
-#endif
+
+#elif defined (__IMXRT1011__)
+#warning "Compiling imxrt_hw for RT1011"
+
+
+#define IMXRT_CACHE_ENABLED 0 // 0=disabled, 1=WT, 2= WB
+
+#include <Arduino.h>
+
+void set_audioClock(int nfact, int32_t nmult, uint32_t ndiv,  bool force = false); // sets PLL4
+
 
 #else
 //No IMXRT
 #define IMXRT_CACHE_ENABLED 0
 #endif
 	
+#endif

@@ -59,7 +59,7 @@
   #define IRQ_SOFTWARE Reserved70_IRQn
 #endif
 
-#define F_CPU 500000000
+// #define F_CPU 500000000
 #define F_CPU_ACTUAL 500000000
 #define NVIC_NUM_INTERRUPTS NUMBER_OF_INT_VECTORS
 

@@ -27,7 +27,7 @@
  (c) Frank B
 */
 
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__) || defined(__MIMXRT1011__)
+#if defined(__IMXRT1052__) || defined(__IMXRT1062__) || defined(__IMXRT1011__)
 #include "imxrt_hw.h"
 
 FLASHMEM
