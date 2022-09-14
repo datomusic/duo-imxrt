@@ -12,13 +12,11 @@
  ******************************************************************************/
 /* SAI instance and clock */
 #define DEMO_SAI SAI3
-#define DEMO_SAI_CHANNEL (0)
-#define DEMO_AUDIO_WORD_WIDTH kSAI_WordWidth16bits
 
 /* Select Audio PLL (786.432 MHz) as sai1 clock source */
 #define DEMO_SAI_CLOCK_SOURCE_SELECT (2U)
 /* Clock pre divider for sai clock source */
-#define DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER (3U)
+#define DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER (4U)
 /* Clock divider for sai clock source */
 #define DEMO_SAI_CLOCK_SOURCE_DIVIDER (1U)
 /* Get frequency of sai clock: SAI3_Clock = 786.432MHz /(3+1)/(1+1) = 98.304MHz */
@@ -49,7 +47,6 @@ const clock_audio_pll_config_t audioPllConfig = {
 };
 AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle) = {0};
 edma_handle_t g_dmaHandle                                = {0};
-
 volatile bool isFinished      = false;
 
 static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
@@ -59,7 +56,7 @@ static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status,
 
 void configMQS(void)
 {
-    CCM->CCGR0 = (CCM->CCGR0 & (~CCM_CCGR0_CG2_MASK)) | CCM_CCGR0_CG2(3);         /* Enable MQS hmclk. */
+    CCM->CCGR0 = CCM->CCGR0 & (~CCM_CCGR0_CG2_MASK) | CCM_CCGR0_CG2(3);         /* Enable MQS hmclk. */
 
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);                             /* Reset MQS. */
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false);                            /* Release reset MQS. */
@@ -89,18 +86,6 @@ void amp_enable(void) {
     GPIO_PinInit(AMP_MUTE_PORT , AMP_MUTE_PIN, &amp_mute_config); 
     GPIO_PinWrite(AMP_MUTE_PORT, AMP_MUTE_PIN, 0);
 }
-
-void leds_enable(void) {
-   #define LED1_PINMUX IOMUXC_GPIO_08_GPIOMUX_IO08
-   #define LED1_PORT GPIO1
-   #define LED1_PIN 8U
-
-   IOMUXC_SetPinMux(LED1_PINMUX, 0U);
-   gpio_pin_config_t led1_config = { kGPIO_DigitalOutput, 0};
-   GPIO_PinInit(LED1_PORT , LED1_PIN, &led1_config); 
-   GPIO_PinWrite(LED1_PORT, LED1_PIN, 0); 
-}
-
 /*!
  * @brief Main function
  */
@@ -117,7 +102,6 @@ int main(void)
     BOARD_InitDebugConsole();
     headphone_enable();
     amp_enable();
-    leds_enable();
 
     /*Clock setting for SAI. */
     CLOCK_SetMux(kCLOCK_Sai3Mux, DEMO_SAI_CLOCK_SOURCE_SELECT);
@@ -143,23 +127,17 @@ int main(void)
     SAI_TransferTxCreateHandleEDMA(DEMO_SAI, &txHandle, callback, NULL, &g_dmaHandle);
 
     /* I2S mode configurations */
-    /* MQS expects
-       - 2-channel, LSB-valid 16-bit, MSB shift-out first serial data (sdata)
-       - Frame sync asserting with the first bit of the frame (fs)
-       - Bit clock used to shift data out on the positive clock edge (bclk)
-    */
-    SAI_GetLeftJustifiedConfig(&config, DEMO_AUDIO_WORD_WIDTH, kSAI_Stereo, 1U << DEMO_SAI_CHANNEL);
+    SAI_GetClassicI2SConfig(&config, kSAI_WordWidth16bits, kSAI_Stereo, 1U << 0u);
     config.frameSync.frameSyncEarly = false;
     config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
     SAI_TransferTxSetConfigEDMA(DEMO_SAI, &txHandle, &config);
     /* set bit clock divider */
-    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate48KHz, DEMO_AUDIO_WORD_WIDTH,2);
+    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate48KHz, kSAI_WordWidth16bits, 2u);
 
     configMQS();
-    SDK_DelayAtLeastUs(1000, SystemCoreClock);
 
     /*  xfer structure */
-    xfer.data = (uint8_t *)(int32_t)music;
+    xfer.data = (uint8_t *)(uint32_t)music;
     xfer.dataSize = MUSIC_LEN;
 
     while (1)
