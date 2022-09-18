@@ -1,6 +1,7 @@
 #define UART_RETRY_TIMES true
 #include "pin_mux.h"
 #include "Arduino.h"
+#include "board_init.h"
 // #include "Audio.h"
 #include <MIDI.h>
 
@@ -23,12 +24,7 @@ void handleNoteOff(byte channel, byte note, byte velocity) {
  */
 int main(void)
 {
-    /* Board pin init */
-    BOARD_ConfigMPU();
-    BOARD_InitBootPins();
-    BOARD_InitBootClocks();
-    BOARD_InitDebugConsole();
-    init(); 
+    board_init();
 
     IOMUXC_SetPinMux(LED2_PINMUX, 0U);
     gpio_pin_config_t led2_config = { kGPIO_DigitalOutput, 0};
