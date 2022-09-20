@@ -14,6 +14,12 @@ add_definitions(-DCFG_TUSB_MCU=OPT_MCU_MIMXRT)
 add_executable(${EXECUTABLE_NAME} 
     ${CMAKE_CURRENT_SOURCE_DIR}/usb_midi.cpp
     ${LIB_SRC_FILES}
+    ${CMAKE_CURRENT_LIST_DIR}/../../deps/tinyusb/src/tusb.c
+    ${CMAKE_CURRENT_LIST_DIR}/../../deps/tinyusb/src/device/usbd.c
+    ${CMAKE_CURRENT_LIST_DIR}/../../deps/tinyusb/src/device/usbd_control.c
+    ${CMAKE_CURRENT_LIST_DIR}/../../deps/tinyusb/src/class/midi/midi_device.c
+    ${CMAKE_CURRENT_LIST_DIR}/../../deps/tinyusb/src/common/tusb_fifo.c
+    ${CMAKE_CURRENT_LIST_DIR}/../../deps/tinyusb/src/portable/nxp/khci/dcd_khci.c
 )
 
 
