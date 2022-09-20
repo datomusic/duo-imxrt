@@ -13,7 +13,7 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
 
 include(${CMAKE_CURRENT_LIST_DIR}/flags.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/config.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/common_modules.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/modules.cmake)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
   -Wl,--start-group m
