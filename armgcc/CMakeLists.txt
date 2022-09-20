@@ -27,8 +27,8 @@ project(arduino-rt1011)
 
 set(MCUX_SDK_PROJECT_NAME arduino-rt1011.elf)
 
-include(${ProjDirPath}/flags.cmake)
-include(${ProjDirPath}/config.cmake)
+include(${ProjDirPath}/../cmake/flags.cmake)
+include(${ProjDirPath}/../cmake/config.cmake)
 
 SET(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/)
 

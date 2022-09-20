@@ -248,6 +248,9 @@ SET(CMAKE_CXX_FLAGS_FLEXSPI_NOR_RELEASE " \
     -fno-rtti \
     -fno-exceptions \
 ")
+
+set(MIMXRT1011_LINKER_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/../armgcc/MIMXRT1011xxxxx_ram.ld)
+
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG " \
     ${CMAKE_EXE_LINKER_FLAGS_DEBUG} \
     -g \
@@ -275,7 +278,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG " \
     -Xlinker \
     -Map=output.map \
     -Wl,--print-memory-usage \
-    -T${ProjDirPath}/MIMXRT1011xxxxx_ram.ld -static \
+    -T${MIMXRT1011_LINKER_SCRIPT} -static \
 ")
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE " \
     ${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
@@ -303,7 +306,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE " \
     -Xlinker \
     -Map=output.map \
     -Wl,--print-memory-usage \
-    -T${ProjDirPath}/MIMXRT1011xxxxx_ram.ld -static \
+    -T${MIMXRT1011_LINKER_SCRIPT} -static \
 ")
 SET(CMAKE_EXE_LINKER_FLAGS_FLEXSPI_NOR_DEBUG " \
     ${CMAKE_EXE_LINKER_FLAGS_FLEXSPI_NOR_DEBUG} \
@@ -332,7 +335,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_FLEXSPI_NOR_DEBUG " \
     -Xlinker \
     -Map=output.map \
     -Wl,--print-memory-usage \
-    -T${ProjDirPath}/MIMXRT1011xxxxx_flexspi_nor.ld -static \
+    -T${MIMXRT1011_LINKER_SCRIPT} -static \
 ")
 SET(CMAKE_EXE_LINKER_FLAGS_FLEXSPI_NOR_RELEASE " \
     ${CMAKE_EXE_LINKER_FLAGS_FLEXSPI_NOR_RELEASE} \
@@ -360,5 +363,5 @@ SET(CMAKE_EXE_LINKER_FLAGS_FLEXSPI_NOR_RELEASE " \
     -Xlinker \
     -Map=output.map \
     -Wl,--print-memory-usage \
-    -T${ProjDirPath}/MIMXRT1011xxxxx_flexspi_nor.ld -static \
+    -T${MIMXRT1011_LINKER_SCRIPT} -static \
 ")
