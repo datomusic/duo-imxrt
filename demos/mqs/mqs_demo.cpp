@@ -132,7 +132,7 @@ int main(void)
     config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
     SAI_TransferTxSetConfigEDMA(DEMO_SAI, &txHandle, &config);
     /* set bit clock divider */
-    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate48KHz, kSAI_WordWidth16bits, 2u);
+    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
 
     configMQS();
 
