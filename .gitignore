@@ -16,3 +16,5 @@ armgcc/release/
 .vscode/
 .cache
 compile_commands.json
+*.o
+*.d

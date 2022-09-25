@@ -6,7 +6,7 @@
 using LEDs::Pixel;
 
 int main(void) {
-  board_init();
+  dato_board_init();
   LEDs::init();
 
   const int PIXEL_COUNT = 19;

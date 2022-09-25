@@ -3,5 +3,7 @@ set(LIB_INCLUDE_DIRS ${LIB_SOURCE_DIR})
 
 file(GLOB LIB_SRC_FILES
     ${LIB_SOURCE_DIR}/*.cpp
+    ${LIB_SOURCE_DIR}/usb/usb.cpp
+    ${LIB_SOURCE_DIR}/usb/usb_descriptors.c
     ${LIB_SOURCE_DIR}/*.c
 )
