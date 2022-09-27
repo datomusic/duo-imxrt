@@ -84,8 +84,8 @@ extern "C"
 
 #define UART_INTERFACES_COUNT 1
 
-#define PIN_UART1_RX      D0 // GPIO_09
-#define PIN_UART1_TX      D1 // GPIO_10
+#define PIN_UART1_RX      0U // GPIO_09
+#define PIN_UART1_TX      1U // GPIO_10
 #define UART1_NUM         LPUART1
 #define UART1_IRQn        LPUART1_IRQn
 #define UART1_HANDLER     LPUART1_IRQHandler

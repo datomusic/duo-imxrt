@@ -13,4 +13,4 @@ const PinDescription g_APinDescription[] =
       }
   },
   // TODO: add all pin mappings for DUO Brains
-}
+};
