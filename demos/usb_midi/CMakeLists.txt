@@ -41,7 +41,6 @@ add_executable(${EXECUTABLE_NAME}
     ${TUSB_SRC}/class/vendor/vendor_device.c
 )
 
-
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${LIB_INCLUDE_DIRS}

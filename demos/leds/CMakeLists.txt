@@ -13,4 +13,9 @@ add_executable(${EXECUTABLE_NAME}
     ${LIB_SRC_FILES}
 )
 
+target_include_directories(${EXECUTABLE_NAME} PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${LIB_INCLUDE_DIRS}
+)
+
 include(${COMMON_CMAKE}/common.cmake)
