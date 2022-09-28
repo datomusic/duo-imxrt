@@ -164,7 +164,7 @@ void analogWrite(uint32_t pin, uint32_t value)
     PWM_GetDefaultConfig(&pwmConfig);                    
     pwmConfig.reloadLogic = kPWM_ReloadPwmFullCycle; 
     pwmConfig.pairOperation = kPWM_Independent;      
-    PWM_Init(g_pinDes->PWM, kPWM_Module_0, &pwmConfig);
+    PWM_Init(g_pinDes->PWM, g_pinDes->pwm_submodule, &pwmConfig);
 
     pwmSignal[0].pwmChannel = g_pinDes->pwm_channel;             
     pwmSignal[0].level = kPWM_HighTrue;              
