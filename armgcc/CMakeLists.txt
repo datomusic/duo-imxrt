@@ -78,6 +78,8 @@ include(driver_clock_MIMXRT1011)
 
 include(driver_common_MIMXRT1011)
 
+include(driver_pwm_MIMXRT1011)
+
 include(driver_edma_MIMXRT1011)
 
 include(driver_sai_edma_MIMXRT1011)
