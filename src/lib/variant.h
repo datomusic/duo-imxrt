@@ -30,6 +30,7 @@
 #include "fsl_lpuart.h"
 #include "fsl_common.h"
 #include "fsl_gpio.h"
+#include "fsl_iomuxc.h"
 
 #define USB_VID 0x16D0 // MCS Electronics
 #define USB_PID 0x10A7 // DUO Brains 2 VID
@@ -40,27 +41,75 @@ extern "C"
 #endif // __cplusplus
 
 // GPIO_0
-#define PIN_SW1              0U
-#define PIN_HP_JACK_DETECT   1U
-#define PIN_SW2              2U
-#define PIN_TOUCH_CLK        3U
-#define PIN_TOUCH_DATA       4U
-#define PIN_SYNC_JACK_DETECT 5U
-#define PIN_LED_1            6U
-#define PIN_LED_2            7U
-#define PIN_LED_3            8U
-#define PIN_MIDI_RX          9U
-#define PIN_MIDI_TX         10U
-#define PIN_ROW_4           11U
-#define PIN_ROW_2           12U
-#define PIN_ROW_1           13U
+#define GPIO_00              0U
+#define GPIO_01              1U
+#define GPIO_02              2U
+#define GPIO_03              3U
+#define GPIO_04              4U
+#define GPIO_05              5U
+#define GPIO_06              6U
+#define GPIO_07              7U
+#define GPIO_08              8U
+#define GPIO_09              9U
+#define GPIO_10             10U
+#define GPIO_11             11U
+#define GPIO_12             12U
+#define GPIO_13             13U
 
 // GPIO_AD
-#define PIN_SYNC_IN         14U
+#define GPIO_AD_00          14U
+#define GPIO_AD_01          15U
+#define GPIO_AD_02          16U
+#define GPIO_AD_03          17U
+#define GPIO_AD_04          18U
+#define GPIO_AD_05          19U
+#define GPIO_AD_06          20U
+#define GPIO_AD_07          21U
+#define GPIO_AD_08          22U
+#define GPIO_AD_09          23U
+#define GPIO_AD_10          24U
+#define GPIO_AD_11          25U
+#define GPIO_AD_12          26U
+#define GPIO_AD_13          27U
+#define GPIO_AD_14          28U
+
+// GPIO_SD
+#define GPIO_SD_00          29U 
+#define GPIO_SD_01          30U 
+#define GPIO_SD_02          31U 
+#define GPIO_SD_03          32U 
+#define GPIO_SD_04          33U 
+#define GPIO_SD_05          34U 
+#define GPIO_SD_06          35U 
+#define GPIO_SD_07          36U 
+#define GPIO_SD_08          37U 
+#define GPIO_SD_09          38U 
+#define GPIO_SD_10          39U 
+#define GPIO_SD_11          40U 
+#define GPIO_SD_12          41U 
+#define GPIO_SD_13          42U 
+
+#define PIN_SW1              GPIO_00
+#define PIN_SW2              GPIO_02
+#define PIN_HP_JACK_DETECT   GPIO_01
+#define PIN_TOUCH_CLK        GPIO_03
+#define PIN_TOUCH_DATA       GPIO_04
+#define PIN_SYNC_JACK_DETECT GPIO_05
+#define PIN_LED_1            GPIO_08
+#define PIN_LED_2            GPIO_07
+#define PIN_LED_3            GPIO_06
+#define PIN_MIDI_RX          GPIO_09
+#define PIN_MIDI_TX          GPIO_10
+#define PIN_ROW_1            GPIO_13
+#define PIN_ROW_2            GPIO_12
+#define PIN_ROW_3            GPIO_SD_04
+#define PIN_ROW_4            GPIO_11
+
+#define PIN_SYNC_IN          GPIO_AD_00
 #define PIN_SYNC_OUT        15U
 #define PIN_MQS_R           16U
-#define PIN_POT_1           17U
-#define PIN_POT_2           18U
+#define PIN_POT_1            GPIO_AD_03
+#define PIN_POT_2            GPIO_AD_04
 #define PIN_COL_6           19U
 #define PIN_COL_4           20U
 #define PIN_COL_3           21U
@@ -70,22 +119,18 @@ extern "C"
 #define PIN_HP_ENABLE       25U
 #define PIN_SWD_CLK         26U
 #define PIN_SWD_SWDIO       27U
-#define PIN_SYN_MUX_IO      28U
+#define PIN_SYN_MUX_IO       GPIO_AD_14
 
-// GPIO_SD
 #define PIN_SYN_ADDR0       29U
 #define PIN_SYN_ADDR1       30U
 #define PIN_SYN_ADDR2       31U
-#define PIN_SD_03           32U
-#define PIN_ROW_3           33U
-
-#define PIN_COL_5           34U
+#define PIN_COL_5           GPIO_SD_13
 
 
 #define UART_INTERFACES_COUNT 1
 
-#define PIN_UART1_RX      0U // GPIO_09
-#define PIN_UART1_TX      1U // GPIO_10
+#define PIN_UART1_RX      GPIO_09 
+#define PIN_UART1_TX      GPIO_10
 #define UART1_NUM         LPUART1
 #define UART1_IRQn        LPUART1_IRQn
 #define UART1_HANDLER     LPUART1_IRQHandler
