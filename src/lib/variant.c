@@ -24,6 +24,12 @@ const PinDescription g_APinDescription[] =
       .PIN = 2,
       .FUN_GPIO = {
           IOMUXC_GPIO_02_GPIOMUX_IO02
+      },
+      .PWM = PWM1,
+      .pwm_submodule = kPWM_Module_0,
+      .pwm_channel = kPWM_PwmA,
+      .FUN_PWM = {
+          IOMUXC_GPIO_02_FLEXPWM1_PWM0_A
       }
   },
    {  
@@ -31,6 +37,12 @@ const PinDescription g_APinDescription[] =
       .PIN = 3,
       .FUN_GPIO = {
           IOMUXC_GPIO_03_GPIOMUX_IO03
+      },
+      .PWM = PWM1,
+      .pwm_submodule = kPWM_Module_0,
+      .pwm_channel = kPWM_PwmB,
+      .FUN_PWM = {
+          IOMUXC_GPIO_03_FLEXPWM1_PWM1_B
       }
   },
    {  
@@ -38,6 +50,12 @@ const PinDescription g_APinDescription[] =
       .PIN = 4,
       .FUN_GPIO = {
           IOMUXC_GPIO_04_GPIOMUX_IO04
+      },
+      .PWM = PWM1,
+      .pwm_submodule = kPWM_Module_1,
+      .pwm_channel = kPWM_PwmA,
+      .FUN_PWM = {
+          IOMUXC_GPIO_04_FLEXPWM1_PWM1_A
       }
   },
    {  
@@ -45,6 +63,12 @@ const PinDescription g_APinDescription[] =
       .PIN = 5,
       .FUN_GPIO = {
           IOMUXC_GPIO_05_GPIOMUX_IO05
+      },
+      .PWM = PWM1,
+      .pwm_submodule = kPWM_Module_2,
+      .pwm_channel = kPWM_PwmB,
+      .FUN_PWM = {
+          IOMUXC_GPIO_05_FLEXPWM1_PWM2_B
       }
   },
    {  
