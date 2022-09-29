@@ -175,6 +175,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 19,
+      .ADC = ADC1,
+      .adcChannel = 5,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_05_GPIOMUX_IO19
       }
@@ -182,6 +184,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 20,
+      .ADC = ADC1,
+      .adcChannel = 6,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_06_GPIOMUX_IO20
       }
@@ -189,6 +193,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 21,
+      .ADC = ADC1,
+      .adcChannel = 7,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_07_GPIOMUX_IO21
       }
@@ -196,6 +202,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 22,
+      .ADC = ADC1,
+      .adcChannel = 8,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_08_GPIOMUX_IO22
       }
@@ -203,6 +211,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 23,
+      .ADC = ADC1,
+      .adcChannel = 9,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_09_GPIOMUX_IO23
       }
@@ -210,6 +220,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 24,
+      .ADC = ADC1,
+      .adcChannel = 10,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_10_GPIOMUX_IO24
       }
@@ -217,6 +229,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 25,
+      .ADC = ADC1,
+      .adcChannel = 11,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_11_GPIOMUX_IO25
       }
@@ -224,6 +238,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 26,
+      .ADC = ADC1,
+      .adcChannel = 12,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_12_GPIOMUX_IO26
       }
@@ -231,6 +247,8 @@ const PinDescription g_APinDescription[] =
     {  
       .GROUP = GPIO1,
       .PIN = 27,
+      .ADC = ADC1,
+      .adcChannel = 13,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_13_GPIOMUX_IO27
       }
