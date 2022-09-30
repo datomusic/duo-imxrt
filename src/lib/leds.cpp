@@ -6,9 +6,10 @@
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
 
-#define MAGIC_800_INT 900000  // ~1.11 us -> 1.2  field
-#define MAGIC_800_T0H 2800000 // ~0.36 us -> 0.44 field
-#define MAGIC_800_T1H 1350000 // ~0.74 us -> 0.84 field
+#define MAGIC_800_INT 900'000  // ~1.11 us -> 1.2  field
+#define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
+#define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
+#define MAGIC_800_RST 4000 // 80 us reset time
 
 namespace LEDs {
 
@@ -24,6 +25,7 @@ void show(const Pixel *const pixels, const int pixel_count) {
   const uint32_t interval = sys_freq / MAGIC_800_INT;
   const uint32_t t0 = sys_freq / MAGIC_800_T0H;
   const uint32_t t1 = sys_freq / MAGIC_800_T1H;
+  const uint32_t rst = sys_freq / MAGIC_800_RST;
 
   const uint8_t *p = pixel_bytes;
   const uint8_t *const end = p + byte_count;
@@ -61,6 +63,10 @@ void show(const Pixel *const pixels, const int pixel_count) {
       mask = 0x80;
     }
   }
+  start = DWT->CYCCNT;
+  GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 0);
+  while ((DWT->CYCCNT - start) < rst)
+    ;
   __enable_irq();
 }
 
