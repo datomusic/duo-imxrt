@@ -6,6 +6,7 @@
 #include <USB-MIDI.h>
 
 USBMIDI_CREATE_DEFAULT_INSTANCE();
+
 #define LED2_PINMUX IOMUXC_GPIO_07_GPIOMUX_IO07
 #define LED2_PORT GPIO1
 #define LED2_PIN 7U
@@ -29,9 +30,6 @@ int main(void) {
   GPIO_PinWrite(LED2_PORT, LED2_PIN, 1);
   delay(1000);
   GPIO_PinWrite(LED2_PORT, LED2_PIN, 0);
-
-  Serial.begin(
-      31250U); // This is needed to configure the UART peripheral correctly
 
   MIDI.begin(MIDI_CHANNEL_OMNI); // Listen to all incoming messages
   MIDI.setHandleNoteOn(handleNoteOn);
