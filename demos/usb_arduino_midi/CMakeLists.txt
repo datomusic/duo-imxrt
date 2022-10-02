@@ -1,8 +1,8 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(usb_midi-rt1011)
-set(EXECUTABLE_NAME usb_midi-rt1011.elf)
+project(usb_arduino_midi-rt1011)
+set(EXECUTABLE_NAME usb_arduino_midi-rt1011.elf)
 
 set(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
@@ -15,7 +15,8 @@ add_definitions(-DCFG_TUSB_MCU=OPT_MCU_MIMXRT10XX -DCFG_TUD_MIDI_RX_BUFSIZE=512 
 
 
 add_executable(${EXECUTABLE_NAME} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/usb_midi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/usb_arduino_midi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MIDIUSB.cpp
     ${LIB_SRC_FILES}
 )
 
@@ -23,10 +24,12 @@ add_executable(${EXECUTABLE_NAME}
 include(${COMMON_CMAKE}/common.cmake)
 
 set(TINYUSB_SRC ${CMAKE_CURRENT_LIST_DIR}/../../libraries/tinyusb/src)
+set(ARDUINO_USB_MIDI_SRC ${CMAKE_CURRENT_LIST_DIR}/../../libraries/Arduino-USBMIDI/src)
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${LIB_INCLUDE_DIRS}
     ${TINYUSB_SRC}
+    ${ARDUINO_USB_MIDI_SRC}
 )
 

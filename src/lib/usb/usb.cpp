@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "usb/usb.h"
 #include "device/usbd.h"
 #include "fsl_clock.h"
@@ -12,7 +11,6 @@
 #define CIRCUITPY_USB_HOST_INSTANCE -1
 #endif
 
-
 bool DatoUSB::background_update(void) {
   if (tusb_inited()) {
 #if CFG_TUSB_OS == OPT_OS_NONE
@@ -24,22 +22,25 @@ bool DatoUSB::background_update(void) {
   }
 }
 
-void DatoUSB::midi_send(const int cable_num, const uint8_t packet[],
-                   const int packet_len) {
-  // The MIDI interface always creates input and output port/jack descriptors
-  // regardless of these being used or not. Therefore incoming traffic should be
-  // read (possibly just discarded) to avoid the sender blocking in IO
-  uint8_t recv_packet[4];
-  while (tud_midi_available())
-    tud_midi_packet_read(recv_packet);
+bool DatoUSB::midi_read(uint8_t packet[4]) {
+  bool ret = false;
+  while (tud_midi_available()) {
+    tud_midi_packet_read(packet);
+    ret = true;
+  } 
 
+  return ret;
+}
+
+void DatoUSB::midi_send(const int cable_num, const uint8_t packet[],
+                        const int packet_len) {
   tud_midi_stream_write(cable_num, packet, packet_len);
 }
 
 static void usb_irq_handler(int instance) {
   if (instance == USB_DEVICE_INSTANCE) {
     tud_int_handler(instance);
-  } 
+  }
 }
 
 // These are definitions for machines where sizeof(int) == sizeof(void*),
@@ -72,9 +73,7 @@ static void init_usb_instance(mp_int_t instance) {
   usb_phy->TX = phytx;
 }
 
-static void init_usb_hardware(void) {
-  init_usb_instance(USB_DEVICE_INSTANCE);
-}
+static void init_usb_hardware(void) { init_usb_instance(USB_DEVICE_INSTANCE); }
 
 void DatoUSB::init() {
   init_usb_hardware();
