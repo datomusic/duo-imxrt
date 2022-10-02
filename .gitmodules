@@ -4,3 +4,6 @@
 [submodule "libraries/tinyusb"]
 	path = libraries/tinyusb
 	url = git@github.com:hathach/tinyusb.git
+[submodule "libraries/Arduino-USBMIDI"]
+	path = libraries/Arduino-USBMIDI
+	url = git@github.com:lathoub/Arduino-USBMIDI.git
