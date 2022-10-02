@@ -1,5 +1,6 @@
 set(CMAKE_MODULE_PATH
     ${ROOT_DIR}/components
+    ${ROOT_DIR}/components/arduino_midi_library/src
     ${ROOT_DIR}/devices/MIMXRT1011/drivers
     ${ROOT_DIR}/devices/MIMXRT1011
     ${ROOT_DIR}/devices/MIMXRT1011/utilities
@@ -39,3 +40,4 @@ include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
 include(component_Arduino_MIMXRT1011)
 include(component_tinyusb)
+include(component_arduino_midi_library)
