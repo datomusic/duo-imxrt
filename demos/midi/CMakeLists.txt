@@ -64,6 +64,7 @@ set(CMAKE_MODULE_PATH
     ${ROOT_DIR}/components/Arduino
     ${ROOT_DIR}/middleware/usb
     ${ROOT_DIR}/middleware/usb/osa
+    ${ROOT_DIR}/components/arduino_midi_library/src
 )
 
 # include modules
