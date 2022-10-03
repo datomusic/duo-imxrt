@@ -8,8 +8,6 @@ set(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
 include(${COMMON_CMAKE}/lib_src_files.cmake)
 
-add_definitions(-DMCU_VARIANT=MIMXRT1011)
-
 add_executable(${EXECUTABLE_NAME} 
     ${CMAKE_CURRENT_SOURCE_DIR}/usb_midi.cpp
     ${LIB_SRC_FILES}
