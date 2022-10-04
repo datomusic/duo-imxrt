@@ -43,9 +43,16 @@
 #define DMA_TCD_BITER_ELINKYES_LINKCH DMA_BITER_ELINKYES_LINKCH
 #define NVIC_NUM_INTERRUPTS NUMBER_OF_INT_VECTORS
 #define IRQ_NUMBER_t IRQn_Type
+#define __ARM_ARC_7EM__
+
+
 #ifdef __cplusplus
-extern "C" void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
+extern "C" {
+	__attribute__ ((used, aligned(1024), section(".ivt")))
+	void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
+}
 #else
+__attribute__ ((used, aligned(1024), section(".ivt")))
 extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
 #endif
 
@@ -530,7 +537,6 @@ public:
 	void attachInterrupt(void (*isr)(void)) {
 		// _VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
 	    _VectorsRam[((uint8_t)DMA0_IRQn + channel) + 16] = isr;
-		// NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
 		NVIC_EnableIRQ((IRQn_Type) ((uint8_t)DMA0_IRQn + channel));
 	}
 

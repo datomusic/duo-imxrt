@@ -116,7 +116,7 @@ int main(void)
     PRINTF("SAI MQS DMA example started.\n\r");
 
     /* Create EDMA handle */
-    EDMA_GetDefaultConfig(&dmaConfig);
+    DMA_GetDefaultConfig(&dmaConfig);
     EDMA_Init(DEMO_DMA, &dmaConfig);
     EDMA_CreateHandle(&g_dmaHandle, DEMO_DMA, DEMO_EDMA_CHANNEL);
 
