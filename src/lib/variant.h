@@ -23,51 +23,114 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef PINS_ARDUINO_IMXRT1010_EVK
-#define PINS_ARDUINO_IMXRT1010_EVK
+#ifndef PINS_ARDUINO_DUOBRAINS2
+#define PINS_ARDUINO_DUOBRAINS2
 
 #include "WVariant.h"
 #include "fsl_lpuart.h"
 #include "fsl_common.h"
 #include "fsl_gpio.h"
+#include "fsl_iomuxc.h"
 
-#define USB_VID 0x2886 // SeeedStudio
-#define USB_PID 0x802B // TODO: replace
+#define USB_VID 0x16D0 // MCS Electronics
+#define USB_PID 0x10A7 // DUO Brains 2 VID
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif // __cplusplus
 
-#define D0   0U
-#define D1   1U
-#define D2   2U
-#define D3   3U
-#define D4   4U
-#define D5   5U
-#define D6   6U
-#define D7   7U
-#define D8   8U
-#define D9   9U
-#define D10 10U
-#define D11 11U
-#define D12 12U
+// GPIO_0
+#define GPIO_00              0U
+#define GPIO_01              1U
+#define GPIO_02              2U
+#define GPIO_03              3U
+#define GPIO_04              4U
+#define GPIO_05              5U
+#define GPIO_06              6U
+#define GPIO_07              7U
+#define GPIO_08              8U
+#define GPIO_09              9U
+#define GPIO_10             10U
+#define GPIO_11             11U
+#define GPIO_12             12U
+#define GPIO_13             13U
 
-#define PIN_A0 16U
-#define PIN_A1 17U
-#define PIN_A2 18U
-#define A3 19U
-#define A4 20U
-#define A5 21U
+// GPIO_AD
+#define GPIO_AD_00          14U
+#define GPIO_AD_01          15U
+#define GPIO_AD_02          16U
+#define GPIO_AD_03          17U
+#define GPIO_AD_04          18U
+#define GPIO_AD_05          19U
+#define GPIO_AD_06          20U
+#define GPIO_AD_07          21U
+#define GPIO_AD_08          22U
+#define GPIO_AD_09          23U
+#define GPIO_AD_10          24U
+#define GPIO_AD_11          25U
+#define GPIO_AD_12          26U
+#define GPIO_AD_13          27U
+#define GPIO_AD_14          28U
 
-#define USER_LED 22U
+// GPIO_SD
+#define GPIO_SD_00          29U 
+#define GPIO_SD_01          30U 
+#define GPIO_SD_02          31U 
+#define GPIO_SD_03          32U 
+#define GPIO_SD_04          33U 
+#define GPIO_SD_05          34U 
+#define GPIO_SD_06          35U 
+#define GPIO_SD_07          36U 
+#define GPIO_SD_08          37U 
+#define GPIO_SD_09          38U 
+#define GPIO_SD_10          39U 
+#define GPIO_SD_11          40U 
+#define GPIO_SD_12          41U 
+#define GPIO_SD_13          42U 
 
-#define LED_BUILTIN USER_LED
+#define PIN_SW1              GPIO_00
+#define PIN_SW2              GPIO_02
+#define PIN_HP_JACK_DETECT   GPIO_01
+#define PIN_TOUCH_CLK        GPIO_03
+#define PIN_TOUCH_DATA       GPIO_04
+#define PIN_SYNC_JACK_DETECT GPIO_05
+#define PIN_LED_1            GPIO_08
+#define PIN_LED_2            GPIO_07
+#define PIN_LED_3            GPIO_06
+#define PIN_MIDI_RX          GPIO_09
+#define PIN_MIDI_TX          GPIO_10
+#define PIN_ROW_1            GPIO_13
+#define PIN_ROW_2            GPIO_12
+#define PIN_ROW_3            GPIO_SD_04
+#define PIN_ROW_4            GPIO_11
+
+#define PIN_SYNC_IN          GPIO_AD_00
+#define PIN_SYNC_OUT        15U
+#define PIN_MQS_R           16U
+#define PIN_POT_1            GPIO_AD_03
+#define PIN_POT_2            GPIO_AD_04
+#define PIN_COL_6           19U
+#define PIN_COL_4           20U
+#define PIN_COL_3           21U
+#define PIN_COL_2           22U
+#define PIN_COL_1           23U
+#define PIN_AMP_MUTE        24U
+#define PIN_HP_ENABLE       25U
+#define PIN_SWD_CLK         26U
+#define PIN_SWD_SWDIO       27U
+#define PIN_SYN_MUX_IO       GPIO_AD_14
+
+#define PIN_SYN_ADDR0       29U
+#define PIN_SYN_ADDR1       30U
+#define PIN_SYN_ADDR2       31U
+#define PIN_COL_5           GPIO_SD_13
+
 
 #define UART_INTERFACES_COUNT 1
 
-#define PIN_UART1_RX      D0 // GPIO_09
-#define PIN_UART1_TX      D1 // GPIO_10
+#define PIN_UART1_RX      GPIO_09 
+#define PIN_UART1_TX      GPIO_10
 #define UART1_NUM         LPUART1
 #define UART1_IRQn        LPUART1_IRQn
 #define UART1_HANDLER     LPUART1_IRQHandler
@@ -76,7 +139,6 @@ extern "C"
 #define I2C1_SCL   
 #define I2C1_SDA   
 
-// default I2C PORT
 #define SCL I2C1_SCL
 #define SDA I2C1_SDA
 
@@ -98,4 +160,4 @@ extern "C"
 #endif
 
 
-#endif /*end of  PINS_ARDUINO_IMXRT1010_EVK*/
+#endif /*end of  PINS_ARDUINO_DUOBRAINS2 */

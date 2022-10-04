@@ -1,9 +1,0 @@
-{
-    "cmake.configureOnOpen": false,
-    "cmake.sourceDirectory": "${workspaceFolder}/armgcc",
-    "files.associations": {
-        "mimxrt1011.h": "c",
-        "fsl_common.h": "c",
-        "arduino.h": "c"
-    },
-}

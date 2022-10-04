@@ -1,15 +1,12 @@
 #include "Arduino.h"
+#include "board_init.h"
 #include "leds.h"
 #include "pin_mux.h"
 
 using LEDs::Pixel;
 
 int main(void) {
-  BOARD_ConfigMPU();
-  BOARD_InitBootPins();
-  BOARD_InitBootClocks();
-  BOARD_InitDebugConsole();
-  init(); // Seeeduino init
+  board_init();
   LEDs::init();
 
   const int PIXEL_COUNT = 19;
@@ -50,7 +47,7 @@ int main(void) {
 
     if (fast_speed) {
       delayMicroseconds(10000);
-    }else{
+    } else {
       delayMicroseconds(100000);
     }
   }

@@ -27,6 +27,8 @@
 #ifndef Audio_h_
 #define Audio_h_
 
+#include "rt1011_compat.h"
+
 #if TEENSYDUINO < 120
 #error "Teensyduino version 1.20 or later is required to compile the Audio library."
 #endif

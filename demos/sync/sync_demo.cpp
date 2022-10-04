@@ -1,5 +1,6 @@
 #include "pin_mux.h"
 #include "Arduino.h"
+#include "board_init.h"
 #define TEENSYDUINO 999
 #include "sync.h"
 #include "board.h"
@@ -9,12 +10,7 @@
  */
 int main(void)
 {
-    /* Board pin init */
-    BOARD_ConfigMPU();
-    BOARD_InitBootPins();
-    BOARD_InitBootClocks();
-    BOARD_InitDebugConsole();
-    init(); // Seeeduino init
+    board_init();
     Sync::init(); 
     
     GPIO_PinWrite(SYNC_OUT_PORT, SYNC_OUT_PIN, 1);

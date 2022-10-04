@@ -226,12 +226,13 @@ void AudioOutputMQS::config_i2s(void)
 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
 }
 
-#elif defined(__IMXRT1011__)
+#elif defined(__IMXRT1011__) | true
 #include <Arduino.h>
 #include "output_mqs.h"
 #include "memcpy_audio.h"
-#include "utility/imxrt_hw.h"
 #include "fsl_sai.h"
+#include "fsl_iomuxc.h"
+#include "fsl_clock.h"
 
 audio_block_t * AudioOutputMQS::block_left_1st = NULL;
 audio_block_t * AudioOutputMQS::block_right_1st = NULL;
@@ -253,9 +254,9 @@ void AudioOutputMQS::begin(void)
 
 	config_i2s();
 
-	// CORE_PIN10_CONFIG = 2;//B0_00 MQS_RIGHT
-	// CORE_PIN12_CONFIG = 2;//B0_01 MQS_LEFT
-
+    IOMUXC_SetPinMux(IOMUXC_GPIO_AD_02_MQS_RIGHT, 0);
+	IOMUXC_SetPinMux(IOMUXC_GPIO_AD_01_MQS_LEFT, 0);
+	
 	dma.TCD->SADDR = I2S3_tx_buffer;
 	dma.TCD->SOFF = 2;
 	dma.TCD->ATTR = DMA_ATTR_SSIZE(1) | DMA_ATTR_DSIZE(1);
@@ -389,37 +390,60 @@ void AudioOutputMQS::config_i2s(void)
     CLOCK_EnableClock(kCLOCK_Sai3);
     CLOCK_EnableClock(kCLOCK_Mqs);
 
-//PLL:
-//TODO: Check if frequencies are correct!
-
-	int fs = AUDIO_SAMPLE_RATE_EXACT;
-	// PLL between 27*24 = 648MHz und 54*24=1296MHz
-	int n1 = 4; //SAI prescaler 4 => (n1*n2) = multiple of 4
-	int n2 = 1 + (24000000 * 27) / (fs * 256 * n1);
-
-	double C = ((double)fs * 256 * n1 * n2) / 24000000;
-	int c0 = C;
-	int c2 = 10000;
-	int c1 = C * c2 - (c0 * c2);
-
-	set_audioClock(c0, c1, c2);
-
+    #define MQS_SAI_CLOCK_SOURCE_SELECT (2U)
+    CLOCK_SetMux(kCLOCK_Sai3Mux, MQS_SAI_CLOCK_SOURCE_SELECT);
+    CLOCK_EnableClock(kCLOCK_Mqs);
 	
-    /* Set Sai3 clock source. 
-	00 derive clock from PLL3 PFD2
-	01 derive from pll3_sw_clk
-	10 derive clock from PLL4 11 Reserved
+    IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);                             /* Reset MQS. */
+    IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false);                            /* Release reset MQS. */
+    IOMUXC_MQSEnable(IOMUXC_GPR, true);                                         /* Enable MQS. */
+    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64, 0u);    
+    /*
+     loopdivider = nfact
+     postdivider is hardcoded
 	*/
+	// Set the audio clock
+	/*
+	* AUDIO PLL setting: Frequency = Fref * (DIV_SELECT + NUM / DENOM)
+	*                              = 24 * (32 + 768/1000)
+	*                              = 786.432 MHz
+	*/
+    const clock_audio_pll_config_t audioPllConfig = {
+      .loopDivider = 32,  /* PLL loop divider. Valid range for DIV_SELECT divider value: 27~54. */
+      .postDivider = 1,   /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
+      .numerator = 768,   /* 30 bit numerator of fractional loop divider. */
+      .denominator = 1000,/* 30 bit denominator of fractional loop divider */
+    };
+
+  /*
+    int fs = AUDIO_SAMPLE_RATE_EXACT;
+    // PLL between 27*24 = 648MHz und 54*24=1296MHz
+    int n1 = 4; //SAI prescaler 4 => (n1*n2) = multiple of 4
+    int n2 = 1 + (24000000 * 27) / (fs * 256 * n1);
+
+    double C = ((double)fs * 256 * n1 * n2) / 24000000;
+    int c0 = C;
+    int c2 = 10000;
+    int c1 = C * c2 - (c0 * c2);
+
+    set_audioClock(c0, c1, c2);
+
+    
+      /* Set Sai3 clock source. 
+    00 derive clock from PLL3 PFD2
+    01 derive from pll3_sw_clk
+    10 derive clock from PLL4 11 Reserved
+    */
     CLOCK_SetMux(kCLOCK_Sai3Mux, 2);
-	IOMUXC_SetSaiMClkClockSource(IOMUXC_GPR, kIOMUXC_GPR_SAI3MClk3Sel, 0);
+    IOMUXC_SetSaiMClkClockSource(IOMUXC_GPR, kIOMUXC_GPR_SAI3MClk3Sel, 0);
 
 	// CCM_CSCMR1 = (CCM_CSCMR1 & ~(CCM_CSCMR1_SAI3_CLK_SEL_MASK))
 		//    | CCM_CSCMR1_SAI3_CLK_SEL(2); // &0x03 // (0,1,2): PLL3PFD0, PLL5, PLL4,
 		
 	/* Set SAI3_CLK_PRED. */
-    CLOCK_SetDiv(kCLOCK_Sai3PreDiv, n1-1);
+      /* CLOCK_SetDiv(kCLOCK_Sai3PreDiv, n1-1); */
     /* Set SAI3_CLK_PODF. */
-    CLOCK_SetDiv(kCLOCK_Sai3Div, n2-1);
+    /* CLOCK_SetDiv(kCLOCK_Sai3Div, n2-1); */
 
 	// kIOMUXC_GPR_SAI3MClk3Sel
     // kIOMUXC_GPR_SAI3MClkOutputDir
@@ -439,5 +463,6 @@ void AudioOutputMQS::config_i2s(void)
 // 	I2S3_TCR3 = I2S_TCR3_TCE;
 // 	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
 // 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
+	CLOCK_InitAudioPll(&audioPllConfig);
 }
 #endif //defined(__IMXRT1062__)

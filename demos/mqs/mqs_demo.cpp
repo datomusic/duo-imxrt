@@ -56,8 +56,7 @@ static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status,
 
 void configMQS(void)
 {
-    CCM->CCGR0 = CCM->CCGR0 & (~CCM_CCGR0_CG2_MASK) | CCM_CCGR0_CG2(3);         /* Enable MQS hmclk. */
-
+    CLOCK_EnableClock(kCLOCK_Mqs);
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);                             /* Reset MQS. */
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false);                            /* Release reset MQS. */
     IOMUXC_MQSEnable(IOMUXC_GPR, true);                                         /* Enable MQS. */
@@ -132,7 +131,7 @@ int main(void)
     config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
     SAI_TransferTxSetConfigEDMA(DEMO_SAI, &txHandle, &config);
     /* set bit clock divider */
-    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate48KHz, kSAI_WordWidth16bits, 2u);
+    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
 
     configMQS();
 

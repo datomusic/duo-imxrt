@@ -1,6 +1,0 @@
-[
-    {
-        "name": "GCC Arm Embedded",
-        "toolchainFile": "${workspaceRoot}/armgcc/arm-none-eabi-gcc.cmake"
-    }
-]

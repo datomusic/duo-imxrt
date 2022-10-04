@@ -1,6 +1,7 @@
 # CROSS COMPILER SETTING
 SET(CMAKE_SYSTEM_NAME Generic)
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.0)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # THE VERSION NUMBER
 SET (Tutorial_VERSION_MAJOR 1)
@@ -16,10 +17,11 @@ SET(CMAKE_EXECUTABLE_LIBRARY_PREFIX)
 SET(CMAKE_EXECUTABLE_LIBRARY_SUFFIX)
 
 # CURRENT DIRECTORY
-SET(ProjDirPath ${CMAKE_CURRENT_SOURCE_DIR})
+SET(ProjDirPath ${CMAKE_CURRENT_SOURCE_DIR}/../../armgcc)
+SET(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
-SET(EXECUTABLE_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
-SET(LIBRARY_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/${CMAKE_BUILD_TYPE})
+SET(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/${CMAKE_BUILD_TYPE})
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/arm-none-eabi-gcc.cmake)
 
@@ -27,48 +29,42 @@ project(arduino-rt1011)
 
 set(MCUX_SDK_PROJECT_NAME arduino-rt1011.elf)
 
-include(${ProjDirPath}/../cmake/flags.cmake)
-include(${ProjDirPath}/../cmake/config.cmake)
+include(${ROOT_DIR}/cmake/flags.cmake)
+include(${ROOT_DIR}/cmake/config.cmake)
 
-SET(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/)
 
-file(GLOB SRC_FILES
-    ${SOURCE_DIR}/lib/*.cpp
-    ${SOURCE_DIR}/lib/*.c
-    ${SOURCE_DIR}/main/arduino-rt1011.cpp
+SET(LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../src/lib)
+
+file(GLOB LIB_SRC_FILES
+    ${LIB_SOURCE_DIR}/*.cpp
+    ${LIB_SOURCE_DIR}/*.c
 )
 
 add_executable(${MCUX_SDK_PROJECT_NAME} 
-    ${SRC_FILES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/mqs_demo.cpp
+    ${LIB_SRC_FILES}
 )
 
-add_definitions(-DARDUINO=100)
-add_definitions(-D__arm__)
-add_definitions(-DTEENSYDUINO)
-add_definitions(-D__IMXRT1010__)
-
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
-    ${SOURCE_DIR}/lib
-    ${ProjDirPath}/../core/Arduino
+    ${ROOT_DIR}/src/lib
 )
 
 set(CMAKE_MODULE_PATH
-    ${ProjDirPath}/../devices/MIMXRT1011/drivers
-    ${ProjDirPath}/../devices/MIMXRT1011
-    ${ProjDirPath}/../devices/MIMXRT1011/utilities
-    ${ProjDirPath}/../components/uart
-    ${ProjDirPath}/../components/serial_manager
-    ${ProjDirPath}/../components/lists
-    ${ProjDirPath}/../components/osa
-    ${ProjDirPath}/../devices/MIMXRT1011/xip
-    ${ProjDirPath}/../CMSIS/Core/Include
-    ${ProjDirPath}/../CMSIS/DSP
-    ${ProjDirPath}/../xip
-    ${ProjDirPath}/../components/Arduino
-    ${ProjDirPath}/../middleware/usb
-    ${ProjDirPath}/../middleware/usb/osa
-    ${ProjDirPath}/../components/Teensy_Audio
-    ${ProjDirPath}/../components/arduino_midi_library/src
+    ${ROOT_DIR}/devices/MIMXRT1011/drivers
+    ${ROOT_DIR}/devices/MIMXRT1011
+    ${ROOT_DIR}/devices/MIMXRT1011/utilities
+    ${ROOT_DIR}/components/uart
+    ${ROOT_DIR}/components/serial_manager
+    ${ROOT_DIR}/components/lists
+    ${ROOT_DIR}/components/osa
+    ${ROOT_DIR}/devices/MIMXRT1011/xip
+    ${ROOT_DIR}/CMSIS/Core/Include
+    ${ROOT_DIR}/CMSIS/DSP
+    ${ROOT_DIR}/xip
+    ${ROOT_DIR}/components/Arduino
+    ${ROOT_DIR}/components/arduino_midi_library/src
+    ${ROOT_DIR}/middleware/usb
+    ${ROOT_DIR}/middleware/usb/osa
 )
 
 # include modules
@@ -77,8 +73,6 @@ include(driver_igpio_MIMXRT1011)
 include(driver_clock_MIMXRT1011)
 
 include(driver_common_MIMXRT1011)
-
-include(driver_pwm_MIMXRT1011)
 
 include(driver_edma_MIMXRT1011)
 
@@ -120,7 +114,7 @@ include(driver_adc_12b1msps_sar_MIMXRT1011)
 
 include(component_Arduino_MIMXRT1011)
 
-include(component_Teensy_Audio_MIMXRT1011)
+include(component_arduino_midi_library)
 
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--start-group)
 
