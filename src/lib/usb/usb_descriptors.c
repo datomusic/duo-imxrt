@@ -1,4 +1,3 @@
-
 #include "class/audio/audio.h"
 #include "class/midi/midi.h"
 #include "device/usbd.h"
@@ -13,23 +12,24 @@
 //--------------------------------------------------------------------+
 // Device Descriptors
 //--------------------------------------------------------------------+
-tusb_desc_device_t const desc_device = {.bLength = sizeof(tusb_desc_device_t),
-                                        .bDescriptorType = TUSB_DESC_DEVICE,
-                                        .bcdUSB = 0x0200, // USB 2.0
-                                        .bDeviceClass = 0x00, // 0x00 means use device class from interface descriptors
-                                        .bDeviceSubClass = 0x00, // Same as for device class
-                                        .bDeviceProtocol = 0x00,
-                                        .bMaxPacketSize0 =
-                                            CFG_TUD_ENDPOINT0_SIZE,
-                                        .idVendor = DATO_VENDOR,
-                                        .idProduct = DUO_PRODUCT_ID,
-                                        .bcdDevice = DUO_PRODUCT_RELEASE_NUMBER,
+tusb_desc_device_t const desc_device = {
+    .bLength = sizeof(tusb_desc_device_t),
+    .bDescriptorType = TUSB_DESC_DEVICE,
+    .bcdUSB = 0x0200, // USB 2.0
+    .bDeviceClass =
+        0x00, // 0x00 means use device class from interface descriptors
+    .bDeviceSubClass = 0x00, // Same as for device class
+    .bDeviceProtocol = 0x00,
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
+    .idVendor = DATO_VENDOR,
+    .idProduct = DUO_PRODUCT_ID,
+    .bcdDevice = DUO_PRODUCT_RELEASE_NUMBER,
 
-                                        .iManufacturer = 0x01,
-                                        .iProduct = 0x02,
-                                        .iSerialNumber = 0x03,
+    .iManufacturer = 0x01,
+    .iProduct = 0x02,
+    .iSerialNumber = 0x03,
 
-                                        .bNumConfigurations = 0x01};
+    .bNumConfigurations = 0x01};
 
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application return pointer to descriptor
