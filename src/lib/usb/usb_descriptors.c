@@ -28,17 +28,8 @@
 #include "device/usbd.h"
 #include "tusb.h"
 
-/* A combination of interfaces must have a unique product id, since PC will save
- * device driver after the first plug. Same VID/PID with different interface e.g
- * MSC (first), then CDC (later) will possibly cause system error on PC.
- *
- * Auto ProductID layout's Bitmap:
- *   [MSB]       MIDI | HID | MSC | CDC          [LSB]
- */
-#define _PID_MAP(itf, n) ((CFG_TUD_##itf) << (n))
-#define USB_PID                                                                \
-  (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) |           \
-   _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4))
+#define DATO_VENDOR 0x16D0
+#define DUO_PRODUCT_ID 0x10A7
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -52,8 +43,8 @@ tusb_desc_device_t const desc_device = {.bLength = sizeof(tusb_desc_device_t),
                                         .bMaxPacketSize0 =
                                             CFG_TUD_ENDPOINT0_SIZE,
 
-                                        .idVendor = 0xCafe,
-                                        .idProduct = USB_PID,
+                                        .idVendor = DATO_VENDOR,
+                                        .idProduct = DUO_PRODUCT_ID,
                                         .bcdDevice = 0x0100,
 
                                         .iManufacturer = 0x01,
@@ -76,20 +67,8 @@ enum { ITF_NUM_MIDI = 0, ITF_NUM_MIDI_STREAMING, ITF_NUM_TOTAL };
 
 #define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_MIDI_DESC_LEN)
 
-#if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X ||                                      \
-    CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
-// LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
-// 0 control, 1 In, 2 Bulk, 3 Iso, 4 In etc ...
-#define EPNUM_MIDI_OUT 0x02
-#define EPNUM_MIDI_IN 0x02
-#elif CFG_TUSB_MCU == OPT_MCU_FT90X || CFG_TUSB_MCU == OPT_MCU_FT93X
-// On Bridgetek FT9xx endpoint numbers must be unique...
-#define EPNUM_MIDI_OUT 0x02
-#define EPNUM_MIDI_IN 0x03
-#else
 #define EPNUM_MIDI_OUT 0x01
 #define EPNUM_MIDI_IN 0x01
-#endif
 
 uint8_t const desc_fs_configuration[] = {
     // Config number, interface count, string index, total length, attribute,
