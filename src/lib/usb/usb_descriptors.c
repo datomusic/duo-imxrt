@@ -1,51 +1,29 @@
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2019 Ha Thach (tinyusb.org)
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
 
 #include "class/audio/audio.h"
 #include "class/midi/midi.h"
 #include "device/usbd.h"
 #include "tusb.h"
 
+// Most of this file is based on the usb example included with tinyusb.
+
 #define DATO_VENDOR 0x16D0
 #define DUO_PRODUCT_ID 0x10A7
+#define DUO_PRODUCT_RELEASE_NUMBER 0x02
 
 //--------------------------------------------------------------------+
 // Device Descriptors
 //--------------------------------------------------------------------+
 tusb_desc_device_t const desc_device = {.bLength = sizeof(tusb_desc_device_t),
                                         .bDescriptorType = TUSB_DESC_DEVICE,
-                                        .bcdUSB = 0x0200,
-                                        .bDeviceClass = 0x00,
-                                        .bDeviceSubClass = 0x00,
+                                        .bcdUSB = 0x0200, // USB 2.0
+                                        .bDeviceClass = 0x00, // 0x00 means use device class from interface descriptors
+                                        .bDeviceSubClass = 0x00, // Same as for device class
                                         .bDeviceProtocol = 0x00,
                                         .bMaxPacketSize0 =
                                             CFG_TUD_ENDPOINT0_SIZE,
-
                                         .idVendor = DATO_VENDOR,
                                         .idProduct = DUO_PRODUCT_ID,
-                                        .bcdDevice = 0x0100,
+                                        .bcdDevice = DUO_PRODUCT_RELEASE_NUMBER,
 
                                         .iManufacturer = 0x01,
                                         .iProduct = 0x02,
@@ -112,9 +90,9 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 // array of pointer to string descriptors
 char const *string_desc_arr[] = {
     (const char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
-    "DATO", // 1: Manufacturer
-    "Duo", // 2: Product
-    "123456", // 3: Serials, should use chip ID
+    "DATO",                     // 1: Manufacturer
+    "Duo",                      // 2: Product
+    "123456",                   // 3: Serials, should use chip ID
 };
 
 static uint16_t _desc_str[32];
