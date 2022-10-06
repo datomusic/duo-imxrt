@@ -1,7 +1,9 @@
 #include "class/audio/audio.h"
 #include "class/midi/midi.h"
 #include "device/usbd.h"
+#include "fsl_ocotp.h"
 #include "tusb.h"
+#include <stdio.h>
 
 // Most of this file is based on the usb example included with tinyusb.
 
@@ -88,11 +90,11 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 //--------------------------------------------------------------------+
 
 // array of pointer to string descriptors
-char const *string_desc_arr[] = {
+char const *string_desc_arr[3] = {
     (const char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
     "DATO",                     // 1: Manufacturer
-    "Duo",                      // 2: Product
-    "123456",                   // 3: Serials, should use chip ID
+    "Duo"                       // 2: Product
+    //"123456",                   // 3: Serials, should use chip ID
 };
 
 static uint16_t _desc_str[32];
@@ -108,6 +110,20 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
   if (index == 0) {
     memcpy(&_desc_str[1], string_desc_arr[0], 2);
     chr_count = 1;
+  } else if (index == 3) {
+    // Build unique serial string.
+    const uint32_t ID_0 = OCOTP->CFG0;
+    const uint32_t ID_1 = OCOTP->CFG1;
+    char tmp_serial[32];
+    chr_count = snprintf(tmp_serial, sizeof(tmp_serial), "%li-%li", ID_0, ID_1);
+    if (chr_count > 31) {
+      chr_count = 31;
+    }
+
+    for (uint8_t i = 0; i < chr_count; i++) {
+      _desc_str[1 + i] = tmp_serial[i];
+    }
+
   } else {
     // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
     // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
