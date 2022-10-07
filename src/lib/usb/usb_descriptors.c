@@ -7,6 +7,7 @@
 
 // Most of this file is based on the usb example included with tinyusb.
 
+// Descriptor values specific to Dato and Duo.
 #define DATO_VENDOR 0x16D0
 #define DUO_PRODUCT_ID 0x10A7
 #define DUO_PRODUCT_RELEASE_NUMBER 0x02

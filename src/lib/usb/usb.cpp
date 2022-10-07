@@ -7,10 +7,6 @@
 #define USB_DEVICE_INSTANCE 0
 #endif
 
-#ifndef CIRCUITPY_USB_HOST_INSTANCE
-#define CIRCUITPY_USB_HOST_INSTANCE -1
-#endif
-
 bool DatoUSB::background_update(void) {
   if (tusb_inited()) {
 #if CFG_TUSB_OS == OPT_OS_NONE

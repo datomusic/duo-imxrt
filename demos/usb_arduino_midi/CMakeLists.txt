@@ -6,7 +6,7 @@ set(EXECUTABLE_NAME usb_arduino_midi-rt1011.elf)
 
 set(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
-include(${COMMON_CMAKE}/lib_src_files.cmake)
+include(${COMMON_CMAKE}/lib.cmake)
 
 add_executable(${EXECUTABLE_NAME} 
     ${CMAKE_CURRENT_SOURCE_DIR}/usb_arduino_midi.cpp

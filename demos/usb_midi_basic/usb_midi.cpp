@@ -17,7 +17,6 @@ static uint8_t note_sequence[] = {
     73, 68, 64, 61,  56, 61, 64, 68,  74, 78,  81, 86, 90, 93, 98, 102};
 
 static void midi_task(void) {
-
   // The MIDI interface always creates input and output port/jack descriptors
   // regardless of these being used or not. Therefore incoming traffic should be
   // read (possibly just discarded) to avoid the sender blocking in IO

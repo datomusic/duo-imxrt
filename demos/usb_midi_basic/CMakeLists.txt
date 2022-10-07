@@ -6,7 +6,8 @@ set(EXECUTABLE_NAME usb_midi-rt1011.elf)
 
 set(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
-include(${COMMON_CMAKE}/lib_src_files.cmake)
+include(${COMMON_CMAKE}/lib.cmake)
+include(${COMMON_CMAKE}/usb.cmake)
 
 add_executable(${EXECUTABLE_NAME} 
     ${CMAKE_CURRENT_SOURCE_DIR}/usb_midi.cpp
@@ -15,11 +16,8 @@ add_executable(${EXECUTABLE_NAME}
 
 include(${COMMON_CMAKE}/common.cmake)
 
-set(TINYUSB_SRC ${CMAKE_CURRENT_LIST_DIR}/../../libraries/tinyusb/src)
-
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${LIB_INCLUDE_DIRS}
-    ${TINYUSB_SRC}
 )
 
