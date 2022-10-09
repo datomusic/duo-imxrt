@@ -4,11 +4,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(usb_arduino_midi-rt1011)
 set(EXECUTABLE_NAME usb_arduino_midi-rt1011.elf)
 
-set(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/usb_arduino_midi.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MIDIUSB.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
@@ -16,4 +14,4 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
 )
 
 set(WITH_USB true)
-include(${COMMON_CMAKE}/build_app.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/build_app.cmake)
