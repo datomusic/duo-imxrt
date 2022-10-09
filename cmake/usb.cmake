@@ -26,6 +26,5 @@ set(LIB_INCLUDE_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/../libraries/Arduino-USBMIDI/src
 )
 
-message(${ARDUINO_MIDI_LIBRARY_SRC})
-
-set(USB_ENABLED TRUE)
+include(${COMMON_CMAKE}/../components/component_tinyusb.cmake)
+include(${COMMON_CMAKE}/../components/arduino_midi_library/src/component_arduino_midi_library.cmake)

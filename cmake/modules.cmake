@@ -37,12 +37,3 @@ include(utilities_misc_utilities_MIMXRT1011)
 include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
 include(component_Arduino_MIMXRT1011)
-
-
-
-if(USB_ENABLED)
-    include(
-        ${COMMON_CMAKE}/../components/component_tinyusb.cmake
-        ${COMMON_CMAKE}/../components/arduino_midi_library/src/component_arduino_midi_library.cmake
-    )
-endif(USB_ENABLED)
