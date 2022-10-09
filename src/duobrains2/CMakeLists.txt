@@ -5,31 +5,20 @@ project(duobrains2)
 
 ENABLE_LANGUAGE(ASM)
 
-
 set(EXECUTABLE_NAME duobrains2.elf)
-set(MCUX_SDK_PROJECT_NAME ${EXECUTABLE_NAME})
 
-SET(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../)
-SET(ProjDirPath ${ROOT_DIR}/armgcc)
+SET(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+include(${COMMON_CMAKE}/lib_src_files.cmake)
 
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${LIB_SRC_FILES}
 )
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lib ${CMAKE_BINARY_DIR}/lib)
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
-    ${ROOT_DIR}/src/lib
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${LIB_INCLUDE_DIRS}
 )
 
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-    -Wl,--start-group
-        m c gcc nosys
-    -Wl,--end-group
-)
-
-include(${ROOT_DIR}/armgcc/flags.cmake)
-include(${ROOT_DIR}/armgcc/config.cmake)
-include(${ROOT_DIR}/armgcc/modules.cmake)
+include(${COMMON_CMAKE}/common.cmake)
