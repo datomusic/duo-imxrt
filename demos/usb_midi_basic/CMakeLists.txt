@@ -15,4 +15,4 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
 )
 
 set(WITH_USB true)
-include(${COMMON_CMAKE}/common.cmake)
+include(${COMMON_CMAKE}/build_app.cmake)

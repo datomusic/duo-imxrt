@@ -14,4 +14,4 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
-include(${COMMON_CMAKE}/common.cmake)
+include(${COMMON_CMAKE}/build_app.cmake)
