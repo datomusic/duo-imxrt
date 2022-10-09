@@ -6,16 +6,12 @@ set(EXECUTABLE_NAME led_demo-rt1011.elf)
 
 SET(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
-include(${COMMON_CMAKE}/lib.cmake)
-
-add_executable(${EXECUTABLE_NAME} 
+add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/led_demo.cpp
-    ${LIB_SRC_FILES}
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${LIB_INCLUDE_DIRS}
 )
 
 include(${COMMON_CMAKE}/common.cmake)
