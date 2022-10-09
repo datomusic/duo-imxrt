@@ -20,7 +20,7 @@ bool DatoUSB::background_update(void) {
 
 bool DatoUSB::midi_read(uint8_t packet[4]) {
   bool ret = false;
-  while (tud_midi_available()) {
+  if (tud_midi_available()) {
     tud_midi_packet_read(packet);
     ret = true;
   } 
