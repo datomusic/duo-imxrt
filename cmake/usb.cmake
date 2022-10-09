@@ -16,11 +16,16 @@ set(LIB_SRC_FILES
 )
 
 set(TINYUSB_SRC ${CMAKE_CURRENT_LIST_DIR}/../libraries/tinyusb/src)
+set(ARDUINO_MIDI_LIBRARY_SRC ${CMAKE_CURRENT_LIST_DIR}/../components/arduino_midi_library/src)
 
 set(LIB_INCLUDE_DIRS
   ${LIB_INCLUDE_DIRS}
   ${TINYUSB_SRC}
   ${LIB_SOURCE_DIR}/usb
+  ${ARDUINO_MIDI_LIBRARY_SRC}
+  ${CMAKE_CURRENT_LIST_DIR}/../libraries/Arduino-USBMIDI/src
 )
+
+message(${ARDUINO_MIDI_LIBRARY_SRC})
 
 set(USB_ENABLED TRUE)
