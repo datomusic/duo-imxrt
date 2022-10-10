@@ -4,7 +4,6 @@
 const int ENV_LED = 0;
 const int FILTER_LED = 0;
 const int OSC_LED = 0;
-const int NUM_LEDS = 1;
 const int LED_CLK = 1;
 const int GRB = 1;
 const int SK6812 = 1;

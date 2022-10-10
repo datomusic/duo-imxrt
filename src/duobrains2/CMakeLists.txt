@@ -9,6 +9,7 @@ set(EXECUTABLE_NAME duobrains2.elf)
 
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/adapters/FastLED.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
