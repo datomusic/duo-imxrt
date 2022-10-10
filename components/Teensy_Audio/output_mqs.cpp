@@ -414,7 +414,7 @@ void AudioOutputMQS::config_i2s(void)
       .numerator = 768,   /* 30 bit numerator of fractional loop divider. */
       .denominator = 1000,/* 30 bit denominator of fractional loop divider */
     };
-
+CLOCK_InitAudioPll(&audioPllConfig);
   /*
     int fs = AUDIO_SAMPLE_RATE_EXACT;
     // PLL between 27*24 = 648MHz und 54*24=1296MHz
@@ -451,18 +451,38 @@ void AudioOutputMQS::config_i2s(void)
 	
     IOMUXC_MQSConfig(IOMUXC_GPR,kIOMUXC_MqsPwmOverSampleRate32, 0);
 	IOMUXC_MQSEnable(IOMUXC_GPR, true);
+	#define DEMO_SAI SAI3
 
+	/* Select Audio PLL (786.432 MHz) as sai1 clock source */
+	#define DEMO_SAI_CLOCK_SOURCE_SELECT (2U)
+	/* Clock pre divider for sai clock source */
+	#define DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER (4U)
+	/* Clock divider for sai clock source */
+	#define DEMO_SAI_CLOCK_SOURCE_DIVIDER (1U)
+	/* Get frequency of sai clock: SAI3_Clock = 786.432MHz /(3+1)/(1+1) = 98.304MHz */
+	#define DEMO_SAI_CLK_FREQ (CLOCK_GetFreq(kCLOCK_AudioPllClk) / (DEMO_SAI_CLOCK_SOURCE_DIVIDER + 1U) / (DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER + 1U))
+
+	sai_transceiver_t config;
     SAI_Init(SAI3);
-// 	if (I2S3_TCSR & I2S_TCSR_TE) return;
-
-// 	I2S3_TMR = 0;
-// //	I2S3_TCSR = (1<<25); //Reset
-// 	I2S3_TCR1 = I2S_TCR1_RFW(1);
-// 	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
-// 		    | (I2S_TCR2_BCD | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
-// 	I2S3_TCR3 = I2S_TCR3_TCE;
-// 	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
-// 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
-	CLOCK_InitAudioPll(&audioPllConfig);
+	SAI_GetClassicI2SConfig(&config, kSAI_WordWidth16bits, kSAI_Stereo, 1U << 0u);
+    config.frameSync.frameSyncEarly = false;
+    config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
+    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
+	/*  */
+	
+	// 	if (I2S3_TCSR & I2S_TCSR_TE) return;
+	// 	I2S3_TMR = 0;
+	// //	I2S3_TCSR = (1<<25); //Reset
+	// 	I2S3_TCR1 = I2S_TCR1_RFW(1);
+	// 	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
+	// 		    | (I2S_TCR2_BCD | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
+	// Async, bitclock master, divide by 3, Master select MCLK 1
+	// 	I2S3_TCR3 = I2S_TCR3_TCE;
+	// Transmit channel enable
+	// 	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
+	// Frame size 2 words, sync width 15, MSB first frame sync master
+	// 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
+	// Word N width 15, word 0 width 15, first bit shifted 15
+		
 }
-#endif //defined(__IMXRT1062__)
+#endif //defined(__IMXRT1011__)
