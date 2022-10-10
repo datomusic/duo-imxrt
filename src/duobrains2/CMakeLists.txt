@@ -9,12 +9,11 @@ set(EXECUTABLE_NAME duobrains2.elf)
 
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/duo2/main.cpp
-    ${LIB_SRC_FILES}
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/adapters
+    ${LIB_INCLUDE_DIRS}
 )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/build_app.cmake)
