@@ -717,15 +717,6 @@ struct CRGB {
 };
 
 
-struct FastLED_ {
-  void show();
-  void clear();
-  void setBrightness(int);
-  void setCorrection(int);
-  template <int A, int B, int C> void addLeds(void *, int);
-};
-
-FastLED_ FastLED;
 
 CRGB blend(const CRGB &p1, const CRGB &p2, int amountOfP2) { return p1; }
 
