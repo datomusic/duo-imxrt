@@ -12,23 +12,28 @@ const int NUM_LEDS = 19;
 #include "Leds.h"
 
 int main(void) {
-  FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
   board_init();
 
+  FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
+
   int counter = 0;
+for (int i = 0; i < NUM_LEDS; ++i) {
+    physical_leds[i] = 0;
+  }
+
 
   while (1) {
-    delayMicroseconds(400000);
     if (counter >= NUM_LEDS) {
       counter = 0;
       for (int i = 0; i < NUM_LEDS; ++i) {
         physical_leds[i] = 0;
       }
     } else {
-      physical_leds[counter].b = 200;
+      physical_leds[counter].g = 140;
       counter = counter + 1;
     }
 
     FastLED.show();
+    delayMicroseconds(400000);
   }
 }
