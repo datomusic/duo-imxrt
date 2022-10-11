@@ -1,6 +1,4 @@
-#ifndef Leds_h
-#define Leds_h
-
+#pragma once
 #include "adapters/FastLED.h"
 
 #define COLOR_ORDER GRB
@@ -140,5 +138,3 @@ void led_update() {
   analogWrite(FILTER_LED, 1 + ((synth.filter*synth.filter) >> 13));
   analogWrite(OSC_LED, 128 - ((synth.pulseWidth*synth.pulseWidth)>>13));
 }
-
-#endif
