@@ -230,9 +230,13 @@ void AudioOutputMQS::config_i2s(void)
 #include <Arduino.h>
 #include "output_mqs.h"
 #include "memcpy_audio.h"
+
 #include "fsl_sai.h"
 #include "fsl_iomuxc.h"
 #include "fsl_clock.h"
+#include "fsl_dmamux.h"
+#include "fsl_sai_edma.h"
+#include "clock_config.h"
 
 audio_block_t * AudioOutputMQS::block_left_1st = NULL;
 audio_block_t * AudioOutputMQS::block_right_1st = NULL;
@@ -245,21 +249,24 @@ DMAChannel AudioOutputMQS::dma(false);
 // DMAMEM __attribute__((aligned(32)))
 static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
+/* SDK compatibility defines */
+#define DMA_TCD_ATTR_SSIZE DMA_ATTR_SSIZE
+#define DMA_TCD_ATTR_DSIZE DMA_ATTR_DSIZE
+#define DMAMUX_SOURCE_SAI3_TX 84 // kDmaRequestMuxSai3Tx
+#define I2S3_TDR0 SAI3->TDR[0]
+#define I2S3_TCSR SAI3->TCSR
+
 void AudioOutputMQS::begin(void)
 {
 	dma.begin(true); // Allocate the DMA channel first
-
 	block_left_1st = NULL;
 	block_right_1st = NULL;
 
 	config_i2s();
-
-    IOMUXC_SetPinMux(IOMUXC_GPIO_AD_02_MQS_RIGHT, 0);
-	IOMUXC_SetPinMux(IOMUXC_GPIO_AD_01_MQS_LEFT, 0);
 	
 	dma.TCD->SADDR = I2S3_tx_buffer;
 	dma.TCD->SOFF = 2;
-	dma.TCD->ATTR = DMA_ATTR_SSIZE(1) | DMA_ATTR_DSIZE(1);
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
 	dma.TCD->NBYTES_MLNO = 2;
 	dma.TCD->SLAST = -sizeof(I2S3_tx_buffer);
 	dma.TCD->DOFF = 0;
@@ -267,10 +274,10 @@ void AudioOutputMQS::begin(void)
 	dma.TCD->DLASTSGA = 0;
 	dma.TCD->BITER_ELINKNO = sizeof(I2S3_tx_buffer) / 2;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
-	// dma.TCD->DADDR = (void *)((uint32_t)&I2S3_TDR0 + 0); // TODO
-	dma.triggerAtHardwareEvent((uint8_t)kDmaRequestMuxSai3Tx);
-    
-	// I2S3_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE; // TODO
+	dma.TCD->DADDR = (void *)((uint32_t)&I2S3_TDR0 + 0);
+	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI3_TX);
+
+	I2S3_TCSR |= I2S_TCSR_TE(1) | I2S_TCSR_BCE(1) | I2S_TCSR_FRDE(1);
 	update_responsibility = update_setup();
 	dma.attachInterrupt(isr);
 	dma.enable();
@@ -384,105 +391,89 @@ void AudioOutputMQS::update(void)
 		}
 	}
 }
+
 void AudioOutputMQS::config_i2s(void)
 {
-	/* Enable SAI3 clock gate. */
-    CLOCK_EnableClock(kCLOCK_Sai3);
-    CLOCK_EnableClock(kCLOCK_Mqs);
+	CLOCK_EnableClock(kCLOCK_Sai3);
+	/* TODO: 
+	    David Menting Oct 2022
+		Why are the RT1011 headers not included and is __MIMXRT1011__ not defined?
+		the Mqs clock cannot be enabled this way
+		*/
+	// CLOCK_EnableClock(kCLOCK_Mqs);
 
-    #define MQS_SAI_CLOCK_SOURCE_SELECT (2U)
-    CLOCK_SetMux(kCLOCK_Sai3Mux, MQS_SAI_CLOCK_SOURCE_SELECT);
-    CLOCK_EnableClock(kCLOCK_Mqs);
+	int fs = AUDIO_SAMPLE_RATE_EXACT;
+	// PLL between 27*24 = 648MHz und 54*24=1296MHz
+	int n1 = 4; //SAI prescaler 4 => (n1*n2) = multiple of 4
+	int n2 = 1 + (24000000 * 27) / (fs * 256 * n1);
+
+	double C = ((double)fs * 256 * n1 * n2) / 24000000;
+	int c0 = C;
+	int c2 = 10000;
+	int c1 = C * c2 - (c0 * c2);
+
+	// TODO David Menting Oct 2022
+	// set_audioClock(c0, c1, c2);
+	int nfact = c0;
+	int nmult = c1;
+	int ndiv = c2;
+	bool force = false;
+
+    if (!force && (CCM_ANALOG->PLL_AUDIO & CCM_ANALOG_PLL_AUDIO_ENABLE(1))) return;
+
+	CCM_ANALOG->PLL_AUDIO = CCM_ANALOG_PLL_AUDIO_BYPASS(1) | CCM_ANALOG_PLL_AUDIO_ENABLE(1)
+			     | CCM_ANALOG_PLL_AUDIO_POST_DIV_SELECT(2) // 2: 1/4; 1: 1/2; 0: 1/1
+			     | CCM_ANALOG_PLL_AUDIO_DIV_SELECT(nfact);
+
+	CCM_ANALOG->PLL_AUDIO_NUM   = nmult & CCM_ANALOG_PLL_AUDIO_NUM_A_MASK;
+	CCM_ANALOG->PLL_AUDIO_DENOM = ndiv & CCM_ANALOG_PLL_AUDIO_DENOM_B_MASK;
 	
+	CCM_ANALOG->PLL_AUDIO &= ~CCM_ANALOG_PLL_AUDIO_POWERDOWN(1);//Switch on PLL
+	while (!(CCM_ANALOG->PLL_AUDIO & CCM_ANALOG_PLL_AUDIO_LOCK(1))) {}; //Wait for pll-lock
+	
+	const int div_post_pll = 1; // other values: 2,4
+	CCM_ANALOG->MISC2 &= ~(PMU_MISC2_AUDIO_DIV_MSB(1) | PMU_MISC2_AUDIO_DIV_LSB(1));
+	
+	if(div_post_pll>1) CCM_ANALOG->MISC2 |= PMU_MISC2_AUDIO_DIV_LSB(1);
+	if(div_post_pll>3) CCM_ANALOG->MISC2 |= PMU_MISC2_AUDIO_DIV_MSB(1);
+	
+	CCM_ANALOG->PLL_AUDIO &= ~CCM_ANALOG_PLL_AUDIO_BYPASS(1);//Disable Bypass
+
+
+	CCM->CSCMR1 = (CCM->CSCMR1 & ~(CCM_CSCMR1_SAI3_CLK_SEL_MASK))
+		   | CCM_CSCMR1_SAI3_CLK_SEL(2); // &0x03 // (0,1,2): PLL3PFD0, PLL5, PLL4,
+	CCM->CS1CDR = (CCM->CS1CDR & ~(CCM_CS1CDR_SAI3_CLK_PRED_MASK | CCM_CS1CDR_SAI3_CLK_PODF_MASK))
+		   | CCM_CS1CDR_SAI3_CLK_PRED(n1-1)
+		   | CCM_CS1CDR_SAI3_CLK_PODF(n2-1);
+
+    IOMUXC_GPR->GPR1 = (IOMUXC_GPR->GPR1 & ~(IOMUXC_GPR_GPR1_SAI3_MCLK3_SEL_MASK))
+			| (IOMUXC_GPR_GPR1_SAI3_MCLK_DIR(1) | IOMUXC_GPR_GPR1_SAI3_MCLK3_SEL(0));	//Select MCLK
+		
+    /* 
+	IOMUXC_GPR_GPR2 = (IOMUXC_GPR_GPR2 & ~(IOMUXC_GPR_GPR2_MQS_OVERSAMPLE | IOMUXC_GPR_GPR2_MQS_CLK_DIV_MASK))
+			| IOMUXC_GPR_GPR2_MQS_EN | IOMUXC_GPR_GPR2_MQS_CLK_DIV(0);
+    */ 
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);                             /* Reset MQS. */
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false);                            /* Release reset MQS. */
     IOMUXC_MQSEnable(IOMUXC_GPR, true);                                         /* Enable MQS. */
-    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64, 0u);    
-    /*
-     loopdivider = nfact
-     postdivider is hardcoded
-	*/
-	// Set the audio clock
-	/*
-	* AUDIO PLL setting: Frequency = Fref * (DIV_SELECT + NUM / DENOM)
-	*                              = 24 * (32 + 768/1000)
-	*                              = 786.432 MHz
-	*/
-    const clock_audio_pll_config_t audioPllConfig = {
-      .loopDivider = 32,  /* PLL loop divider. Valid range for DIV_SELECT divider value: 27~54. */
-      .postDivider = 1,   /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
-      .numerator = 768,   /* 30 bit numerator of fractional loop divider. */
-      .denominator = 1000,/* 30 bit denominator of fractional loop divider */
-    };
-CLOCK_InitAudioPll(&audioPllConfig);
-  /*
-    int fs = AUDIO_SAMPLE_RATE_EXACT;
-    // PLL between 27*24 = 648MHz und 54*24=1296MHz
-    int n1 = 4; //SAI prescaler 4 => (n1*n2) = multiple of 4
-    int n2 = 1 + (24000000 * 27) / (fs * 256 * n1);
+    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64, 0u);
 
-    double C = ((double)fs * 256 * n1 * n2) / 24000000;
-    int c0 = C;
-    int c2 = 10000;
-    int c1 = C * c2 - (c0 * c2);
+	if (I2S3_TCSR & I2S_TCSR_TE(1)) return;
 
-    set_audioClock(c0, c1, c2);
+    #define I2S3_TMR SAI3->TMR
+	#define I2S3_TCR1 SAI3->TCR1
+	#define I2S3_TCR2 SAI3->TCR2
+	#define I2S3_TCR3 SAI3->TCR3
+	#define I2S3_TCR4 SAI3->TCR4
+	#define I2S3_TCR5 SAI3->TCR5
 
-    
-      /* Set Sai3 clock source. 
-    00 derive clock from PLL3 PFD2
-    01 derive from pll3_sw_clk
-    10 derive clock from PLL4 11 Reserved
-    */
-    CLOCK_SetMux(kCLOCK_Sai3Mux, 2);
-    IOMUXC_SetSaiMClkClockSource(IOMUXC_GPR, kIOMUXC_GPR_SAI3MClk3Sel, 0);
-
-	// CCM_CSCMR1 = (CCM_CSCMR1 & ~(CCM_CSCMR1_SAI3_CLK_SEL_MASK))
-		//    | CCM_CSCMR1_SAI3_CLK_SEL(2); // &0x03 // (0,1,2): PLL3PFD0, PLL5, PLL4,
-		
-	/* Set SAI3_CLK_PRED. */
-      /* CLOCK_SetDiv(kCLOCK_Sai3PreDiv, n1-1); */
-    /* Set SAI3_CLK_PODF. */
-    /* CLOCK_SetDiv(kCLOCK_Sai3Div, n2-1); */
-
-	// kIOMUXC_GPR_SAI3MClk3Sel
-    // kIOMUXC_GPR_SAI3MClkOutputDir
-	//Iomuxc SAI3 master clock select
-	
-    IOMUXC_MQSConfig(IOMUXC_GPR,kIOMUXC_MqsPwmOverSampleRate32, 0);
-	IOMUXC_MQSEnable(IOMUXC_GPR, true);
-	#define DEMO_SAI SAI3
-
-	/* Select Audio PLL (786.432 MHz) as sai1 clock source */
-	#define DEMO_SAI_CLOCK_SOURCE_SELECT (2U)
-	/* Clock pre divider for sai clock source */
-	#define DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER (4U)
-	/* Clock divider for sai clock source */
-	#define DEMO_SAI_CLOCK_SOURCE_DIVIDER (1U)
-	/* Get frequency of sai clock: SAI3_Clock = 786.432MHz /(3+1)/(1+1) = 98.304MHz */
-	#define DEMO_SAI_CLK_FREQ (CLOCK_GetFreq(kCLOCK_AudioPllClk) / (DEMO_SAI_CLOCK_SOURCE_DIVIDER + 1U) / (DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER + 1U))
-
-	sai_transceiver_t config;
-    SAI_Init(SAI3);
-	SAI_GetClassicI2SConfig(&config, kSAI_WordWidth16bits, kSAI_Stereo, 1U << 0u);
-    config.frameSync.frameSyncEarly = false;
-    config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
-    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
-	/*  */
-	
-	// 	if (I2S3_TCSR & I2S_TCSR_TE) return;
-	// 	I2S3_TMR = 0;
-	// //	I2S3_TCSR = (1<<25); //Reset
-	// 	I2S3_TCR1 = I2S_TCR1_RFW(1);
-	// 	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
-	// 		    | (I2S_TCR2_BCD | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
-	// Async, bitclock master, divide by 3, Master select MCLK 1
-	// 	I2S3_TCR3 = I2S_TCR3_TCE;
-	// Transmit channel enable
-	// 	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
-	// Frame size 2 words, sync width 15, MSB first frame sync master
-	// 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
-	// Word N width 15, word 0 width 15, first bit shifted 15
-		
+	I2S3_TMR = 0;
+//	I2S3_TCSR = (1<<25); //Reset
+	I2S3_TCR1 = I2S_TCR1_TFW(1);
+	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
+		    | (I2S_TCR2_BCD(1) | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
+	I2S3_TCR3 = I2S_TCR3_TCE(1);
+	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF(1) | I2S_TCR4_FSD(1) /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
+	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
 }
 #endif //defined(__IMXRT1011__)
