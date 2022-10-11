@@ -25,4 +25,4 @@
   #define IRQ_SOFTWARE Reserved70_IRQn
 #endif
 
-#define FLASHMEM // __atribute__((section(".flashmem")))
+#define FLASHMEM __atribute__((section(".text")))

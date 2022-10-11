@@ -419,6 +419,7 @@ void AudioOutputMQS::config_i2s(void)
 	int ndiv = c2;
 	bool force = false;
 
+    // Enable the audio PLL
     if (!force && (CCM_ANALOG->PLL_AUDIO & CCM_ANALOG_PLL_AUDIO_ENABLE(1))) return;
 
 	CCM_ANALOG->PLL_AUDIO = CCM_ANALOG_PLL_AUDIO_BYPASS(1) | CCM_ANALOG_PLL_AUDIO_ENABLE(1)
@@ -456,7 +457,7 @@ void AudioOutputMQS::config_i2s(void)
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);                             /* Reset MQS. */
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false);                            /* Release reset MQS. */
     IOMUXC_MQSEnable(IOMUXC_GPR, true);                                         /* Enable MQS. */
-    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64, 0u);
+    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate32, 0u);
 
 	if (I2S3_TCSR & I2S_TCSR_TE(1)) return;
 
