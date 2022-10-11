@@ -13,6 +13,7 @@ const int NUM_LEDS = 19;
 
 int main(void) {
   board_init();
+  LEDs::init();
 
   FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
 
