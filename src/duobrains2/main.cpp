@@ -10,6 +10,7 @@ const int NUM_LEDS = 19;
 
 #include "stubs/leds_stub.h"
 #include "duoleds.h"
+#include "leds.h"
 
 int main(void) {
   board_init();
