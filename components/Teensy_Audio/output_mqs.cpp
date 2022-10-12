@@ -226,7 +226,7 @@ void AudioOutputMQS::config_i2s(void)
 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
 }
 
-#elif defined(__IMXRT1011__) | true
+#elif defined(__IMXRT1011__) 
 #include <Arduino.h>
 #include "output_mqs.h"
 #include "memcpy_audio.h"
@@ -395,12 +395,7 @@ void AudioOutputMQS::update(void)
 void AudioOutputMQS::config_i2s(void)
 {
 	CLOCK_EnableClock(kCLOCK_Sai3);
-	/* TODO: 
-	    David Menting Oct 2022
-		Why are the RT1011 headers not included and is __MIMXRT1011__ not defined?
-		the Mqs clock cannot be enabled this way
-		*/
-	// CLOCK_EnableClock(kCLOCK_Mqs);
+	CLOCK_EnableClock(kCLOCK_Mqs);
 
 	int fs = AUDIO_SAMPLE_RATE_EXACT;
 	// PLL between 27*24 = 648MHz und 54*24=1296MHz

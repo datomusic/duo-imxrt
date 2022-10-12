@@ -31,37 +31,15 @@
 #ifndef DMAChannel_h_
 #define DMAChannel_h_
 
-#include <stdint.h>
-#include <MIMXRT1011.h>
-// #define DMA_BITER_ELINKYES_ELINK_MASK            (0x8000U)
-#define DMA_TCD_CSR_INTMAJOR DMA_CSR_INTMAJOR(1)
-#define DMA_TCD_CSR_INTHALF DMA_CSR_INTHALF(1)
-#define DMA_TCD_CSR_DREQ DMA_CSR_DREQ(1)
-#define DMA_TCD_CSR_DONE DMA_CSR_DONE(1)
-#define DMA_TCD_CSR_ESG DMA_CSR_ESG(1)
-#define DMA_TCD_BITER_ELINKYES_LINKCH_MASK DMA_BITER_ELINKYES_LINKCH_MASK
-#define DMA_TCD_BITER_ELINKYES_LINKCH DMA_BITER_ELINKYES_LINKCH
-#define NVIC_NUM_INTERRUPTS NUMBER_OF_INT_VECTORS
-#define IRQ_NUMBER_t IRQn_Type
-#define __ARM_ARC_7EM__
-
-
-#ifdef __cplusplus
-extern "C" {
-	__attribute__ ((used, aligned(1024), section(".ivt")))
-	void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-}
-#else
-__attribute__ ((used, aligned(1024), section(".ivt")))
-extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-#endif
-
+#include "MIMXRT1011.h"
+#include "rt1011_compat.h"
 
 // Discussion about DMAChannel is here:
 // http://forum.pjrc.com/threads/25778-Could-there-be-something-like-an-ISR-template-function/page3
 
 #define DMACHANNEL_HAS_BEGIN
 #define DMACHANNEL_HAS_BOOLEAN_CTOR
+
 
 // The channel allocation bitmask is accessible from "C" namespace,
 // so C-only code can reserve DMA channels
@@ -358,7 +336,7 @@ public:
 
 	// Set the number of transfers (number of triggers until complete)
 	void transferCount(unsigned int len) {
-		if (!(TCD->BITER & DMA_BITER_ELINKYES_ELINK_MASK)) {
+		if (!(TCD->BITER & DMA_TCD_BITER_ELINK)) {
 			if (len > 32767) return;
 			TCD->BITER = len;
 			TCD->CITER = len;
@@ -486,11 +464,10 @@ public:
 
 	// Use a hardware trigger to make the DMA channel run
 	void triggerAtHardwareEvent(uint8_t source) {
-		//volatile uint32_t *mux = &DMAMUX_CHCFG0 + channel;
-		volatile uint32_t *mux = (volatile uint32_t *)DMAMUX_BASE + channel;
+		volatile uint32_t *mux = &DMAMUX_CHCFG0 + channel;
 		//mux = (volatile uint32_t *)&(DMAMUX_CHCFG0) + channel;
 		*mux = 0;
-		*mux = (source & 0x7F) | DMAMUX_CHCFG_ENBL_MASK;
+		*mux = (source & 0x7F) | DMAMUX_CHCFG_ENBL(1);
 	}
 
 	// Use another DMA channel as the trigger, causing this
@@ -499,31 +476,30 @@ public:
 	// channels run in parallel until the last transfer
 	void triggerAtTransfersOf(DMABaseClass &ch) {
 		ch.TCD->BITER = (ch.TCD->BITER & ~DMA_TCD_BITER_ELINKYES_LINKCH_MASK)
-		  | DMA_TCD_BITER_ELINKYES_LINKCH(channel) | DMA_BITER_ELINKYES_ELINK_MASK;
+		  | DMA_TCD_BITER_ELINKYES_LINKCH(channel) | DMA_TCD_BITER_ELINKYES_ELINK;
 		ch.TCD->CITER = ch.TCD->BITER ;
 	}
 
 	// Use another DMA channel as the trigger, causing this
 	// channel to trigger when the other channel completes.
 	void triggerAtCompletionOf(DMABaseClass &ch) {
-		ch.TCD->CSR = (ch.TCD->CSR & ~(DMA_CSR_MAJORLINKCH_MASK|DMA_TCD_CSR_DONE))
-		  | DMA_CSR_MAJORLINKCH(channel) | DMA_CSR_MAJORELINK_MASK;
+		ch.TCD->CSR = (ch.TCD->CSR & ~(DMA_TCD_CSR_MAJORLINKCH_MASK|DMA_TCD_CSR_DONE))
+		  | DMA_TCD_CSR_MAJORLINKCH(channel) | DMA_TCD_CSR_MAJORELINK;
 	}
 
 	// Cause this DMA channel to be continuously triggered, so
 	// it will move data as rapidly as possible, without waiting.
 	// Normally this would be used with disableOnCompletion().
 	void triggerContinuously(void) {
-		volatile uint32_t *mux = (volatile uint32_t *)DMAMUX_BASE + channel;
+		volatile uint32_t *mux = &DMAMUX_CHCFG0 + channel;
+		//mux = (volatile uint32_t *)&(DMAMUX_CHCFG0) + channel;
 		*mux = 0;
-		*mux = DMAMUX_CHCFG_A_ON_SHIFT | DMAMUX_CHCFG_ENBL_MASK;
+		*mux = DMAMUX_CHCFG_A_ON(1) | DMAMUX_CHCFG_ENBL(1);
 	}
 
 	// Manually trigger the DMA channel.
 	void triggerManual(void) {
-		// DMA_SSRT = channel;
-		DMA_Type * dma_channel = (DMA_Type *)((uint8_t) DMA0_BASE + channel);
-		dma_channel->SSRT = 1;
+		DMA_SSRT = channel;
 	}
 
 
@@ -535,28 +511,24 @@ public:
 	// the entire transfer, and also optionally when half of the
 	// transfer is completed.
 	void attachInterrupt(void (*isr)(void)) {
-		// _VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
-	    _VectorsRam[((uint8_t)DMA0_IRQn + channel) + 16] = isr;
-		NVIC_EnableIRQ((IRQn_Type) ((uint8_t)DMA0_IRQn + channel));
+		_VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
+		// NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
+		NVIC_ENABLE_IRQ(IRQ_DMA_CH0);
 	}
 
 	void attachInterrupt(void (*isr)(void), uint8_t prio) {
-		// _VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
-		_VectorsRam[((uint8_t)DMA0_IRQn + channel) + 16] = isr;
+		_VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
 		// NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
-		NVIC_EnableIRQ((IRQn_Type) ((uint8_t)DMA0_IRQn + channel));
-		// NVIC_SET_PRIORITY(IRQ_DMA_CH0 + channel, prio);
-		NVIC_SetPriority((IRQn_Type) ((uint8_t)DMA0_IRQn + channel), prio);
+		NVIC_SET_PRIORITY(IRQ_DMA_CH0, prio);
 	}
 	
 	void detachInterrupt(void) {
 		// NVIC_DISABLE_IRQ(IRQ_DMA_CH0 + channel);
-		NVIC_DisableIRQ((IRQn_Type) ((uint8_t)DMA0_IRQn + channel));
+		NVIC_DISABLE_IRQ(IRQ_DMA_CH0);
 	}
 
 	void clearInterrupt(void) {
-		// DMA_CINT = channel;
-		NVIC_ClearPendingIRQ((IRQn_Type) ((uint8_t)DMA0_IRQn + channel));
+		DMA_CINT = channel;
 	}
 
 
@@ -565,14 +537,10 @@ public:
 	/***************************************/
 
 	void enable(void) {
-		// DMA_SERQ = channel;
-		DMA_Type * dma_channel = (DMA_Type *)((uint8_t) DMA0_BASE + channel);
-		dma_channel->SERQ = 1;
+		DMA_SERQ = channel;
 	}
 	void disable(void) {
-		// DMA_CERQ = channel; // Clear enable request
-		DMA_Type * dma_channel = (DMA_Type *)((uint8_t) DMA0_BASE + channel);
-		dma_channel->SERQ = 1;
+		DMA_CERQ = channel;
 	}
 
 	/***************************************/
@@ -584,20 +552,14 @@ public:
 		return false;
 	}
 	void clearComplete(void) {
-		// DMA_CDNE = channel;
-		DMA_Type * dma_channel = (DMA_Type *)((uint8_t) DMA0_BASE + channel);
-		dma_channel->CDNE = 1;
+		DMA_CDNE = channel;
 	}
 	bool error(void) {
-		// if (DMA_ERR & (1<<channel)) return true;
-		DMA_Type * dma_channel = (DMA_Type *)((uint8_t) DMA0_BASE + channel);
-	    if (dma_channel->ERR) return true;
+		if (DMA_ERR & (1<<channel)) return true;
 		return false;
 	}
 	void clearError(void) {
-		// DMA_CERR = channel;
-		DMA_Type * dma_channel = (DMA_Type *)((uint8_t) DMA0_BASE + channel);
-		dma_channel->CERR = 1;
+		DMA_CERR = channel;
 	}
 	void * sourceAddress(void) {
 		return (void *)(TCD->SADDR);
@@ -616,7 +578,6 @@ public:
 	// code, but direct control of all parameters is possible.
 	uint8_t channel;
 	// TCD is accessible due to inheritance from DMABaseClass
-	DMA_Type * base;
 };
 
 // arrange the relative priority of 2 or more DMA channels

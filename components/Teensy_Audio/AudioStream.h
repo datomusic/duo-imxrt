@@ -43,15 +43,7 @@
 #define F_CPU_ACTUAL 500000000
 #define NVIC_NUM_INTERRUPTS NUMBER_OF_INT_VECTORS
 
-#ifdef __cplusplus
-extern "C" void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-#else
-extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-#endif
+
 
 // AUDIO_BLOCK_SAMPLES determines how many samples the audio library processes
 // per update.  It may be reduced to achieve lower latency response to events,
