@@ -58,7 +58,7 @@ void led_data_received() {
 }
 
 void led_init() {
-  FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
+  // FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
   
   FastLED.setBrightness(SK6812_BRIGHTNESS); 
   FastLED.setCorrection(CORRECTION_SK6812);
