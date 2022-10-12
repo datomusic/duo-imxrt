@@ -1,1 +1,1 @@
-#include "pins_duo_1.0.h"
+#include "pins_duo_2.0.h"
