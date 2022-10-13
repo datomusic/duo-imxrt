@@ -47,26 +47,13 @@ const CRGB COLORS[] = {
 
 void led_init();
 void led_update();
-void led_data_received();
 
-void led_data_received() {
-    FastLED.setBrightness(SK6805_BRIGHTNESS); 
-    FastLED.setCorrection(CORRECTION_SK6805);
-    detachInterrupt(LED_CLK);
-}
 
 void led_init() {
-  // FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
+  FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
   
-  FastLED.setBrightness(SK6812_BRIGHTNESS); 
-  FastLED.setCorrection(CORRECTION_SK6812);
-
-  // We're going to do a loopback test first to determine brightness
-  attachInterrupt(LED_CLK, led_data_received, CHANGE);
-  FastLED.clear();
-  physical_leds[NUM_LEDS] = CRGB(0xff6805);
-  FastLED.show();
-  
+  FastLED.setBrightness(SK6805_BRIGHTNESS); 
+  FastLED.setCorrection(CORRECTION_SK6805); 
   FastLED.clear();
   FastLED.show();
   /* The 400ms delay introduced by this startup animation prevents
