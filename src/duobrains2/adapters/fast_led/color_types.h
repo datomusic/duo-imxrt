@@ -1,5 +1,5 @@
-#ifndef FASTLED_STUB_H_ULX8P0SG
-#define FASTLED_STUB_H_ULX8P0SG
+#ifndef COLOR_TYPES_H_IZVWTQH9
+#define COLOR_TYPES_H_IZVWTQH9
 
 #include "lib8tion.h"
 #include "color.h"
@@ -720,4 +720,5 @@ struct CRGB {
 
 CRGB blend(const CRGB &p1, const CRGB &p2, int amountOfP2) { return p1; }
 
-#endif /* end of include guard: FASTLED_STUB_H_ULX8P0SG */
+
+#endif /* end of include guard: COLOR_TYPES_H_IZVWTQH9 */

@@ -1,6 +1,6 @@
 #ifndef FASTLED_H_ACDOEHJU
 #define FASTLED_H_ACDOEHJU
-#include "../../stubs/fastled_stub.h"
+#include "./color_types.h"
 
 struct FastLED_ {
   void show();
