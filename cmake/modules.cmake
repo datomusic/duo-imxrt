@@ -26,6 +26,8 @@ include(component_serial_manager_MIMXRT1011)
 include(component_lists_MIMXRT1011)
 include(component_serial_manager_uart_MIMXRT1011)
 include(driver_lpuart_MIMXRT1011)
+include(driver_pwm_MIMXRT1011)
+
 include(device_MIMXRT1011_startup_MIMXRT1011)
 include(driver_iomuxc_MIMXRT1011)
 include(utility_assert_MIMXRT1011)
