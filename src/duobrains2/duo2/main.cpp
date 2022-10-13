@@ -4,10 +4,10 @@
 
 #include "stubs/sequencer_stub.h"
 #include "globals.h"
-#include "Sequencer.h"
+#include "duo1/Sequencer.h"
 
 #include "stubs/leds_stub.h"
-#include "Leds.h"
+#include "duo1/Leds.h"
 
 
 int main(void) {
