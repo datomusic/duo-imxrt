@@ -1,7 +1,7 @@
 #ifndef Leds_h
 #define Leds_h
 
-#include "adapters/FastLED.h"
+#include <FastLED.h>
 
 #define COLOR_ORDER GRB
 
