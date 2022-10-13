@@ -14,7 +14,7 @@ add_executable(${EXECUTABLE_NAME}
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${LIB_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_LIST_DIR}/adapters
 )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/build_app.cmake)

@@ -1,6 +1,5 @@
 #ifndef MidiFunctions_h
 #define MidiFunctions_h
-#include <MIDI.h>
 /*
 
   Dato DUO MIDI implementation chart
