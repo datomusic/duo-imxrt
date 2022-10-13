@@ -1,13 +1,12 @@
 #include "Arduino.h"
 #include "board_init.h"
+#include "pinmap.h"
 #include "pin_mux.h"
 #include "leds.h"
 
 #include "stubs/sequencer_stub.h"
 #include "globals.h"
 #include "duo1/Sequencer.h"
-
-const int NUM_LEDS = 19;
 
 #include "stubs/leds_stub.h"
 #include "duo1/Leds.h"
