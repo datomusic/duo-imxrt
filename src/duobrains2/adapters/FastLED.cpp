@@ -13,3 +13,5 @@ void FastLED_::show() {
   LEDs::show(pixels, pixel_count);
 }
 void FastLED_::clear() {}
+void FastLED_::setBrightness(int brightness) {}
+void FastLED_::setCorrection(int correction) {}
