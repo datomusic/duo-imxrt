@@ -7,16 +7,11 @@
 
 #include "stubs/sequencer_stub.h"
 #include "globals.h"
+#include "buttons.h"
+
 #include "duo1/Sequencer.h"
-void keyboard_event(char key, char state);
-void step_event(char key, char state);
-void button_play_event(char state);
-
-#include "Buttons.h"
-
 #include "stubs/leds_stub.h"
 #include "duo1/Leds.h"
-
 
 
 int main(void) {

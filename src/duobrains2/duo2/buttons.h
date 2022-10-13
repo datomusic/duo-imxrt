@@ -2,8 +2,9 @@
 /*
   Rows are set to input_pullup and cols are pulled low one by one
 */
+#include "keys.h"
 #include "pinmap.h"
-#include "Keypad.h"
+#include "keypad.h"
 
 enum BUTTONS {
   DUMMY_KEY,

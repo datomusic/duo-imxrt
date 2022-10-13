@@ -33,7 +33,7 @@
 #ifndef KEYPAD_H
 #define KEYPAD_H
 
-#include "Key.h"
+#include "key.h"
 
 #define OPEN LOW
 #define CLOSED HIGH
