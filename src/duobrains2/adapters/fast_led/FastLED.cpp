@@ -15,3 +15,6 @@ void FastLED_::show() {
 void FastLED_::clear() {
   // TODO
 }
+
+void FastLED_::setBrightness(int brightness) {}
+void FastLED_::setCorrection(int correction) {}
