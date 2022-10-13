@@ -1,9 +1,6 @@
 #ifndef LEDS_STUB_H_1WAP5UXR
 #define LEDS_STUB_H_1WAP5UXR
 
-const int GRB = 1;
-const int SK6812 = 1;
-
 struct Peak {
   float read() { return 0; };
 };

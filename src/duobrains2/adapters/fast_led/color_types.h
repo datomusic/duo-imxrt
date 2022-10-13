@@ -4,6 +4,9 @@
 #include "lib8tion.h"
 #include "color.h"
 
+#define GRB 1
+#define SK6812 1
+
 struct CHSV {
     union {
 		struct {
