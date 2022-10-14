@@ -31,7 +31,8 @@
 #ifndef DMAChannel_h_
 #define DMAChannel_h_
 
-#include "imxrt.h"
+#include "MIMXRT1011.h"
+#include "rt1011_compat.h"
 
 // Discussion about DMAChannel is here:
 // http://forum.pjrc.com/threads/25778-Could-there-be-something-like-an-ISR-template-function/page3
@@ -466,7 +467,7 @@ public:
 		volatile uint32_t *mux = &DMAMUX_CHCFG0 + channel;
 		//mux = (volatile uint32_t *)&(DMAMUX_CHCFG0) + channel;
 		*mux = 0;
-		*mux = (source & 0x7F) | DMAMUX_CHCFG_ENBL;
+		*mux = (source & 0x7F) | DMAMUX_CHCFG_ENBL(1);
 	}
 
 	// Use another DMA channel as the trigger, causing this
@@ -493,7 +494,7 @@ public:
 		volatile uint32_t *mux = &DMAMUX_CHCFG0 + channel;
 		//mux = (volatile uint32_t *)&(DMAMUX_CHCFG0) + channel;
 		*mux = 0;
-		*mux = DMAMUX_CHCFG_A_ON | DMAMUX_CHCFG_ENBL;
+		*mux = DMAMUX_CHCFG_A_ON(1) | DMAMUX_CHCFG_ENBL(1);
 	}
 
 	// Manually trigger the DMA channel.
@@ -511,17 +512,19 @@ public:
 	// transfer is completed.
 	void attachInterrupt(void (*isr)(void)) {
 		_VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
-		NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
+		// NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
+		NVIC_ENABLE_IRQ(IRQ_DMA_CH0);
 	}
 
 	void attachInterrupt(void (*isr)(void), uint8_t prio) {
 		_VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
-		NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
-		NVIC_SET_PRIORITY(IRQ_DMA_CH0 + channel, prio);
+		// NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
+		NVIC_SET_PRIORITY(IRQ_DMA_CH0, prio);
 	}
 	
 	void detachInterrupt(void) {
-		NVIC_DISABLE_IRQ(IRQ_DMA_CH0 + channel);
+		// NVIC_DISABLE_IRQ(IRQ_DMA_CH0 + channel);
+		NVIC_DISABLE_IRQ(IRQ_DMA_CH0);
 	}
 
 	void clearInterrupt(void) {
