@@ -41,9 +41,6 @@ uint16_t dma_channel_allocated_mask = 0;
 #warning "CR is defined as something?"
 #endif
 
-#define IMXRT_DMA_ADDRESS   0x400E8000
-#define IMXRT_DMA			(*(DMA_Type *)IMXRT_DMA_ADDRESS)
-#define DMA_DCHPRI3			(IMXRT_DMA.DCHPRI3)
 
 void DMAChannel::begin(bool force_initialization)
 {
@@ -72,40 +69,13 @@ void DMAChannel::begin(bool force_initialization)
 		}
 	}
 	channel = ch;
-	base = (DMA_Type *)((uint8_t) DMA0_BASE + channel);
 
-    // Enable clock to DMA
-	#define CCM_CCGR_ON 3U
-	#define CCM_CCGR5_DMA(n)	((uint32_t)(((n) & 0x03) << 6))
-	#define CCM_CCGR5			0x400FC07C
-	#define IMXRT_CCM_ADDRESS	0x400FC000
-
-	uint32_t tmpreg;
-    /* clear all the enabled request, status to make sure EDMA status is in normal condition */
-    base->ERQ = 0U;
-    base->INT = 0xFFFFFFFFU;
-    base->ERR = 0xFFFFFFFFU;
-	/* is this equivalent to the following? */
-	// DMA_CERQ = ch;
-	base->CERQ = 1;
-	// DMA_CERR = ch;
-	base->CERR = 1;
-	// DMA_CEEI = ch;
-	base->CEEI = 1;
-	// DMA_CINT = ch;
-	base->CINT = 1;
-    /* Configure EDMA peripheral */
-    tmpreg = base->CR;
-    tmpreg &= ~(DMA_CR_ERCA_MASK | DMA_CR_HOE_MASK | DMA_CR_CLM_MASK | DMA_CR_EDBG_MASK);
-    tmpreg |= (DMA_CR_CLM(0U) | DMA_CR_EDBG(1U) | DMA_CR_EMLM(1U));
-    base->CR = tmpreg;
-
-	// CCM_CCGR5 |= CCM_CCGR5_DMA(CCM_CCGR_ON);
-	// Register 0x400FC07C should be set to (3&3)<<6 (CG3)
-	// DMA_CR = DMA_CR_GRP1PRI | DMA_CR_EMLM | DMA_CR_EDBG;
-	CCM_Type *clock = (CCM_Type *)(CCM);
-	clock->CCGR5 |= CCM_CCGR5_CG3(1U); // Or are we targeting the wrong address?
-	
+	CCM_CCGR5 |= CCM_CCGR5_DMA(CCM_CCGR_ON);
+	DMA_CR = DMA_CR_GRP1PRI | DMA_CR_EMLM | DMA_CR_EDBG;
+	DMA_CERQ = ch;
+	DMA_CERR = ch;
+	DMA_CEEI = ch;
+	DMA_CINT = ch;
 	TCD = (TCD_t *)(0x400E9000 + ch * 32);
 	uint32_t *p = (uint32_t *)TCD;
 	*p++ = 0;
@@ -121,8 +91,7 @@ void DMAChannel::begin(bool force_initialization)
 void DMAChannel::release(void)
 {
 	if (channel >= DMA_MAX_CHANNELS) return;
-	// DMA_CERQ = channel;
-	base->CERQ = 1;
+	DMA_CERQ = channel;
 	__disable_irq();
 	dma_channel_allocated_mask &= ~(1 << channel);
 	__enable_irq();
