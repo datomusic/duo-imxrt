@@ -264,7 +264,7 @@ void AudioOutputMQS::config_i2s(void)
 
 	I2S3_TMR = 0;
 //	I2S3_TCSR = (1<<25); //Reset
-	I2S3_TCR1 = I2S_TCR1_TFW(1);
+	I2S3_TCR1 = I2S_RCR1_RFW(1);
 	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
 		    | (I2S_TCR2_BCD(1) | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
 	I2S3_TCR3 = I2S_TCR3_TCE(1);
