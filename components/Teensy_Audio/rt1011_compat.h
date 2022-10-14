@@ -1,5 +1,7 @@
 #pragma once
 
+#define F_CPU_ACTUAL 500000000
+
 #ifdef TEENSYDUINO
   #undef TEENSYDUINO
 #endif
