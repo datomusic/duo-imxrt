@@ -34,6 +34,7 @@
 #include "MIMXRT1011.h"
 #include "rt1011_compat.h"
 
+
 // Discussion about DMAChannel is here:
 // http://forum.pjrc.com/threads/25778-Could-there-be-something-like-an-ISR-template-function/page3
 
@@ -518,6 +519,7 @@ public:
 
 	void attachInterrupt(void (*isr)(void), uint8_t prio) {
 		_VectorsRam[channel + IRQ_DMA_CH0 + 16] = isr;
+
 		// NVIC_ENABLE_IRQ(IRQ_DMA_CH0 + channel);
 		NVIC_SET_PRIORITY(IRQ_DMA_CH0, prio);
 	}
@@ -525,6 +527,7 @@ public:
 	void detachInterrupt(void) {
 		// NVIC_DISABLE_IRQ(IRQ_DMA_CH0 + channel);
 		NVIC_DISABLE_IRQ(IRQ_DMA_CH0);
+
 	}
 
 	void clearInterrupt(void) {

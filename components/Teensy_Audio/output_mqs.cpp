@@ -39,7 +39,7 @@ uint16_t  AudioOutputMQS::block_left_offset = 0;
 uint16_t  AudioOutputMQS::block_right_offset = 0;
 bool AudioOutputMQS::update_responsibility = false;
 DMAChannel AudioOutputMQS::dma(false);
-// DMAMEM __attribute__((aligned(32)))
+DMAMEM __attribute__((aligned(32)))
 static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
 
@@ -135,6 +135,9 @@ void AudioOutputMQS::isr(void)
 
 }
 
+
+
+
 void AudioOutputMQS::update(void)
 {
 	// null audio device: discard all incoming data
@@ -181,6 +184,7 @@ void AudioOutputMQS::update(void)
 			release(tmp);
 		}
 	}
+
 }
 
 void AudioOutputMQS::config_i2s(void)
@@ -225,6 +229,7 @@ void AudioOutputMQS::config_i2s(void)
 	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
 }
+
 
 #elif defined(__IMXRT1011__) 
 #include <Arduino.h>
@@ -473,3 +478,4 @@ void AudioOutputMQS::config_i2s(void)
 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
 }
 #endif //defined(__IMXRT1011__)
+

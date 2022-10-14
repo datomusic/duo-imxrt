@@ -7,18 +7,21 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE})
 
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../)
 
-target_include_directories(${EXECUTABLE_NAME} PRIVATE
-    ${ROOT_DIR}/src/lib
-)
+set(COMMON_CMAKE ${CMAKE_CURRENT_LIST_DIR})
 
-include(${CMAKE_CURRENT_LIST_DIR}/flags.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/config.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/modules.cmake)
+include(${COMMON_CMAKE}/flags.cmake)
+include(${COMMON_CMAKE}/config.cmake)
+include(${COMMON_CMAKE}/modules.cmake)
+include(${COMMON_CMAKE}/lib.cmake)
+
+if(WITH_USB)
+  include(${COMMON_CMAKE}/usb.cmake)
+endif(WITH_USB)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
   -Wl,--start-group m
-    c
-    gcc
-    nosys
+  c
+  gcc
+  nosys
   -Wl,--end-group
 )

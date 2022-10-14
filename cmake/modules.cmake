@@ -14,6 +14,7 @@ set(CMAKE_MODULE_PATH
     ${ROOT_DIR}/components/Teensy_Audio
     ${ROOT_DIR}/middleware/usb
     ${ROOT_DIR}/middleware/usb/osa
+    ${ROOT_DIR}/components/Teensy_Audio
 )
 
 include(driver_igpio_MIMXRT1011)

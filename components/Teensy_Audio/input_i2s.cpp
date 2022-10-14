@@ -84,24 +84,6 @@ void AudioInputI2S::begin(void)
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_RX);
 
 	I2S1_RCSR = I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
-#elif defined(__IMXRT1011__)
-	CORE_PIN8_CONFIG  = 3;  //1:RX_DATA0
-	IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2;
-
-	dma.TCD->SADDR = (void *)((uint32_t)&I2S1_RDR0 + 2);
-	dma.TCD->SOFF = 0;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
-	dma.TCD->SLAST = 0;
-	dma.TCD->DADDR = i2s_rx_buffer;
-	dma.TCD->DOFF = 2;
-	dma.TCD->CITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
-	dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer);
-	dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
-	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
-	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_RX);
-
-	I2S1_RCSR = I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
 #endif
 	update_responsibility = update_setup();
 	dma.enable();

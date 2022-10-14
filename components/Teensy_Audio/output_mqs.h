@@ -23,8 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__) || defined(__IMXRT1011__)
+
+#if defined(__IMXRT1052__) || defined(__IMXRT1062__)
+#ifndef output_mqs_h_
+#define output_mqs_h_
 
 #include "Arduino.h"
 #include "AudioStream.h"
@@ -53,3 +55,4 @@ private:
 };
 
 #endif
+#endif //defined(__IMXRT1062__)
