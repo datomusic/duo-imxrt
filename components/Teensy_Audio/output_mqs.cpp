@@ -25,11 +25,16 @@
  */
 // Frank B
 
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__)
 #include <Arduino.h>
 #include "output_mqs.h"
 #include "memcpy_audio.h"
-#include "utility/imxrt_hw.h"
+
+#include "fsl_sai.h"
+#include "fsl_iomuxc.h"
+#include "fsl_clock.h"
+#include "fsl_dmamux.h"
+#include "fsl_sai_edma.h"
+#include "clock_config.h"
 
 audio_block_t * AudioOutputMQS::block_left_1st = NULL;
 audio_block_t * AudioOutputMQS::block_right_1st = NULL;
@@ -39,22 +44,24 @@ uint16_t  AudioOutputMQS::block_left_offset = 0;
 uint16_t  AudioOutputMQS::block_right_offset = 0;
 bool AudioOutputMQS::update_responsibility = false;
 DMAChannel AudioOutputMQS::dma(false);
-DMAMEM __attribute__((aligned(32)))
+// DMAMEM __attribute__((aligned(32)))
 static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
+/* SDK compatibility defines */
+#define DMA_TCD_ATTR_SSIZE DMA_ATTR_SSIZE
+#define DMA_TCD_ATTR_DSIZE DMA_ATTR_DSIZE
+#define DMAMUX_SOURCE_SAI3_TX 84 // kDmaRequestMuxSai3Tx
+#define I2S3_TDR0 SAI3->TDR[0]
+#define I2S3_TCSR SAI3->TCSR
 
 void AudioOutputMQS::begin(void)
 {
 	dma.begin(true); // Allocate the DMA channel first
-
 	block_left_1st = NULL;
 	block_right_1st = NULL;
 
 	config_i2s();
-
-	CORE_PIN10_CONFIG = 2;//B0_00 MQS_RIGHT
-	CORE_PIN12_CONFIG = 2;//B0_01 MQS_LEFT
-
+	
 	dma.TCD->SADDR = I2S3_tx_buffer;
 	dma.TCD->SOFF = 2;
 	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
@@ -68,7 +75,7 @@ void AudioOutputMQS::begin(void)
 	dma.TCD->DADDR = (void *)((uint32_t)&I2S3_TDR0 + 0);
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI3_TX);
 
-	I2S3_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
+	I2S3_TCSR |= I2S_TCSR_TE(1) | I2S_TCSR_BCE(1) | I2S_TCSR_FRDE(1);
 	update_responsibility = update_setup();
 	dma.attachInterrupt(isr);
 	dma.enable();
@@ -135,9 +142,6 @@ void AudioOutputMQS::isr(void)
 
 }
 
-
-
-
 void AudioOutputMQS::update(void)
 {
 	// null audio device: discard all incoming data
@@ -184,16 +188,12 @@ void AudioOutputMQS::update(void)
 			release(tmp);
 		}
 	}
-
 }
 
 void AudioOutputMQS::config_i2s(void)
 {
-	CCM_CCGR5 |= CCM_CCGR5_SAI3(CCM_CCGR_ON);
-	CCM_CCGR0 |= CCM_CCGR0_MQS_HMCLK(CCM_CCGR_ON);
-
-//PLL:
-//TODO: Check if frequencies are correct!
+	CLOCK_EnableClock(kCLOCK_Sai3);
+	CLOCK_EnableClock(kCLOCK_Mqs);
 
 	int fs = AUDIO_SAMPLE_RATE_EXACT;
 	// PLL between 27*24 = 648MHz und 54*24=1296MHz
@@ -205,29 +205,68 @@ void AudioOutputMQS::config_i2s(void)
 	int c2 = 10000;
 	int c1 = C * c2 - (c0 * c2);
 
-	set_audioClock(c0, c1, c2);
+	// TODO David Menting Oct 2022
+	// set_audioClock(c0, c1, c2);
+	int nfact = c0;
+	int nmult = c1;
+	int ndiv = c2;
+	bool force = false;
 
-	CCM_CSCMR1 = (CCM_CSCMR1 & ~(CCM_CSCMR1_SAI3_CLK_SEL_MASK))
+    // Enable the audio PLL
+    if (!force && (CCM_ANALOG->PLL_AUDIO & CCM_ANALOG_PLL_AUDIO_ENABLE(1))) return;
+
+	CCM_ANALOG->PLL_AUDIO = CCM_ANALOG_PLL_AUDIO_BYPASS(1) | CCM_ANALOG_PLL_AUDIO_ENABLE(1)
+			     | CCM_ANALOG_PLL_AUDIO_POST_DIV_SELECT(2) // 2: 1/4; 1: 1/2; 0: 1/1
+			     | CCM_ANALOG_PLL_AUDIO_DIV_SELECT(nfact);
+
+	CCM_ANALOG->PLL_AUDIO_NUM   = nmult & CCM_ANALOG_PLL_AUDIO_NUM_A_MASK;
+	CCM_ANALOG->PLL_AUDIO_DENOM = ndiv & CCM_ANALOG_PLL_AUDIO_DENOM_B_MASK;
+	
+	CCM_ANALOG->PLL_AUDIO &= ~CCM_ANALOG_PLL_AUDIO_POWERDOWN(1);//Switch on PLL
+	while (!(CCM_ANALOG->PLL_AUDIO & CCM_ANALOG_PLL_AUDIO_LOCK(1))) {}; //Wait for pll-lock
+	
+	const int div_post_pll = 1; // other values: 2,4
+	CCM_ANALOG->MISC2 &= ~(PMU_MISC2_AUDIO_DIV_MSB(1) | PMU_MISC2_AUDIO_DIV_LSB(1));
+	
+	if(div_post_pll>1) CCM_ANALOG->MISC2 |= PMU_MISC2_AUDIO_DIV_LSB(1);
+	if(div_post_pll>3) CCM_ANALOG->MISC2 |= PMU_MISC2_AUDIO_DIV_MSB(1);
+	
+	CCM_ANALOG->PLL_AUDIO &= ~CCM_ANALOG_PLL_AUDIO_BYPASS(1);//Disable Bypass
+
+
+	CCM->CSCMR1 = (CCM->CSCMR1 & ~(CCM_CSCMR1_SAI3_CLK_SEL_MASK))
 		   | CCM_CSCMR1_SAI3_CLK_SEL(2); // &0x03 // (0,1,2): PLL3PFD0, PLL5, PLL4,
-	CCM_CS1CDR = (CCM_CS1CDR & ~(CCM_CS1CDR_SAI3_CLK_PRED_MASK | CCM_CS1CDR_SAI3_CLK_PODF_MASK))
+	CCM->CS1CDR = (CCM->CS1CDR & ~(CCM_CS1CDR_SAI3_CLK_PRED_MASK | CCM_CS1CDR_SAI3_CLK_PODF_MASK))
 		   | CCM_CS1CDR_SAI3_CLK_PRED(n1-1)
 		   | CCM_CS1CDR_SAI3_CLK_PODF(n2-1);
-	IOMUXC_GPR_GPR1 = (IOMUXC_GPR_GPR1 & ~(IOMUXC_GPR_GPR1_SAI3_MCLK3_SEL_MASK))
-			| (IOMUXC_GPR_GPR1_SAI3_MCLK_DIR | IOMUXC_GPR_GPR1_SAI3_MCLK3_SEL(0));	//Select MCLK
 
+    IOMUXC_GPR->GPR1 = (IOMUXC_GPR->GPR1 & ~(IOMUXC_GPR_GPR1_SAI3_MCLK3_SEL_MASK))
+			| (IOMUXC_GPR_GPR1_SAI3_MCLK_DIR(1) | IOMUXC_GPR_GPR1_SAI3_MCLK3_SEL(0));	//Select MCLK
+		
+    /* 
 	IOMUXC_GPR_GPR2 = (IOMUXC_GPR_GPR2 & ~(IOMUXC_GPR_GPR2_MQS_OVERSAMPLE | IOMUXC_GPR_GPR2_MQS_CLK_DIV_MASK))
-			| IOMUXC_GPR_GPR2_MQS_EN /*| IOMUXC_GPR_GPR2_MQS_OVERSAMPLE */| IOMUXC_GPR_GPR2_MQS_CLK_DIV(0);
+			| IOMUXC_GPR_GPR2_MQS_EN | IOMUXC_GPR_GPR2_MQS_CLK_DIV(0);
+    */ 
+    IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);                             /* Reset MQS. */
+    IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false);                            /* Release reset MQS. */
+    IOMUXC_MQSEnable(IOMUXC_GPR, true);                                         /* Enable MQS. */
+    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate32, 0u);
 
-	if (I2S3_TCSR & I2S_TCSR_TE) return;
+	if (I2S3_TCSR & I2S_TCSR_TE(1)) return;
+
+    #define I2S3_TMR SAI3->TMR
+	#define I2S3_TCR1 SAI3->TCR1
+	#define I2S3_TCR2 SAI3->TCR2
+	#define I2S3_TCR3 SAI3->TCR3
+	#define I2S3_TCR4 SAI3->TCR4
+	#define I2S3_TCR5 SAI3->TCR5
 
 	I2S3_TMR = 0;
 //	I2S3_TCSR = (1<<25); //Reset
-	I2S3_TCR1 = I2S_TCR1_RFW(1);
+	I2S3_TCR1 = I2S_RCR1_RFW(1);
 	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
-		    | (I2S_TCR2_BCD | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
-	I2S3_TCR3 = I2S_TCR3_TCE;
-	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
+		    | (I2S_TCR2_BCD(1) | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
+	I2S3_TCR3 = I2S_TCR3_TCE(1);
+	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF(1) | I2S_TCR4_FSD(1) /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
 }
-
-#endif //defined(__IMXRT1062__)
