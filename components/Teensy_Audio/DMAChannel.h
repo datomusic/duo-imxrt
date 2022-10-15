@@ -336,7 +336,7 @@ public:
 
 	// Set the number of transfers (number of triggers until complete)
 	void transferCount(unsigned int len) {
-		if (!(TCD->BITER & DMA_TCD_BITER_ELINK)) {
+		if (!(TCD->BITER & DMA_TCD_BITER_ELINKYES_ELINK)) {
 			if (len > 32767) return;
 			TCD->BITER = len;
 			TCD->CITER = len;
