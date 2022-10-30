@@ -46,7 +46,7 @@ void DMAChannel::begin(bool force_initialization)
 {
 	uint32_t ch = 0;
 
-	__disable_irq();
+    __disable_irq();
 	if (!force_initialization && TCD && channel < DMA_MAX_CHANNELS
 	  && (dma_channel_allocated_mask & (1 << channel))
 	  && (uint32_t)TCD == (uint32_t)(0x400E9000 + channel * 32)) {
@@ -71,12 +71,12 @@ void DMAChannel::begin(bool force_initialization)
 	channel = ch;
 
 	CCM_CCGR5 |= CCM_CCGR5_DMA(CCM_CCGR_ON);
+	
 	DMA0->CR = DMA_CR_EMLM(1) | DMA_CR_EDBG(1); // RT1011 doesn't have GRP1PRI
     // DMA_CR = DMA_CR_GRP1PRI | DMA_CR_EMLM | DMA_CR_EDBG;
 	DMA_CERR = ch;
 	DMA_CEEI = ch;
 	DMA_CINT = ch;
-	
 	TCD = (TCD_t *)(0x400E9000 + ch * 32);
 	uint32_t *p = (uint32_t *)TCD;
 	*p++ = 0;
@@ -143,3 +143,4 @@ void DMAPriorityOrder(DMAChannel &ch1, DMAChannel &ch2, DMAChannel &ch3, DMAChan
 	if (priority(ch2) < priority(ch3)) swap(ch1, ch2);
 	if (priority(ch3) < priority(ch4)) swap(ch2, ch3);
 }
+

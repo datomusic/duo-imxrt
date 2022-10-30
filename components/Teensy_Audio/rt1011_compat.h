@@ -1,4 +1,5 @@
 #pragma once
+#include "MIMXRT1011.h"
 
 #ifdef TEENSYDUINO
   #undef TEENSYDUINO
@@ -12,17 +13,17 @@
 #ifndef NVIC_ENABLE_IRQ
   #define NVIC_ENABLE_IRQ NVIC_EnableIRQ
 #endif
+#ifndef NVIC_DISABLE_IRQ
+  #define NVIC_DISABLE_IRQ NVIC_DisableIRQ
+#endif
 #ifndef NVIC_SET_PRIORITY
   #define NVIC_SET_PRIORITY NVIC_SetPriority
 #endif
 #ifndef ARM_DWT_CYCCNT
   #define ARM_DWT_CYCCNT DWT->CYCCNT
 #endif
-#ifndef NVIC_DISABLE_IRQ
-  #define NVIC_DISABLE_IRQ NVIC_DisableIRQ
-#endif
 // It seems the RT1011 interrupts are not the same as the RT1050/RT1060.
-// Teensy 4 core uses interrupt 70 as IRQ_SOFTWARE
+// Teensy 4 core uses interrupt 70 as IRQ_SOFTWARE. On the RT1011 that maps to IRQ 54
 #ifndef IRQ_SOFTWARE
   #define IRQ_SOFTWARE Reserved70_IRQn
 #endif
@@ -62,15 +63,15 @@
 
 #define DMAMUX_CHCFG0 DMAMUX->CHCFG[0]
 
-#define _VectorsRam __Vectors
-// What is _VectorsRam and where is it located?
-// How can we attachInterrupt to a dynamically allocated DMA channel?
-#ifdef __cplusplus
-extern "C" void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-#else
-extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-#endif
+#define attachInterruptVector(A, B)  __NVIC_SetVector(A, (uint32_t)&B)
+
+#define _VectorsRam __VECTOR_RAM
+// #ifdef __cplusplus
+// extern "C" void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
+// static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
+// static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
+// #else
+// extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
+// static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
+// static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
+// #endif
