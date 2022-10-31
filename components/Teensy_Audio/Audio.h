@@ -58,6 +58,12 @@
 // include all the library headers, so a sketch can use a single
 // #include <Audio.h> to get the whole library
 //
+
+
+#include "output_mqs.h"
+#include "synth_sine.h"
+
+/*
 #include "analyze_fft256.h"
 #include "analyze_fft1024.h"
 #include "analyze_print.h"
@@ -138,5 +144,6 @@
 #include "synth_simple_drum.h"
 #include "synth_pwm.h"
 #include "synth_wavetable.h"
+*/
 
 #endif
