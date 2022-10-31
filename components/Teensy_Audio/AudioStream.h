@@ -31,6 +31,9 @@
 #ifndef AudioStream_h
 #define AudioStream_h
 
+#include "teensy_audio_stubs.h"
+/* #include "IntervalTimer.h" */
+
 #ifndef __ASSEMBLER__
 #include <stdio.h>  // for NULL
 #include <string.h> // for memcpy
@@ -161,8 +164,8 @@ protected:
 	void transmit(audio_block_t *block, unsigned char index = 0);
 	audio_block_t * receiveReadOnly(unsigned int index = 0);
 	audio_block_t * receiveWritable(unsigned int index = 0);
-	static bool update_setup(void);
-	static void update_stop(void);
+	//static bool update_setup(void);
+	//static void update_stop(void);
 	static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
 	friend void software_isr(void);
 	friend class AudioConnection;
@@ -174,7 +177,7 @@ private:
 	static AudioConnection* unused; // linked list of unused but not destructed connections
 	AudioConnection *destination_list;
 	audio_block_t **inputQueue;
-	static bool update_scheduled;
+	//static bool update_scheduled;
 	virtual void update(void) = 0;
 	static AudioStream *first_update; // for update_all
 	AudioStream *next_update; // for update_all

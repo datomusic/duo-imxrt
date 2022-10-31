@@ -73,6 +73,7 @@ FLASHMEM void AudioStream::initialize_memory(audio_block_t *data, unsigned int n
 	for (i=0; i < num; i++) {
 		data[i].memory_pool_index = i;
 	}
+	/*
 	if (update_scheduled == false) {
 		// if no hardware I/O has taken responsibility for update,
 		// start a timer which will call update_all() at the correct rate
@@ -83,6 +84,7 @@ FLASHMEM void AudioStream::initialize_memory(audio_block_t *data, unsigned int n
 			update_setup();
 		}
 	}
+	*/
 	__enable_irq();
 }
 
@@ -424,8 +426,9 @@ int AudioConnection::disconnect(void)
 // true.  Objects that are capable of calling update_all(), typically
 // input and output based on interrupts, must check this variable in
 // their constructors.
-bool AudioStream::update_scheduled = false;
+//bool AudioStream::update_scheduled = false;
 
+/*
 bool AudioStream::update_setup(void)
 {
 	if (update_scheduled) return false;
@@ -441,6 +444,7 @@ void AudioStream::update_stop(void)
 	NVIC_DISABLE_IRQ(IRQ_SOFTWARE);
 	update_scheduled = false;
 }
+*/
 
 AudioStream * AudioStream::first_update = NULL;
 
