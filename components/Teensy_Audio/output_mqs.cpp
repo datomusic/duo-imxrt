@@ -25,11 +25,14 @@
  */
 // Frank B
 
+#include "./teensy_audio_stubs.h"
+
 #if defined(__IMXRT1052__) || defined(__IMXRT1062__)
 #include <Arduino.h>
 #include "output_mqs.h"
 #include "memcpy_audio.h"
-#include "utility/imxrt_hw.h"
+
+//#include "utility/imxrt_hw.h"
 
 audio_block_t * AudioOutputMQS::block_left_1st = NULL;
 audio_block_t * AudioOutputMQS::block_right_1st = NULL;
@@ -45,6 +48,7 @@ static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
 void AudioOutputMQS::begin(void)
 {
+	/*
 	dma.begin(true); // Allocate the DMA channel first
 
 	block_left_1st = NULL;
@@ -72,10 +76,12 @@ void AudioOutputMQS::begin(void)
 	update_responsibility = update_setup();
 	dma.attachInterrupt(isr);
 	dma.enable();
+	*/
 }
 
 void AudioOutputMQS::isr(void)
 {
+	/*
 	int16_t *dest;
 	audio_block_t *blockL, *blockR;
 	uint32_t saddr, offsetL, offsetR;
@@ -133,6 +139,7 @@ void AudioOutputMQS::isr(void)
 		AudioOutputMQS::block_right_2nd = NULL;
 	}
 
+	*/
 }
 
 
@@ -140,6 +147,7 @@ void AudioOutputMQS::isr(void)
 
 void AudioOutputMQS::update(void)
 {
+	/*
 	// null audio device: discard all incoming data
 	//if (!active) return;
 	//audio_block_t *block = receiveReadOnly();
@@ -184,11 +192,13 @@ void AudioOutputMQS::update(void)
 			release(tmp);
 		}
 	}
+	*/
 
 }
 
 void AudioOutputMQS::config_i2s(void)
 {
+	/*
 	CCM_CCGR5 |= CCM_CCGR5_SAI3(CCM_CCGR_ON);
 	CCM_CCGR0 |= CCM_CCGR0_MQS_HMCLK(CCM_CCGR_ON);
 
@@ -216,18 +226,19 @@ void AudioOutputMQS::config_i2s(void)
 			| (IOMUXC_GPR_GPR1_SAI3_MCLK_DIR | IOMUXC_GPR_GPR1_SAI3_MCLK3_SEL(0));	//Select MCLK
 
 	IOMUXC_GPR_GPR2 = (IOMUXC_GPR_GPR2 & ~(IOMUXC_GPR_GPR2_MQS_OVERSAMPLE | IOMUXC_GPR_GPR2_MQS_CLK_DIV_MASK))
-			| IOMUXC_GPR_GPR2_MQS_EN /*| IOMUXC_GPR_GPR2_MQS_OVERSAMPLE */| IOMUXC_GPR_GPR2_MQS_CLK_DIV(0);
+			| IOMUXC_GPR_GPR2_MQS_EN | IOMUXC_GPR_GPR2_MQS_CLK_DIV(0);
 
 	if (I2S3_TCSR & I2S_TCSR_TE) return;
 
 	I2S3_TMR = 0;
 //	I2S3_TCSR = (1<<25); //Reset
 	I2S3_TCR1 = I2S_TCR1_RFW(1);
-	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
+	I2S3_TCR2 = I2S_TCR2_SYNC(0) // sync=0; tx is async;
 		    | (I2S_TCR2_BCD | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
 	I2S3_TCR3 = I2S_TCR3_TCE;
-	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
+	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF | I2S_TCR4_FSD;
 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
+	*/
 }
 
 #endif //defined(__IMXRT1062__)
