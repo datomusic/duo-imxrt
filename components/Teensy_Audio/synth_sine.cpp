@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 
+#include "teensy_audio_stubs.h"
+
 #include <Arduino.h>
 #include "synth_sine.h"
 #include "utility/dspinst.h"

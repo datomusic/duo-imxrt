@@ -27,6 +27,8 @@
 #ifndef Audio_h_
 #define Audio_h_
 
+#include "teensy_audio_stubs.h"
+
 #if TEENSYDUINO < 120
 #error "Teensyduino version 1.20 or later is required to compile the Audio library."
 #endif
@@ -60,6 +62,8 @@
 //
 
 
+#include "input_i2s.h"
+#include "output_i2s.h"
 #include "output_mqs.h"
 #include "synth_sine.h"
 
