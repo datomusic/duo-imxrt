@@ -62,7 +62,7 @@ void AudioOutputMQS::begin(void)
 	block_left_1st = NULL;
 	block_right_1st = NULL;
 
-	// config_i2s(); // Let's leave this in the main code for now
+	config_i2s(); // Let's leave this in the main code for now
 	
 	// Set the DMA channel source to SAI3 buffer
 	dma.TCD->SADDR = I2S3_tx_buffer;
@@ -77,8 +77,8 @@ void AudioOutputMQS::begin(void)
 	dma.TCD->BITER_ELINKNO = sizeof(I2S3_tx_buffer) / 2;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 	dma.TCD->DADDR = (void *)((uint32_t)&I2S3_TDR0 + 0);
-	// dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI3_TX);
-	DMAMUX_SetSource(DMAMUX, dma.channel, kDmaRequestMuxSai3Tx);
+	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI3_TX);
+	// DMAMUX_SetSource(DMAMUX, dma.channel, kDmaRequestMuxSai3Tx);
 
 	I2S3_TCSR |= I2S_TCSR_TE(1) | I2S_TCSR_BCE(1) | I2S_TCSR_FRDE(1);
 	update_responsibility = update_setup();
@@ -255,7 +255,7 @@ void AudioOutputMQS::config_i2s(void)
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);                             /* Reset MQS. */
     IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false);                            /* Release reset MQS. */
     IOMUXC_MQSEnable(IOMUXC_GPR, true);                                         /* Enable MQS. */
-    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate32, 0u);
+    IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64, 0u);
 
 	if (I2S3_TCSR & I2S_TCSR_TE(1)) return;
 
