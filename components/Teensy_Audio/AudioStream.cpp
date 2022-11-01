@@ -48,7 +48,7 @@ uint16_t AudioStream::memory_used = 0;
 uint16_t AudioStream::memory_used_max = 0;
 AudioConnection* AudioStream::unused = NULL; // linked list of unused but not destructed connections
 
-void software_isr(void);
+/* void software_isr(void); */
 
 
 // Set up the pool of audio data blocks
@@ -409,9 +409,8 @@ int AudioConnection::disconnect(void)
 // true.  Objects that are capable of calling update_all(), typically
 // input and output based on interrupts, must check this variable in
 // their constructors.
-//bool AudioStream::update_scheduled = false;
+bool AudioStream::update_scheduled = false;
 
-/*
 bool AudioStream::update_setup(void)
 {
 	if (update_scheduled) return false;
@@ -421,6 +420,7 @@ bool AudioStream::update_setup(void)
 	update_scheduled = true;
 	return true;
 }
+/*
 
 void AudioStream::update_stop(void)
 {
@@ -431,7 +431,7 @@ void AudioStream::update_stop(void)
 
 AudioStream * AudioStream::first_update = NULL;
 
-void software_isr(void) // AudioStream::update_all()
+void AudioStream::update_all(void) // AudioStream::update_all()
 {
 	AudioStream *p;
 

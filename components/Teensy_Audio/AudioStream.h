@@ -132,6 +132,9 @@ public:
 			numConnections = 0;
 		}
 	static void initialize_memory(audio_block_t *data, unsigned int num);
+	//static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
+	static void update_all(void);
+	static bool update_setup(void);
 protected:
 	static audio_block_t * allocate(void);
 	static void release(audio_block_t * block);
@@ -146,16 +149,14 @@ private:
 	static uint16_t memory_used_max;
 	bool active;
 	unsigned char num_inputs;
-	//static bool update_setup(void);
 	//static void update_stop(void);
-	static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
 	friend void software_isr(void);
 	friend class AudioConnection;
 	uint8_t numConnections;
 	static AudioConnection* unused; // linked list of unused but not destructed connections
 	AudioConnection *destination_list;
 	audio_block_t **inputQueue;
-	//static bool update_scheduled;
+	static bool update_scheduled;
 	virtual void update(void) = 0;
 	static AudioStream *first_update; // for update_all
 	AudioStream *next_update; // for update_all

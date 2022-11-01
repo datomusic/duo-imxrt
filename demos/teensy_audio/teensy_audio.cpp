@@ -40,8 +40,8 @@ int main(void) {
 
   AudioMemory(64);
   AudioNoInterrupts();
-  sine1.frequency(120);
-  sine1.amplitude(0.5);
+  sine1.frequency(70);
+  sine1.amplitude(0.1);
   AudioInterrupts();
 
   while (1) {

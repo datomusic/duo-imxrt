@@ -143,6 +143,8 @@ void AudioOutputMQS::begin(void){
     //set bit clock divider
     SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
 
+    update_responsibility = AudioStream::update_setup();
+
     configMQS();
     xfer.data = (uint8_t *)(uint32_t)I2S3_tx_buffer;
     xfer.dataSize = AUDIO_BLOCK_SAMPLES / 2;
@@ -200,7 +202,7 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle, status_t sta
 		// DMA is transmitting the first half of the buffer
 		// so we must fill the second half
 		dest = (int16_t *)&I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES/2];
-		//if (AudioOutputMQS::update_responsibility) AudioStream::update_all();
+		if (AudioOutputMQS::update_responsibility) AudioStream::update_all();
 	} else {
 		// DMA is transmitting the second half of the buffer
 		// so we must fill the first half
