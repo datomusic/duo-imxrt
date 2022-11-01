@@ -36,12 +36,13 @@
 #error "The Audio Library only works with Teensy 3.X.  Teensy 2.0 is unsupported."
 #endif
 
-#include "DMAChannel.h"
+/*
 #if !defined(DMACHANNEL_HAS_BEGIN) || !defined(DMACHANNEL_HAS_BOOLEAN_CTOR)
 #error "You need to update DMAChannel.h & DMAChannel.cpp"
 #error "https://github.com/PaulStoffregen/cores/blob/master/teensy3/DMAChannel.h"
 #error "https://github.com/PaulStoffregen/cores/blob/master/teensy3/DMAChannel.cpp"
 #endif
+*/
 
 // When changing multiple audio object settings that must update at
 // the same time, these functions allow the audio library interrupt
@@ -62,8 +63,6 @@
 //
 
 
-#include "input_i2s.h"
-#include "output_i2s.h"
 #include "output_mqs.h"
 #include "synth_sine.h"
 
