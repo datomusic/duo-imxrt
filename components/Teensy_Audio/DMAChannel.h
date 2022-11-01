@@ -6,53 +6,9 @@
 #define DMACHANNEL_HAS_BEGIN
 #define DMACHANNEL_HAS_BOOLEAN_CTOR
 
-class DMABaseClass {
-public:
-  typedef struct __attribute__((packed, aligned(4))) {
-    volatile const void *volatile SADDR;
-    int16_t SOFF;
-    union {
-      uint16_t ATTR;
-      struct {
-        uint8_t ATTR_DST;
-        uint8_t ATTR_SRC;
-      };
-    };
-    union {
-      uint32_t NBYTES;
-      uint32_t NBYTES_MLNO;
-      uint32_t NBYTES_MLOFFNO;
-      uint32_t NBYTES_MLOFFYES;
-    };
-    int32_t SLAST;
-    volatile void *volatile DADDR;
-    int16_t DOFF;
-    union {
-      volatile uint16_t CITER;
-      volatile uint16_t CITER_ELINKYES;
-      volatile uint16_t CITER_ELINKNO;
-    };
-    int32_t DLASTSGA;
-    volatile uint16_t CSR;
-    union {
-      volatile uint16_t BITER;
-      volatile uint16_t BITER_ELINKYES;
-      volatile uint16_t BITER_ELINKNO;
-    };
-  } TCD_t;
-  TCD_t *TCD;
-
-protected:
-  // users should not be able to create instances of DMABaseClass, which
-  // require the inheriting class to initialize the TCD pointer.
-  DMABaseClass() {}
-
-  static inline void copy_tcd(TCD_t *dst, const TCD_t *src) {}
-};
-
 // DMAChannel reprents an actual DMA channel and its current settings
 
-class DMAChannel : public DMABaseClass {
+class DMAChannel {
 public:
   /*************************************************/
   /**    Channel Allocation                       **/

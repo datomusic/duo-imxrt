@@ -48,35 +48,35 @@ static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
 void AudioOutputMQS::begin(void)
 {
-	/*
 	dma.begin(true); // Allocate the DMA channel first
-
 	block_left_1st = NULL;
 	block_right_1st = NULL;
 
 	config_i2s();
 
+	/*
 	CORE_PIN10_CONFIG = 2;//B0_00 MQS_RIGHT
 	CORE_PIN12_CONFIG = 2;//B0_01 MQS_LEFT
+	*/
 
-	dma.TCD->SADDR = I2S3_tx_buffer;
-	dma.TCD->SOFF = 2;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
-	dma.TCD->SLAST = -sizeof(I2S3_tx_buffer);
-	dma.TCD->DOFF = 0;
-	dma.TCD->CITER_ELINKNO = sizeof(I2S3_tx_buffer) / 2;
-	dma.TCD->DLASTSGA = 0;
-	dma.TCD->BITER_ELINKNO = sizeof(I2S3_tx_buffer) / 2;
-	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
-	dma.TCD->DADDR = (void *)((uint32_t)&I2S3_TDR0 + 0);
-	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI3_TX);
+	//DMA0->TCD->SADDR = I2S3_tx_buffer;
+	DMA0->TCD->SOFF = 2;
+	//DMA0->TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
+	DMA0->TCD->NBYTES_MLNO = 2;
+	DMA0->TCD->SLAST = -sizeof(I2S3_tx_buffer);
+	DMA0->TCD->DOFF = 0;
+	DMA0->TCD->CITER_ELINKNO = sizeof(I2S3_tx_buffer) / 2;
+	DMA0->TCD->DLAST_SGA = 0;
+	DMA0->TCD->BITER_ELINKNO = sizeof(I2S3_tx_buffer) / 2;
+	//DMA0->TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
+	//DMA0->TCD->DADDR = (void *)((uint32_t)&I2S3_TDR0 + 0);
+	//dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI3_TX);
 
-	I2S3_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
-	update_responsibility = update_setup();
+	//I2S3_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
+	//update_responsibility = update_setup();
+
 	dma.attachInterrupt(isr);
 	dma.enable();
-	*/
 }
 
 void AudioOutputMQS::isr(void)
