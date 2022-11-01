@@ -86,12 +86,12 @@ public:
 		AudioStream &destination, unsigned char destinationInput);
 	friend class AudioStream;
 	~AudioConnection(); 
+private:
 	int disconnect(void);
 	int connect(void);
 	int connect(AudioStream &source, AudioStream &destination) {return connect(source,0,destination,0);};
 	int connect(AudioStream &source, unsigned char sourceOutput,
 		AudioStream &destination, unsigned char destinationInput);
-protected:
 	AudioStream* src;	// can't use references as... 
 	AudioStream* dst;	// ...they can't be re-assigned!
 	unsigned char src_index;
@@ -132,28 +132,26 @@ public:
 			numConnections = 0;
 		}
 	static void initialize_memory(audio_block_t *data, unsigned int num);
-	bool isActive(void) { return active; }
+protected:
+	static audio_block_t * allocate(void);
+	static void release(audio_block_t * block);
+	void transmit(audio_block_t *block, unsigned char index = 0);
+	audio_block_t * receiveReadOnly(unsigned int index = 0);
+private:
 	uint16_t cpu_cycles;
 	uint16_t cpu_cycles_max;
 	static uint16_t cpu_cycles_total;
 	static uint16_t cpu_cycles_total_max;
 	static uint16_t memory_used;
 	static uint16_t memory_used_max;
-protected:
 	bool active;
 	unsigned char num_inputs;
-	static audio_block_t * allocate(void);
-	static void release(audio_block_t * block);
-	void transmit(audio_block_t *block, unsigned char index = 0);
-	audio_block_t * receiveReadOnly(unsigned int index = 0);
-	audio_block_t * receiveWritable(unsigned int index = 0);
 	//static bool update_setup(void);
 	//static void update_stop(void);
 	static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
 	friend void software_isr(void);
 	friend class AudioConnection;
 	uint8_t numConnections;
-private:
 	static AudioConnection* unused; // linked list of unused but not destructed connections
 	AudioConnection *destination_list;
 	audio_block_t **inputQueue;

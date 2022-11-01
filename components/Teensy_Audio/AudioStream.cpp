@@ -184,23 +184,6 @@ audio_block_t * AudioStream::receiveReadOnly(unsigned int index)
 	return in;
 }
 
-// Receive block from an input.  The block will not
-// be shared, so its contents may be changed.
-audio_block_t * AudioStream::receiveWritable(unsigned int index)
-{
-	audio_block_t *in, *p;
-
-	if (index >= num_inputs) return NULL;
-	in = inputQueue[index];
-	inputQueue[index] = NULL;
-	if (in && in->ref_count > 1) {
-		p = allocate();
-		if (p) memcpy(p->data, in->data, sizeof(p->data));
-		in->ref_count--;
-		in = p;
-	}
-	return in;
-}
 
 /**************************************************************************************/
 // Full constructor with 4 parameters
