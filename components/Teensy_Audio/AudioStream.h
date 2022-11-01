@@ -68,9 +68,6 @@
 #ifndef __ASSEMBLER__
 class AudioStream;
 class AudioConnection;
-#if defined(AUDIO_DEBUG_CLASS)
-class AudioDebug;  // for testing only, never for public release
-#endif // defined(AUDIO_DEBUG_CLASS)
 
 typedef struct audio_block_struct {
 	uint8_t  ref_count;
@@ -101,9 +98,6 @@ protected:
 	unsigned char dest_index;
 	AudioConnection *next_dest; // linked list of connections from one source
 	bool isConnected;
-#if defined(AUDIO_DEBUG_CLASS)
-	friend class AudioDebug;
-#endif // defined(AUDIO_DEBUG_CLASS)
 };
 
 
@@ -169,9 +163,6 @@ protected:
 	static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
 	friend void software_isr(void);
 	friend class AudioConnection;
-#if defined(AUDIO_DEBUG_CLASS)
-	friend class AudioDebug;
-#endif // defined(AUDIO_DEBUG_CLASS)
 	uint8_t numConnections;
 private:
 	static AudioConnection* unused; // linked list of unused but not destructed connections
@@ -186,34 +177,6 @@ private:
 	static uint16_t memory_pool_first_mask;
 };
 
-#if defined(AUDIO_DEBUG_CLASS)
-// This class aids debugging of the internal functionality of the
-// AudioStream and AudioConnection classes, but is NOT intended
-// for general users of the Audio library.
-class AudioDebug
-{
-	public:
-		// info on connections
-		AudioStream* getSrc(AudioConnection& c) { return c.src;};
-		AudioStream* getDst(AudioConnection& c) { return c.dst;};
-		unsigned char getSrcN(AudioConnection& c) { return c.src_index;};
-		unsigned char getDstN(AudioConnection& c) { return c.dest_index;};
-		AudioConnection* getNext(AudioConnection& c) { return c.next_dest;};
-		bool isConnected(AudioConnection& c) { return c.isConnected;};
-		AudioConnection* unusedList() { return AudioStream::unused;};
-		
-		// info on streams
-		AudioConnection* dstList(AudioStream& s) { return s.destination_list;};
-		audio_block_t ** inqList(AudioStream& s) { return s.inputQueue;};
-		uint8_t 	 	 getNumInputs(AudioStream& s) { return s.num_inputs;};
-		AudioStream*     firstUpdate(AudioStream& s) { return s.first_update;};
-		AudioStream* 	 nextUpdate(AudioStream& s) { return s.next_update;};
-		uint8_t 	 	 getNumConnections(AudioStream& s) { return s.numConnections;};
-		bool 	 	 	 isActive(AudioStream& s) { return s.active;};
-		 
-		
-};
-#endif // defined(AUDIO_DEBUG_CLASS)
 
 #endif // __ASSEMBLER__
 #endif // AudioStream_h
