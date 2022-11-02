@@ -30,6 +30,8 @@
 #ifndef memcpy_audio_h_
 #define memcpy_audio_h_
 
+#include <cstdint>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
