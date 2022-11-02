@@ -54,7 +54,7 @@
 //   AudioAnalyzeFFT1024
 
 #ifndef AUDIO_BLOCK_SAMPLES
-#define AUDIO_BLOCK_SAMPLES  128
+#define AUDIO_BLOCK_SAMPLES  64
 #endif
 
 #ifndef AUDIO_SAMPLE_RATE_EXACT

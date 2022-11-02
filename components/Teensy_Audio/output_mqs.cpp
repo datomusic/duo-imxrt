@@ -35,6 +35,7 @@
 
 //#include "utility/imxrt_hw.h"
 
+bool AudioOutputMQS::needs_update = false;
 audio_block_t *AudioOutputMQS::block_left_1st = NULL;
 audio_block_t *AudioOutputMQS::block_right_1st = NULL;
 audio_block_t *AudioOutputMQS::block_left_2nd = NULL;
@@ -72,6 +73,8 @@ static edma_config_t dmaConfig = {0};
 static sai_transceiver_t config;
 static edma_handle_t g_dmaHandle = {0};
 AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle) = {0};
+
+static bool buffer_toggle = true;
 
 #define DEMO_SAI SAI3
 
@@ -157,67 +160,44 @@ CLOCK_InitAudioPll(&audioPllConfig);
   SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz,
                         kSAI_WordWidth16bits, 2u);
 
-  update_responsibility = AudioStream::update_setup();
+  // update_responsibility = AudioStream::update_setup();
 
   configMQS();
   xfer.data = (uint8_t *)(uint32_t)I2S3_tx_buffer;
-  xfer.dataSize = AUDIO_BLOCK_SAMPLES / 2;
+  xfer.dataSize = 32;
   SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
 }
 
 void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
                          status_t status, void *userData) {
   int16_t *dest;
-  audio_block_t *blockL, *blockR;
+  audio_block_t *blockR;
 
-  uint32_t saddr, offsetL, offsetR;
-  saddr = (uint32_t)(DMA0->TCD->SADDR);
+  uint32_t offsetR;
 
-  // dma.clearInterrupt();
-
-  if (saddr < (uint32_t)I2S3_tx_buffer + sizeof(I2S3_tx_buffer) / 2) {
+  if (buffer_toggle) {
     // DMA is transmitting the first half of the buffer
     // so we must fill the second half
     dest = (int16_t *)&I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES / 2];
-    if (AudioOutputMQS::update_responsibility)
-      AudioStream::update_all();
+    needs_update = true;
   } else {
     // DMA is transmitting the second half of the buffer
     // so we must fill the first half
     dest = (int16_t *)I2S3_tx_buffer;
   }
 
-  blockL = AudioOutputMQS::block_left_1st;
+  buffer_toggle = !buffer_toggle;
+
   blockR = AudioOutputMQS::block_right_1st;
-  offsetL = AudioOutputMQS::block_left_offset;
   offsetR = AudioOutputMQS::block_right_offset;
 
-  if (blockL && blockR) {
-    memcpy_tointerleaveLR(dest, blockL->data + offsetL, blockR->data + offsetR);
-    offsetL += AUDIO_BLOCK_SAMPLES / 2;
-    offsetR += AUDIO_BLOCK_SAMPLES / 2;
-  } else if (blockL) {
-    memcpy_tointerleaveL(dest, blockL->data + offsetL);
-    offsetL += AUDIO_BLOCK_SAMPLES / 2;
-  } else if (blockR) {
+  if (blockR) {
     memcpy_tointerleaveR(dest, blockR->data + offsetR);
     offsetR += AUDIO_BLOCK_SAMPLES / 2;
   } else {
     memset(dest, 0, sizeof(I2S3_tx_buffer) / 2);
   }
 
-#if IMXRT_CACHE_ENABLED >= 2
-  arm_dcache_flush_delete(dest, sizeof(I2S3_tx_buffer) / 2);
-#endif
-
-  if (offsetL < AUDIO_BLOCK_SAMPLES) {
-    AudioOutputMQS::block_left_offset = offsetL;
-  } else {
-    AudioOutputMQS::block_left_offset = 0;
-    AudioStream::release(blockL);
-    AudioOutputMQS::block_left_1st = AudioOutputMQS::block_left_2nd;
-    AudioOutputMQS::block_left_2nd = NULL;
-  }
   if (offsetR < AUDIO_BLOCK_SAMPLES) {
     AudioOutputMQS::block_right_offset = offsetR;
   } else {
@@ -228,7 +208,7 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
   }
 
   xfer.data = (uint8_t *)dest;
-  xfer.dataSize = AUDIO_BLOCK_SAMPLES / 2;
+  xfer.dataSize = sizeof(I2S3_tx_buffer) / 2;
   SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
 }
 
@@ -239,26 +219,9 @@ void AudioOutputMQS::update(void) {
   // if (block) release(block);
   // digitalWriteFast(13, LOW);
   audio_block_t *block;
-  block = receiveReadOnly(0); // input 0 = left channel
-  if (block) {
-    __disable_irq();
-    if (block_left_1st == NULL) {
-      block_left_1st = block;
-      block_left_offset = 0;
-      __enable_irq();
-    } else if (block_left_2nd == NULL) {
-      block_left_2nd = block;
-      __enable_irq();
-    } else {
-      audio_block_t *tmp = block_left_1st;
-      block_left_1st = block_left_2nd;
-      block_left_2nd = block;
-      block_left_offset = 0;
-      __enable_irq();
-      release(tmp);
-    }
-  }
+
   block = receiveReadOnly(1); // input 1 = right channel
+
   if (block) {
     __disable_irq();
     if (block_right_1st == NULL) {
