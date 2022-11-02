@@ -53,8 +53,7 @@ static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 #define DMA_TCD_ATTR_SSIZE DMA_ATTR_SSIZE
 #define DMA_TCD_ATTR_DSIZE DMA_ATTR_DSIZE
 #define DMAMUX_SOURCE_SAI3_TX 84 // kDmaRequestMuxSai3Tx
-#define I2S3_TDR0 SAI3->TDR[0]
-#define I2S3_TCSR SAI3->TCSR
+
 
 void AudioOutputMQS::begin(void)
 {
@@ -76,11 +75,10 @@ void AudioOutputMQS::begin(void)
 	dma.TCD->DLASTSGA = 0;
 	dma.TCD->BITER_ELINKNO = sizeof(I2S3_tx_buffer) / 2;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
-	dma.TCD->DADDR = (void *)((uint32_t)&I2S3_TDR0 + 0);
+	dma.TCD->DADDR = (void *)((uint32_t)&SAI3->TDR[0] + 0);
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI3_TX);
-	// DMAMUX_SetSource(DMAMUX, dma.channel, kDmaRequestMuxSai3Tx);
 
-	I2S3_TCSR |= I2S_TCSR_TE(1) | I2S_TCSR_BCE(1) | I2S_TCSR_FRDE(1);
+	SAI3->TCSR |= I2S_TCSR_TE(1) | I2S_TCSR_BCE(1) | I2S_TCSR_FRDE(1);
 	update_responsibility = update_setup();
 	dma.attachInterrupt(isr);
 	dma.enable();
@@ -257,22 +255,30 @@ void AudioOutputMQS::config_i2s(void)
     IOMUXC_MQSEnable(IOMUXC_GPR, true);                                         /* Enable MQS. */
     IOMUXC_MQSConfig(IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64, 0u);
 
-	if (I2S3_TCSR & I2S_TCSR_TE(1)) return;
-
     #define I2S3_TMR SAI3->TMR
 	#define I2S3_TCR1 SAI3->TCR1
 	#define I2S3_TCR2 SAI3->TCR2
 	#define I2S3_TCR3 SAI3->TCR3
 	#define I2S3_TCR4 SAI3->TCR4
 	#define I2S3_TCR5 SAI3->TCR5
+	#define I2S3_TDR0 SAI3->TDR[0]
+	#define I2S3_TCSR SAI3->TCSR
 
+	if (I2S3_TCSR & I2S_TCSR_TE(1)) return;
+
+    // Transmit word mask
 	I2S3_TMR = 0;
 //	I2S3_TCSR = (1<<25); //Reset
+    // Cannot find this in TCR1
 	I2S3_TCR1 = I2S_TCR1_TFW(1);
+	// Asynchronous mode, Bit clock master, Divider (3+1)*2, Master clock 1 select
 	I2S3_TCR2 = I2S_TCR2_SYNC(0) /*| I2S_TCR2_BCP*/ // sync=0; tx is async;
 		    | (I2S_TCR2_BCD(1) | I2S_TCR2_DIV((3)) | I2S_TCR2_MSEL(1));
+	// Transmit channel enable
 	I2S3_TCR3 = I2S_TCR3_TCE(1);
+	// Framesize 2 words per frame, sync width 16 bit clocks, MSB first, Internal frame sync
 	I2S3_TCR4 = I2S_TCR4_FRSZ((2-1)) | I2S_TCR4_SYWD((16-1)) | I2S_TCR4_MF(1) | I2S_TCR4_FSD(1) /*| I2S_TCR4_FSE*/ /* | I2S_TCR4_FSP */;
+	// Number of bits in a word, number of bits in the first word, first bit index
 	I2S3_TCR5 = I2S_TCR5_WNW((16-1)) | I2S_TCR5_W0W((16-1)) | I2S_TCR5_FBT((16-1));
 }
 #endif //defined(__IMXRT1011__)

@@ -63,15 +63,12 @@
 
 #define DMAMUX_CHCFG0 DMAMUX->CHCFG[0]
 
-#define attachInterruptVector(A, B)  __NVIC_SetVector(A, (uint32_t)&B)
-
-#define _VectorsRam __VECTOR_RAM
-// #ifdef __cplusplus
-// extern "C" void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-// static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-// static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-// #else
-// extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-// static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-// static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-// #endif
+#ifdef __cplusplus
+extern "C" void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
+static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
+static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
+#else
+extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
+static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
+static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
+#endif

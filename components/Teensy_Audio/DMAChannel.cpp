@@ -72,7 +72,7 @@ void DMAChannel::begin(bool force_initialization)
 
 	CCM_CCGR5 |= CCM_CCGR5_DMA(CCM_CCGR_ON);
 	
-	DMA0->CR = DMA_CR_EMLM(1) | DMA_CR_EDBG(1); // RT1011 doesn't have GRP1PRI
+	DMA0->CR = DMA_CR_EMLM(1) | DMA_CR_EDBG(0); // RT1011 doesn't have GRP1PRI
     // DMA_CR = DMA_CR_GRP1PRI | DMA_CR_EMLM | DMA_CR_EDBG;
 	DMA_CERR = ch;
 	DMA_CEEI = ch;

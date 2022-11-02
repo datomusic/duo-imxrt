@@ -16,7 +16,7 @@
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-__attribute__((section(".vectorTableRam"), aligned(0x400))) uint32_t g_vectorTable[256] = {0};
+__attribute__((section(".vectorTableRam"), aligned(0x400))) uint32_t _VectorsRam[256] = {0};
 
 
 #if defined(__CC_ARM) || defined(__ARMCC_VERSION)
@@ -339,15 +339,15 @@ void BOARD_RelocateVectorTableToRam(void)
     /* Copy the vector table from ROM to RAM */
     for (n = 0; n < ((uint32_t)0x400) / sizeof(uint32_t); n++)
     {
-        g_vectorTable[n] = __VECTOR_TABLE[n];
+        _VectorsRam[n] = __VECTOR_TABLE[n];
     }
 
     /* Set application defined stack pointer */
     volatile unsigned int vStackTop = (unsigned int)&__StackTop;
-    g_vectorTable[0]                = vStackTop;
+    _VectorsRam[0]                = vStackTop;
 
     /* Point the VTOR to the position of vector table */
-    SCB->VTOR = (uint32_t)g_vectorTable;
+    SCB->VTOR = (uint32_t)_VectorsRam;
     __DSB();
 
     SCB_EnableICache();
