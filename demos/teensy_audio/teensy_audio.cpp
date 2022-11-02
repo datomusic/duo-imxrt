@@ -13,13 +13,7 @@ int main(void) {
   board_init();
   LEDs::init();
 
-  pinMode(PIN_AMP_MUTE, OUTPUT);
-  pinMode(PIN_HP_ENABLE, OUTPUT);
   pinMode(PIN_SYNC_OUT, OUTPUT);
-
-  digitalWrite(PIN_AMP_MUTE, LOW);
-  digitalWrite(PIN_HP_ENABLE, HIGH);
-
   Pixel pixels[0];
 
   AudioSynthWaveformSine sine1; // xy=174,384
@@ -27,10 +21,9 @@ int main(void) {
   AudioConnection patchCord1(sine1, 0, mqs1, 0);
   AudioConnection patchCord2(sine1, 0, mqs1, 1);
 
-  AudioMemory(64);
   AudioNoInterrupts();
-  sine1.frequency(10);
-  sine1.amplitude(0.5);
+  AudioMemory(64);
+  sine1.frequency(40);
   AudioInterrupts();
 
   while (1) {
