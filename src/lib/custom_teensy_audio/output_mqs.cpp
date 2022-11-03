@@ -50,8 +50,6 @@ static sai_transceiver_t config;
 static edma_handle_t g_dmaHandle = {0};
 AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle) = {0};
 
-static bool buffer_toggle = true;
-
 #define DEMO_SAI SAI3
 
 /* Select Audio PLL (786.432 MHz) as sai1 clock source */
@@ -142,18 +140,23 @@ void AudioOutputMQS::begin(void) {
   SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
 }
 
+static bool buffer_toggle = false;
+
 void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
                          status_t status, void *userData) {
-  int16_t *dest;
-  audio_block_t *blockR;
 
-  uint32_t offsetR;
+  int16_t *dest;
+  audio_block_t *blockL, *blockR;
+  uint32_t offsetL, offsetR;
 
   if (buffer_toggle) {
     // DMA is transmitting the first half of the buffer
     // so we must fill the second half
     dest = (int16_t *)&I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES / 2];
-	if (AudioOutputMQS::update_responsibility) AudioStream::update_all();
+
+    if (AudioOutputMQS::update_responsibility) {
+      AudioStream::update_all();
+    }
   } else {
     // DMA is transmitting the second half of the buffer
     // so we must fill the first half
@@ -162,14 +165,32 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
 
   buffer_toggle = !buffer_toggle;
 
+  blockL = AudioOutputMQS::block_left_1st;
   blockR = AudioOutputMQS::block_right_1st;
+  offsetL = AudioOutputMQS::block_left_offset;
   offsetR = AudioOutputMQS::block_right_offset;
 
-  if (blockR) {
+  if (blockL && blockR) {
+    memcpy_tointerleaveLR(dest, blockL->data + offsetL, blockR->data + offsetR);
+    offsetL += AUDIO_BLOCK_SAMPLES / 2;
+    offsetR += AUDIO_BLOCK_SAMPLES / 2;
+  } else if (blockL) {
+    memcpy_tointerleaveL(dest, blockL->data + offsetL);
+    offsetL += AUDIO_BLOCK_SAMPLES / 2;
+  } else if (blockR) {
     memcpy_tointerleaveR(dest, blockR->data + offsetR);
     offsetR += AUDIO_BLOCK_SAMPLES / 2;
   } else {
     memset(dest, 0, sizeof(I2S3_tx_buffer) / 2);
+  }
+
+  if (offsetL < AUDIO_BLOCK_SAMPLES) {
+    AudioOutputMQS::block_left_offset = offsetL;
+  } else {
+    AudioOutputMQS::block_left_offset = 0;
+    AudioStream::release(blockL);
+    AudioOutputMQS::block_left_1st = AudioOutputMQS::block_left_2nd;
+    AudioOutputMQS::block_left_2nd = NULL;
   }
 
   if (offsetR < AUDIO_BLOCK_SAMPLES) {
@@ -188,9 +209,27 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
 
 void AudioOutputMQS::update(void) {
   audio_block_t *block;
+  block = receiveReadOnly(0); // input 0 = left channel
+  if (block) {
+    __disable_irq();
+    if (block_left_1st == NULL) {
+      block_left_1st = block;
+      block_left_offset = 0;
+      __enable_irq();
+    } else if (block_left_2nd == NULL) {
+      block_left_2nd = block;
+      __enable_irq();
+    } else {
+      audio_block_t *tmp = block_left_1st;
+      block_left_1st = block_left_2nd;
+      block_left_2nd = block;
+      block_left_offset = 0;
+      __enable_irq();
+      release(tmp);
+    }
+  }
 
   block = receiveReadOnly(1); // input 1 = right channel
-
   if (block) {
     __disable_irq();
     if (block_right_1st == NULL) {
@@ -210,4 +249,3 @@ void AudioOutputMQS::update(void) {
     }
   }
 }
-
