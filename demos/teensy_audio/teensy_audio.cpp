@@ -4,18 +4,12 @@
 #include "clock_config.h"
 #include "fsl_dmamux.h"
 #include "fsl_sai_edma.h"
-#include "leds.h"
 #include "pin_mux.h"
-
-using LEDs::Pixel;
 
 int main(void) {
   board_init();
 
-  LEDs::init();
-
   pinMode(PIN_SYNC_OUT, OUTPUT);
-  Pixel pixels[0];
 
   AudioSynthWaveformSine sine1; // xy=174,384
   AudioOutputMQS mqs1;          // xy=356,386
@@ -32,13 +26,13 @@ int main(void) {
 
   while (true) {
 
-    if(millis() > sweep_update_time) {
-        uint32_t speed_pot = analogRead(PIN_POT_2);
-        uint32_t length_pot = analogRead(PIN_POT_1);
-        AudioNoInterrupts();
-        sine1.amplitude((4096-length_pot)/16384.0);
-        sine1.frequency(4100-speed_pot);
-        AudioInterrupts();
+    if (millis() > sweep_update_time) {
+      uint32_t speed_pot = analogRead(PIN_POT_2);
+      uint32_t length_pot = analogRead(PIN_POT_1);
+      AudioNoInterrupts();
+      sine1.amplitude((4096 - length_pot) / 16384.0);
+      sine1.frequency(4100 - speed_pot);
+      AudioInterrupts();
     }
   }
 }
