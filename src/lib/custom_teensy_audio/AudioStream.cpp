@@ -397,7 +397,6 @@ bool AudioStream::update_setup(void) {
     return false;
   }
 
-  // attachInterruptVector(IRQ_SOFTWARE, software_isr);
   NVIC_SetVector(Reserved70_IRQn, (uint32_t)&software_isr);
   NVIC_SetPriority(IRQ_SOFTWARE, 208); // 255 = lowest priority
   NVIC_EnableIRQ(IRQ_SOFTWARE);
