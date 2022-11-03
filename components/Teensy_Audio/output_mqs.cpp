@@ -159,9 +159,8 @@ void AudioOutputMQS::begin(void) {
   SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz,
                         kSAI_WordWidth16bits, 2u);
 
-  // update_responsibility = AudioStream::update_setup();
-
   configMQS();
+
   xfer.data = (uint8_t *)(uint32_t)I2S3_tx_buffer;
   xfer.dataSize = 32;
   SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
