@@ -11,6 +11,7 @@ using LEDs::Pixel;
 
 int main(void) {
   board_init();
+
   LEDs::init();
 
   pinMode(PIN_SYNC_OUT, OUTPUT);
@@ -27,13 +28,17 @@ int main(void) {
   sine1.amplitude(0.1);
   AudioInterrupts();
 
-  while (true) {
-    if (AudioStream::update_scheduled) {
-      AudioStream::update_all();
-    }
-    /* pixels[0].r = pixels[0].r > 0 ? 0 : 200; */
-    /* LEDs::show(pixels, 1); */
+  unsigned long sweep_update_time = millis() + 10;
 
-    /* delayMicroseconds(100000); */
+  while (true) {
+
+    if(millis() > sweep_update_time) {
+        uint32_t speed_pot = analogRead(PIN_POT_2);
+        uint32_t length_pot = analogRead(PIN_POT_1);
+        AudioNoInterrupts();
+        sine1.amplitude((4096-length_pot)/16384.0);
+        sine1.frequency(4100-speed_pot);
+        AudioInterrupts();
+    }
   }
 }

@@ -28,7 +28,7 @@
 
 #include "./teensy_audio_stubs.h"
 
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__)
+#if defined(__IMXRT1052__) || defined(__IMXRT1062__) || defined(__IMXRT1011)
 #include "memcpy_audio.h"
 #include "output_mqs.h"
 #include <Arduino.h>
@@ -161,6 +161,7 @@ void AudioOutputMQS::begin(void) {
 
   configMQS();
 
+  update_responsibility = update_setup();
   xfer.data = (uint8_t *)(uint32_t)I2S3_tx_buffer;
   xfer.dataSize = 32;
   SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
@@ -177,7 +178,7 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
     // DMA is transmitting the first half of the buffer
     // so we must fill the second half
     dest = (int16_t *)&I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES / 2];
-    AudioStream::update_scheduled = true;
+	if (AudioOutputMQS::update_responsibility) AudioStream::update_all();
   } else {
     // DMA is transmitting the second half of the buffer
     // so we must fill the first half

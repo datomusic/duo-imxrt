@@ -132,16 +132,17 @@ public:
 			numConnections = 0;
 		}
 	static void initialize_memory(audio_block_t *data, unsigned int num);
-	//static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
-	static void update_all(void);
 	static bool update_setup(void);
-
 	static bool update_scheduled;
+	static void update_all(void);
 protected:
 	static audio_block_t * allocate(void);
 	static void release(audio_block_t * block);
 	void transmit(audio_block_t *block, unsigned char index = 0);
 	audio_block_t * receiveReadOnly(unsigned int index = 0);
+	static void update_stop(void);
+	friend void software_isr(void);
+	friend class AudioConnection;
 private:
 	uint16_t cpu_cycles;
 	uint16_t cpu_cycles_max;

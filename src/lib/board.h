@@ -146,6 +146,9 @@ status_t BOARD_Codec_I2C_Send(
 status_t BOARD_Codec_I2C_Receive(
     uint8_t deviceAddress, uint32_t subAddress, uint8_t subAddressSize, uint8_t *rxBuff, uint8_t rxBuffSize);
 #endif /* SDK_I2C_BASED_COMPONENT_USED */
+
+void BOARD_RelocateVectorTableToRam(void);
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */
