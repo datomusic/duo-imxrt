@@ -64,7 +64,7 @@
 
 #include "output_mqs.h"
 #include "synth_sine.h"
-#include "synth_dc.h"
+
 /*
 #include "analyze_fft256.h"
 #include "analyze_fft1024.h"

@@ -45,14 +45,12 @@ uint16_t AudioStream::cpu_cycles_total = 0;
 uint16_t AudioStream::cpu_cycles_total_max = 0;
 uint16_t AudioStream::memory_used = 0;
 uint16_t AudioStream::memory_used_max = 0;
-AudioConnection *AudioStream::unused = NULL; // linked list of unused but not destructed connections
+AudioConnection *AudioStream::unused =
+    NULL; // linked list of unused but not destructed connections
 
 void software_isr(void);
 
-
-void AudioStream::update_all(void) { 
-	NVIC_SetPendingIRQ(Reserved70_IRQn);
-}
+void AudioStream::update_all(void) { NVIC_SetPendingIRQ(Reserved70_IRQn); }
 // Set up the pool of audio data blocks
 // placing them all onto the free list
 FLASHMEM void AudioStream::initialize_memory(audio_block_t *data,
@@ -394,47 +392,44 @@ int AudioConnection::disconnect(void) {
 bool AudioStream::update_scheduled = false;
 
 #define IRQ_SOFTWARE Reserved70_IRQn
-bool AudioStream::update_setup(void)
-{
-	if (update_scheduled) return false;
-	// attachInterruptVector(IRQ_SOFTWARE, software_isr);
-	NVIC_SetVector(Reserved70_IRQn, (uint32_t)&software_isr);
-	NVIC_SET_PRIORITY(IRQ_SOFTWARE, 208); // 255 = lowest priority
-	NVIC_ENABLE_IRQ(IRQ_SOFTWARE);
-	update_scheduled = true;
-	return true;
+bool AudioStream::update_setup(void) {
+  if (update_scheduled)
+    return false;
+  // attachInterruptVector(IRQ_SOFTWARE, software_isr);
+  NVIC_SetVector(Reserved70_IRQn, (uint32_t)&software_isr);
+  NVIC_SetPriority(IRQ_SOFTWARE, 208); // 255 = lowest priority
+  NVIC_EnableIRQ(IRQ_SOFTWARE);
+  update_scheduled = true;
+  return true;
 }
 
-void AudioStream::update_stop(void)
-{
-	NVIC_DISABLE_IRQ(IRQ_SOFTWARE);
-	update_scheduled = false;
+void AudioStream::update_stop(void) {
+  NVIC_DisableIRQ(IRQ_SOFTWARE);
+  update_scheduled = false;
 }
-
 
 AudioStream *AudioStream::first_update = NULL;
 
 // void AudioStream::update_all(void)
-void software_isr(void)
-{
+void software_isr(void) {
   AudioStream *p;
 
-  uint32_t totalcycles = ARM_DWT_CYCCNT;
+  uint32_t totalcycles = DWT->CYCCNT;
   // digitalWriteFast(2, HIGH);
   for (p = AudioStream::first_update; p; p = p->next_update) {
     if (p->active) {
-      uint32_t cycles = ARM_DWT_CYCCNT;
+      uint32_t cycles = DWT->CYCCNT;
       p->update();
       // TODO: traverse inputQueueArray and release
       // any input blocks that weren't consumed?
-      cycles = (ARM_DWT_CYCCNT - cycles) >> 6;
+      cycles = (DWT->CYCCNT - cycles) >> 6;
       p->cpu_cycles = cycles;
       if (cycles > p->cpu_cycles_max)
         p->cpu_cycles_max = cycles;
     }
   }
   // digitalWriteFast(2, LOW);
-  totalcycles = (ARM_DWT_CYCCNT - totalcycles) >> 6;
+  totalcycles = (DWT->CYCCNT - totalcycles) >> 6;
   AudioStream::cpu_cycles_total = totalcycles;
   if (totalcycles > AudioStream::cpu_cycles_total_max)
     AudioStream::cpu_cycles_total_max = totalcycles;
