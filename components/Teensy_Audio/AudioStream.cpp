@@ -437,6 +437,7 @@ void AudioStream::update_all(void) // AudioStream::update_all()
 
 	uint32_t totalcycles = ARM_DWT_CYCCNT;
 	//digitalWriteFast(2, HIGH);
+	digitalWrite(PIN_SYNC_OUT, HIGH);
 	for (p = AudioStream::first_update; p; p = p->next_update) {
 		if (p->active) {
 			uint32_t cycles = ARM_DWT_CYCCNT;
@@ -449,6 +450,7 @@ void AudioStream::update_all(void) // AudioStream::update_all()
 		}
 	}
 	//digitalWriteFast(2, LOW);
+	digitalWrite(PIN_SYNC_OUT, LOW);
 	totalcycles = (ARM_DWT_CYCCNT - totalcycles) >> 6;
 	AudioStream::cpu_cycles_total = totalcycles;
 	if (totalcycles > AudioStream::cpu_cycles_total_max)
