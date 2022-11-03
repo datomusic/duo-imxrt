@@ -45,24 +45,29 @@ bool AudioOutputMQS::update_responsibility = false;
 DMAMEM __attribute__((aligned(32)))
 
 static sai_transfer_t xfer;
-static edma_config_t dmaConfig = {0};
-static sai_transceiver_t config;
-static edma_handle_t g_dmaHandle = {0};
-AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle) = {0};
+static edma_config_t dma_config = {0};
+static sai_transceiver_t transciever_config;
+static edma_handle_t dma_handle = {0};
+AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t tx_handle) = {0};
 
-#define DEMO_SAI SAI3
+#define SAI SAI3
 
 /* Select Audio PLL (786.432 MHz) as sai1 clock source */
-#define DEMO_SAI_CLOCK_SOURCE_SELECT (2U)
+#define SAI_CLOCK_SOURCE_SELECT (2U)
 /* Clock pre divider for sai clock source */
-#define DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER (4U)
+#define SAI_CLOCK_SOURCE_PRE_DIVIDER (4U)
 /* Clock divider for sai clock source */
-#define DEMO_SAI_CLOCK_SOURCE_DIVIDER (1U)
+#define SAI_CLOCK_SOURCE_DIVIDER (1U)
 /* Get frequency of sai clock: SAI3_Clock = 786.432MHz /(3+1)/(1+1) = 98.304MHz
  */
-#define DEMO_SAI_CLK_FREQ                                                      \
-  (CLOCK_GetFreq(kCLOCK_AudioPllClk) / (DEMO_SAI_CLOCK_SOURCE_DIVIDER + 1U) /  \
-   (DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER + 1U))
+#define SAI_CLK_FREQ                                                           \
+  (CLOCK_GetFreq(kCLOCK_AudioPllClk) / (SAI_CLOCK_SOURCE_DIVIDER + 1U) /       \
+   (SAI_CLOCK_SOURCE_PRE_DIVIDER + 1U))
+
+/* DMA */
+#define DMA DMA0
+#define EDMA_CHANNEL (0U)
+#define SAI_TX_SOURCE kDmaRequestMuxSai3Tx
 
 /*******************************************************************************
  * Variables
@@ -80,10 +85,6 @@ const clock_audio_pll_config_t audioPllConfig = {
     .numerator = 2240,    /* 30 bit numerator of fractional loop divider. */
     .denominator = 10000, /* 30 bit denominator of fractional loop divider */
 };
-/* DMA */
-#define DEMO_DMA DMA0
-#define DEMO_EDMA_CHANNEL (0U)
-#define DEMO_SAI_TX_SOURCE kDmaRequestMuxSai3Tx
 
 static void configMQS(void) {
   CLOCK_EnableClock(kCLOCK_Mqs);
@@ -102,42 +103,44 @@ void AudioOutputMQS::begin(void) {
   CLOCK_InitAudioPll(&audioPllConfig);
 
   // Clock setting for SAI.
-  CLOCK_SetMux(kCLOCK_Sai3Mux, DEMO_SAI_CLOCK_SOURCE_SELECT);
-  CLOCK_SetDiv(kCLOCK_Sai3PreDiv, DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER);
-  CLOCK_SetDiv(kCLOCK_Sai3Div, DEMO_SAI_CLOCK_SOURCE_DIVIDER);
+  CLOCK_SetMux(kCLOCK_Sai3Mux, SAI_CLOCK_SOURCE_SELECT);
+  CLOCK_SetDiv(kCLOCK_Sai3PreDiv, SAI_CLOCK_SOURCE_PRE_DIVIDER);
+  CLOCK_SetDiv(kCLOCK_Sai3Div, SAI_CLOCK_SOURCE_DIVIDER);
 
   IOMUXC_SetPinMux(IOMUXC_GPIO_AD_02_MQS_RIGHT, 0);
 
   DMAMUX_Init(DMAMUX);
-  DMAMUX_SetSource(DMAMUX, DEMO_EDMA_CHANNEL, DEMO_SAI_TX_SOURCE);
-  DMAMUX_EnableChannel(DMAMUX, DEMO_EDMA_CHANNEL);
+  DMAMUX_SetSource(DMAMUX, EDMA_CHANNEL, SAI_TX_SOURCE);
+  DMAMUX_EnableChannel(DMAMUX, EDMA_CHANNEL);
 
   // Create EDMA handle
-  EDMA_GetDefaultConfig(&dmaConfig);
-  EDMA_Init(DEMO_DMA, &dmaConfig);
-  EDMA_CreateHandle(&g_dmaHandle, DEMO_DMA, DEMO_EDMA_CHANNEL);
+  EDMA_GetDefaultConfig(&dma_config);
+  EDMA_Init(DMA, &dma_config);
+  EDMA_CreateHandle(&dma_handle, DMA, EDMA_CHANNEL);
 
   // SAI init
-  SAI_Init(DEMO_SAI);
+  SAI_Init(SAI);
 
-  SAI_TransferTxCreateHandleEDMA(DEMO_SAI, &txHandle, isr, NULL, &g_dmaHandle);
+  SAI_TransferTxCreateHandleEDMA(SAI, &tx_handle, isr, NULL, &dma_handle);
 
   // I2S mode configurations
-  SAI_GetClassicI2SConfig(&config, kSAI_WordWidth16bits, kSAI_Stereo, 1U << 0u);
-  config.frameSync.frameSyncEarly = false;
-  config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
-  SAI_TransferTxSetConfigEDMA(DEMO_SAI, &txHandle, &config);
+  SAI_GetClassicI2SConfig(&transciever_config, kSAI_WordWidth16bits,
+                          kSAI_Stereo, 1U << 0u);
+  transciever_config.frameSync.frameSyncEarly = false;
+  transciever_config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
+  SAI_TransferTxSetConfigEDMA(SAI, &tx_handle, &transciever_config);
 
   // set bit clock divider
-  SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz,
+  SAI_TxSetBitClockRate(SAI, SAI_CLK_FREQ, kSAI_SampleRate44100Hz,
                         kSAI_WordWidth16bits, 2u);
 
   configMQS();
 
   update_responsibility = update_setup();
+  memset(I2S3_tx_buffer, 0, sizeof(I2S3_tx_buffer));
   xfer.data = (uint8_t *)(uint32_t)I2S3_tx_buffer;
   xfer.dataSize = sizeof(I2S3_tx_buffer) / 2;
-  SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
+  SAI_TransferSendEDMA(SAI, &tx_handle, &xfer);
 }
 
 /*
@@ -210,8 +213,7 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
   }
 
   xfer.data = (uint8_t *)dest;
-  xfer.dataSize = sizeof(I2S3_tx_buffer) / 2;
-  SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
+  SAI_TransferSendEDMA(SAI, &tx_handle, &xfer);
 }
 
 void AudioOutputMQS::update(void) {
