@@ -26,7 +26,6 @@
 
 #include "teensy_audio_stubs.h"
 
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__)
 #ifndef output_mqs_h_
 #define output_mqs_h_
 
@@ -60,4 +59,3 @@ private:
 };
 
 #endif
-#endif //defined(__IMXRT1062__)

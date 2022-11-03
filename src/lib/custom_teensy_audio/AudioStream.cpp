@@ -31,9 +31,7 @@
 #include "AudioStream.h"
 #include <Arduino.h>
 
-#if defined(__IMXRT1062__)
 #define MAX_AUDIO_MEMORY 229376
-#endif
 
 #define NUM_MASKS (((MAX_AUDIO_MEMORY / AUDIO_BLOCK_SAMPLES / 2) + 31) / 32)
 

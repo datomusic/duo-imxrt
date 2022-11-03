@@ -28,7 +28,6 @@
 
 #include "./teensy_audio_stubs.h"
 
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__) || defined(__IMXRT1011)
 #include "memcpy_audio.h"
 #include "output_mqs.h"
 #include <Arduino.h>
@@ -212,4 +211,3 @@ void AudioOutputMQS::update(void) {
   }
 }
 
-#endif // defined(__IMXRT1062__)
