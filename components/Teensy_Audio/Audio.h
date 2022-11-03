@@ -29,9 +29,6 @@
 
 #include "teensy_audio_stubs.h"
 
-#if TEENSYDUINO < 120
-#error "Teensyduino version 1.20 or later is required to compile the Audio library."
-#endif
 #ifdef __AVR__
 #error "The Audio Library only works with Teensy 3.X.  Teensy 2.0 is unsupported."
 #endif
