@@ -39,9 +39,6 @@
   #define MAX_AUDIO_MEMORY 57344
 #endif
 
-#if defined(__IMXRT1011__)
-  #define MAX_AUDIO_MEMORY 229376
-#endif
 
 #define NUM_MASKS (((MAX_AUDIO_MEMORY / AUDIO_BLOCK_SAMPLES / 2) + 31) / 32)
 
