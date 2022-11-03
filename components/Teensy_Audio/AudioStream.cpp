@@ -393,8 +393,10 @@ bool AudioStream::update_scheduled = false;
 
 #define IRQ_SOFTWARE Reserved70_IRQn
 bool AudioStream::update_setup(void) {
-  if (update_scheduled)
+  if (update_scheduled){
     return false;
+  }
+
   // attachInterruptVector(IRQ_SOFTWARE, software_isr);
   NVIC_SetVector(Reserved70_IRQn, (uint32_t)&software_isr);
   NVIC_SetPriority(IRQ_SOFTWARE, 208); // 255 = lowest priority
@@ -415,7 +417,6 @@ void software_isr(void) {
   AudioStream *p;
 
   uint32_t totalcycles = DWT->CYCCNT;
-  // digitalWriteFast(2, HIGH);
   for (p = AudioStream::first_update; p; p = p->next_update) {
     if (p->active) {
       uint32_t cycles = DWT->CYCCNT;
@@ -428,11 +429,13 @@ void software_isr(void) {
         p->cpu_cycles_max = cycles;
     }
   }
-  // digitalWriteFast(2, LOW);
+
   totalcycles = (DWT->CYCCNT - totalcycles) >> 6;
   AudioStream::cpu_cycles_total = totalcycles;
-  if (totalcycles > AudioStream::cpu_cycles_total_max)
+
+  if (totalcycles > AudioStream::cpu_cycles_total_max) {
     AudioStream::cpu_cycles_total_max = totalcycles;
+  }
 
   asm("DSB");
 }
