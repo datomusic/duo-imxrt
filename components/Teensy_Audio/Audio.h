@@ -52,13 +52,11 @@
 // at the same time, because AudioNoInterrupts() prevents any updates
 // while you make changes.
 //
-/*
-#define AudioNoInterrupts() (NVIC_DISABLE_IRQ(IRQ_SOFTWARE))
-#define AudioInterrupts()   (NVIC_ENABLE_IRQ(IRQ_SOFTWARE))
-*/
-#define AudioNoInterrupts() 
-#define AudioInterrupts()   
+// #define AudioNoInterrupts() (NVIC_DISABLE_IRQ(IRQ_SOFTWARE))
+// #define AudioInterrupts()   (NVIC_ENABLE_IRQ(IRQ_SOFTWARE))
 
+#define AudioNoInterrupts() (NVIC_DisableIRQ(Reserved70_IRQn))
+#define AudioInterrupts()   (NVIC_EnableIRQ(Reserved70_IRQn))
 // include all the library headers, so a sketch can use a single
 // #include <Audio.h> to get the whole library
 //
@@ -66,7 +64,7 @@
 
 #include "output_mqs.h"
 #include "synth_sine.h"
-
+#include "synth_dc.h"
 /*
 #include "analyze_fft256.h"
 #include "analyze_fft1024.h"
