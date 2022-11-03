@@ -32,13 +32,16 @@
 #define AudioStream_h
 
 #include "teensy_audio_stubs.h"
-/* #include "IntervalTimer.h" */
 
 #ifndef __ASSEMBLER__
 #include <stdio.h>  // for NULL
 #include <string.h> // for memcpy
 
+#include "fsl_iomuxc.h"
+#define F_CPU_ACTUAL SystemCoreClock
+
 #endif
+
 
 // AUDIO_BLOCK_SAMPLES determines how many samples the audio library processes
 // per update.  It may be reduced to achieve lower latency response to events,
@@ -66,6 +69,7 @@
 #define noAUDIO_DEBUG_CLASS // disable this class by default
 
 #ifndef __ASSEMBLER__
+
 class AudioStream;
 class AudioConnection;
 
@@ -75,6 +79,7 @@ typedef struct audio_block_struct {
 	uint16_t memory_pool_index;
 	int16_t  data[AUDIO_BLOCK_SAMPLES];
 } audio_block_t;
+
 
 
 
@@ -100,11 +105,20 @@ private:
 	bool isConnected;
 };
 
-
 #define AudioMemory(num) ({ \
 	static DMAMEM audio_block_t data[num]; \
 	AudioStream::initialize_memory(data, num); \
 })
+
+
+#define CYCLE_COUNTER_APPROX_PERCENT(n) (((float)((uint32_t)(n) * 6400u) * (float)(AUDIO_SAMPLE_RATE_EXACT / AUDIO_BLOCK_SAMPLES)) / (float)(F_CPU_ACTUAL))
+
+#define AudioProcessorUsage() (CYCLE_COUNTER_APPROX_PERCENT(AudioStream::cpu_cycles_total))
+#define AudioProcessorUsageMax() (CYCLE_COUNTER_APPROX_PERCENT(AudioStream::cpu_cycles_total_max))
+#define AudioProcessorUsageMaxReset() (AudioStream::cpu_cycles_total_max = AudioStream::cpu_cycles_total)
+#define AudioMemoryUsage() (AudioStream::memory_used)
+#define AudioMemoryUsageMax() (AudioStream::memory_used_max)
+#define AudioMemoryUsageMaxReset() (AudioStream::memory_used_max = AudioStream::memory_used)
 
 
 class AudioStream
@@ -132,6 +146,9 @@ public:
 			numConnections = 0;
 		}
 	static void initialize_memory(audio_block_t *data, unsigned int num);
+	float processorUsage(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles); }
+	float processorUsageMax(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles_max); }
+	void processorUsageMaxReset(void) { cpu_cycles_max = cpu_cycles; }
 	static bool update_setup(void);
 	static bool update_scheduled;
 	static void update_all(void);
