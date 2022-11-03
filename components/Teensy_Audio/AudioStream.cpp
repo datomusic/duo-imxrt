@@ -48,8 +48,6 @@ uint16_t AudioStream::memory_used = 0;
 uint16_t AudioStream::memory_used_max = 0;
 AudioConnection* AudioStream::unused = NULL; // linked list of unused but not destructed connections
 
-/* void software_isr(void); */
-
 
 // Set up the pool of audio data blocks
 // placing them all onto the free list
@@ -73,18 +71,6 @@ FLASHMEM void AudioStream::initialize_memory(audio_block_t *data, unsigned int n
 	for (i=0; i < num; i++) {
 		data[i].memory_pool_index = i;
 	}
-	/*
-	if (update_scheduled == false) {
-		// if no hardware I/O has taken responsibility for update,
-		// start a timer which will call update_all() at the correct rate
-		IntervalTimer *timer = new IntervalTimer();
-		if (timer) {
-			float usec = 1e6 * AUDIO_BLOCK_SAMPLES / AUDIO_SAMPLE_RATE_EXACT;
-			timer->begin(update_all, usec);
-			update_setup();
-		}
-	}
-	*/
 	__enable_irq();
 }
 
@@ -403,41 +389,19 @@ int AudioConnection::disconnect(void)
 	return 0;
 }
 
-
-// When an object has taken responsibility for calling update_all()
-// at each block interval (approx 2.9ms), this variable is set to
-// true.  Objects that are capable of calling update_all(), typically
-// input and output based on interrupts, must check this variable in
-// their constructors.
-bool AudioStream::update_scheduled = false;
-
-bool AudioStream::update_setup(void)
-{
-	if (update_scheduled) return false;
-	attachInterruptVector(IRQ_SOFTWARE, software_isr);
-	NVIC_SET_PRIORITY(IRQ_SOFTWARE, 208); // 255 = lowest priority
-	NVIC_ENABLE_IRQ(IRQ_SOFTWARE);
-	update_scheduled = true;
-	return true;
-}
-/*
-
-void AudioStream::update_stop(void)
-{
-	NVIC_DISABLE_IRQ(IRQ_SOFTWARE);
-	update_scheduled = false;
-}
-*/
-
 AudioStream * AudioStream::first_update = NULL;
+bool AudioStream::update_scheduled = false;
 
 void AudioStream::update_all(void) // AudioStream::update_all()
 {
+	if (!update_scheduled) {
+	  return;
+	}
+
 	AudioStream *p;
 
 	uint32_t totalcycles = ARM_DWT_CYCCNT;
 	//digitalWriteFast(2, HIGH);
-	digitalWrite(PIN_SYNC_OUT, HIGH);
 	for (p = AudioStream::first_update; p; p = p->next_update) {
 		if (p->active) {
 			uint32_t cycles = ARM_DWT_CYCCNT;
@@ -450,12 +414,12 @@ void AudioStream::update_all(void) // AudioStream::update_all()
 		}
 	}
 	//digitalWriteFast(2, LOW);
-	digitalWrite(PIN_SYNC_OUT, LOW);
 	totalcycles = (ARM_DWT_CYCCNT - totalcycles) >> 6;
 	AudioStream::cpu_cycles_total = totalcycles;
 	if (totalcycles > AudioStream::cpu_cycles_total_max)
 		AudioStream::cpu_cycles_total_max = totalcycles;
 
 	asm("DSB");
+	update_scheduled = false;
 }
 

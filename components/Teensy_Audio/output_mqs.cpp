@@ -35,7 +35,6 @@
 
 //#include "utility/imxrt_hw.h"
 
-bool AudioOutputMQS::needs_update = false;
 audio_block_t *AudioOutputMQS::block_left_1st = NULL;
 audio_block_t *AudioOutputMQS::block_right_1st = NULL;
 audio_block_t *AudioOutputMQS::block_left_2nd = NULL;
@@ -99,10 +98,12 @@ static bool buffer_toggle = true;
  *                              = 786.432 MHz
  */
 const clock_audio_pll_config_t audioPllConfig = {
-    .loopDivider = 28,  /* PLL loop divider. Valid range for DIV_SELECT divider value: 27~54. */
-    .postDivider = 4,   /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
-    .numerator = 2240,   /* 30 bit numerator of fractional loop divider. */
-    .denominator = 10000,/* 30 bit denominator of fractional loop divider */
+    .loopDivider = 28, /* PLL loop divider. Valid range for DIV_SELECT divider
+                          value: 27~54. */
+    .postDivider =
+        4, /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
+    .numerator = 2240,    /* 30 bit numerator of fractional loop divider. */
+    .denominator = 10000, /* 30 bit denominator of fractional loop divider */
 };
 /* DMA */
 #define DEMO_DMA DMA0
@@ -123,7 +124,7 @@ static void configMQS(void) {
 static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
 void AudioOutputMQS::begin(void) {
-CLOCK_InitAudioPll(&audioPllConfig);
+  CLOCK_InitAudioPll(&audioPllConfig);
   headphone_enable();
   amp_enable();
 
@@ -137,8 +138,6 @@ CLOCK_InitAudioPll(&audioPllConfig);
   DMAMUX_Init(DMAMUX);
   DMAMUX_SetSource(DMAMUX, DEMO_EDMA_CHANNEL, DEMO_SAI_TX_SOURCE);
   DMAMUX_EnableChannel(DMAMUX, DEMO_EDMA_CHANNEL);
-
-  // PRINTF("SAI MQS DMA example started.\n\r");
 
   // Create EDMA handle
   EDMA_GetDefaultConfig(&dmaConfig);
@@ -179,7 +178,7 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
     // DMA is transmitting the first half of the buffer
     // so we must fill the second half
     dest = (int16_t *)&I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES / 2];
-    needs_update = true;
+    AudioStream::update_scheduled = true;
   } else {
     // DMA is transmitting the second half of the buffer
     // so we must fill the first half
@@ -213,11 +212,6 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
 }
 
 void AudioOutputMQS::update(void) {
-  // null audio device: discard all incoming data
-  // if (!active) return;
-  // audio_block_t *block = receiveReadOnly();
-  // if (block) release(block);
-  // digitalWriteFast(13, LOW);
   audio_block_t *block;
 
   block = receiveReadOnly(1); // input 1 = right channel

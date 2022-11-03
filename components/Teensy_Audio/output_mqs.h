@@ -46,7 +46,6 @@ public:
 	virtual void update(void);
 	void begin(void);
 	friend class AudioInputI2S2;
-	static bool needs_update;
 private:
 	static audio_block_t *block_left_1st;
 	static audio_block_t *block_right_1st;

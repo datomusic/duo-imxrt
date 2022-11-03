@@ -135,6 +135,8 @@ public:
 	//static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
 	static void update_all(void);
 	static bool update_setup(void);
+
+	static bool update_scheduled;
 protected:
 	static audio_block_t * allocate(void);
 	static void release(audio_block_t * block);
@@ -156,7 +158,6 @@ private:
 	static AudioConnection* unused; // linked list of unused but not destructed connections
 	AudioConnection *destination_list;
 	audio_block_t **inputQueue;
-	static bool update_scheduled;
 	virtual void update(void) = 0;
 	static AudioStream *first_update; // for update_all
 	AudioStream *next_update; // for update_all
