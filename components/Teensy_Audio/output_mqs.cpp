@@ -45,28 +45,6 @@ uint16_t AudioOutputMQS::block_right_offset = 0;
 bool AudioOutputMQS::update_responsibility = false;
 DMAMEM __attribute__((aligned(32)))
 
-static void
-headphone_enable(void) {
-#define HP_ENABLE_PINMUX IOMUXC_GPIO_AD_11_GPIOMUX_IO25
-#define HP_ENABLE_PORT GPIO1
-#define HP_ENABLE_PIN 25U
-
-  IOMUXC_SetPinMux(HP_ENABLE_PINMUX, 0U);
-  gpio_pin_config_t hp_enable_config = {kGPIO_DigitalOutput, 0};
-  GPIO_PinInit(HP_ENABLE_PORT, HP_ENABLE_PIN, &hp_enable_config);
-  GPIO_PinWrite(HP_ENABLE_PORT, HP_ENABLE_PIN, 1);
-}
-
-static void amp_enable(void) {
-#define AMP_MUTE_PINMUX IOMUXC_GPIO_AD_10_GPIOMUX_IO24
-#define AMP_MUTE_PORT GPIO1
-#define AMP_MUTE_PIN 24U
-
-  IOMUXC_SetPinMux(AMP_MUTE_PINMUX, 0U);
-  gpio_pin_config_t amp_mute_config = {kGPIO_DigitalOutput, 0};
-  GPIO_PinInit(AMP_MUTE_PORT, AMP_MUTE_PIN, &amp_mute_config);
-  GPIO_PinWrite(AMP_MUTE_PORT, AMP_MUTE_PIN, 0);
-}
 static sai_transfer_t xfer;
 static edma_config_t dmaConfig = {0};
 static sai_transceiver_t config;
@@ -116,7 +94,7 @@ static void configMQS(void) {
   IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false); /* Release reset MQS. */
   IOMUXC_MQSEnable(IOMUXC_GPR, true);              /* Enable MQS. */
   IOMUXC_MQSConfig(
-      IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64,
+      IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate32,
       0u); /* 98.304MHz/64/(0+1) = 1.536MHz
            Higher frequency PWM involves less low frequency harmonic.*/
 }
@@ -125,8 +103,6 @@ static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
 void AudioOutputMQS::begin(void) {
   CLOCK_InitAudioPll(&audioPllConfig);
-  headphone_enable();
-  amp_enable();
 
   // Clock setting for SAI.
   CLOCK_SetMux(kCLOCK_Sai3Mux, DEMO_SAI_CLOCK_SOURCE_SELECT);
@@ -163,7 +139,7 @@ void AudioOutputMQS::begin(void) {
 
   update_responsibility = update_setup();
   xfer.data = (uint8_t *)(uint32_t)I2S3_tx_buffer;
-  xfer.dataSize = 32;
+  xfer.dataSize = sizeof(I2S3_tx_buffer) / 2;
   SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
 }
 
