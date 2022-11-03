@@ -26,7 +26,7 @@
  */
 // Frank B
 
-#include "./teensy_audio_stubs.h"
+#include "./teensy_audio_config.h"
 
 #include "memcpy_audio.h"
 #include "output_mqs.h"

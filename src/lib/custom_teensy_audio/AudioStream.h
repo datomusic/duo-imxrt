@@ -31,7 +31,7 @@
 #ifndef AudioStream_h
 #define AudioStream_h
 
-#include "teensy_audio_stubs.h"
+#include "teensy_audio_config.h"
 
 #ifndef __ASSEMBLER__
 #include <stdio.h>  // for NULL

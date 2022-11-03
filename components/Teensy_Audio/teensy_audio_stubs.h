@@ -1,2 +1,0 @@
-#define DMAMEM
-#define FLASHMEM

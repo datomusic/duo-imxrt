@@ -48,7 +48,7 @@ AudioConnection *AudioStream::unused =
 
 void software_isr(void);
 
-void AudioStream::update_all(void) { NVIC_SetPendingIRQ(Reserved70_IRQn); }
+void AudioStream::update_all(void) { NVIC_SetPendingIRQ(IRQ_SOFTWARE); }
 // Set up the pool of audio data blocks
 // placing them all onto the free list
 FLASHMEM void AudioStream::initialize_memory(audio_block_t *data,
@@ -389,13 +389,12 @@ int AudioConnection::disconnect(void) {
 // their constructors.
 bool AudioStream::update_scheduled = false;
 
-#define IRQ_SOFTWARE Reserved70_IRQn
 bool AudioStream::update_setup(void) {
   if (update_scheduled){
     return false;
   }
 
-  NVIC_SetVector(Reserved70_IRQn, (uint32_t)&software_isr);
+  NVIC_SetVector(IRQ_SOFTWARE, (uint32_t)&software_isr);
   NVIC_SetPriority(IRQ_SOFTWARE, 208); // 255 = lowest priority
   NVIC_EnableIRQ(IRQ_SOFTWARE);
   update_scheduled = true;

@@ -24,8 +24,6 @@
  * THE SOFTWARE.
  */
 
-#include "teensy_audio_stubs.h"
-
 #ifndef output_mqs_h_
 #define output_mqs_h_
 
