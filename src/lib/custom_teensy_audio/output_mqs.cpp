@@ -140,6 +140,13 @@ void AudioOutputMQS::begin(void) {
   SAI_TransferSendEDMA(DEMO_SAI, &txHandle, &xfer);
 }
 
+/*
+ * buffer_toggle:
+ *  Track which half of the audio buffer we're filling.
+ *
+ *  This requires that only one OutputMQS instance ever exists,
+ *  however that is currently the case anyway, based on hardcoded DMA bus etc.
+ */
 static bool buffer_toggle = false;
 
 void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
