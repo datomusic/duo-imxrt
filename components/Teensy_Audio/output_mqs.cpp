@@ -87,6 +87,20 @@ AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle) = {0};
 #define DEMO_SAI_CLK_FREQ (CLOCK_GetFreq(kCLOCK_AudioPllClk) / (DEMO_SAI_CLOCK_SOURCE_DIVIDER + 1U) / (DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER + 1U))
 
 
+/*******************************************************************************
+ * Variables
+ ******************************************************************************/
+/*
+ * AUDIO PLL setting: Frequency = Fref * (DIV_SELECT + NUM / DENOM)
+ *                              = 24 * (32 + 768/1000)
+ *                              = 786.432 MHz
+ */
+const clock_audio_pll_config_t audioPllConfig = {
+    .loopDivider = 28,  /* PLL loop divider. Valid range for DIV_SELECT divider value: 27~54. */
+    .postDivider = 4,   /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
+    .numerator = 2240,   /* 30 bit numerator of fractional loop divider. */
+    .denominator = 10000,/* 30 bit denominator of fractional loop divider */
+};
 /* DMA */
 #define DEMO_DMA           DMA0
 #define DEMO_EDMA_CHANNEL  (0U)
@@ -107,7 +121,7 @@ static void configMQS(void)
 static uint32_t I2S3_tx_buffer[AUDIO_BLOCK_SAMPLES];
 
 void AudioOutputMQS::begin(void){
-
+CLOCK_InitAudioPll(&audioPllConfig);
     headphone_enable();
     amp_enable();
 

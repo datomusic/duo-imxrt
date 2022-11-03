@@ -9,24 +9,13 @@
 
 using LEDs::Pixel;
 
-// GUItool: begin automatically generated code
-// GUItool: end automatically generated code
-
-/*!
- * @brief Main function
- */
 int main(void) {
   board_init();
   LEDs::init();
 
-  /* CLOCK_EnableClock(kCLOCK_Mqs); // TODO: this should go into output_mqs.cpp
-   * but */
-  // doesn't work there
-  /* IOMUXC_SetPinMux(IOMUXC_GPIO_AD_02_MQS_RIGHT, 0); */
-  /* IOMUXC_SetPinMux(IOMUXC_GPIO_AD_01_MQS_LEFT, 0); */
-
   pinMode(PIN_AMP_MUTE, OUTPUT);
   pinMode(PIN_HP_ENABLE, OUTPUT);
+  pinMode(PIN_SYNC_OUT, OUTPUT);
 
   digitalWrite(PIN_AMP_MUTE, LOW);
   digitalWrite(PIN_HP_ENABLE, HIGH);
@@ -40,8 +29,8 @@ int main(void) {
 
   AudioMemory(64);
   AudioNoInterrupts();
-  sine1.frequency(70);
-  sine1.amplitude(0.1);
+  sine1.frequency(10);
+  sine1.amplitude(0.5);
   AudioInterrupts();
 
   while (1) {
