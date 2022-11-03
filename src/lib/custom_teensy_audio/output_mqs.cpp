@@ -26,6 +26,8 @@
  */
 // Frank B
 
+#if defined(__IMXRT1011__)
+
 #include "./teensy_audio_config.h"
 
 #include "memcpy_audio.h"
@@ -258,3 +260,5 @@ void AudioOutputMQS::update(void) {
     }
   }
 }
+
+#endif // defined(__IMXRT1011__)

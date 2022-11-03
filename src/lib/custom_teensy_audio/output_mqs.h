@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 
+#if defined(__IMXRT1011__)
+
 #ifndef output_mqs_h_
 #define output_mqs_h_
 
@@ -56,3 +58,4 @@ private:
 };
 
 #endif
+#endif //defined(__IMXRT1011__)
