@@ -69,6 +69,21 @@
 
 #include "output_mqs.h"
 #include "synth_sine.h"
+#include <analyze_peak.h>
+// #include <effect_bitcrusher.h>
+// #include <effect_delay.h>
+// #include <effect_fade.h>
+// #include "effect_custom_envelope.h"
+// #include <effect_multiply.h>
+// #include <filter_variable.h>
+// #include <input_adc.h>
+// #include <output_dac.h>
+// #include <mixer.h>
+// #include <synth_waveform.h>
+// #include <synth_dc.h>
+// #include <synth_whitenoise.h>
+// #include <synth_pinknoise.h>
+// #include <synth_simple_drum.h>
 
 /*
 #include "analyze_fft256.h"

@@ -7,6 +7,7 @@ target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/output_mqs.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memcpy_audio.S
     ${CMAKE_CURRENT_LIST_DIR}/data_waveforms.c
+    ${CMAKE_CURRENT_LIST_DIR}/analyze_peak.cpp
 )
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
