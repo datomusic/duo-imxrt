@@ -56,6 +56,7 @@
 //   AudioInputUSB, AudioOutputUSB, AudioPlaySdWav, AudioAnalyzeFFT256,
 //   AudioAnalyzeFFT1024
 
+// TODO: set this back to 128 and make AudioMemory(64) initialize this correctly
 #ifndef AUDIO_BLOCK_SAMPLES
 #define AUDIO_BLOCK_SAMPLES  64
 #endif
