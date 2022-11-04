@@ -16,7 +16,7 @@
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-__attribute__((section(".vectorTableRam"), aligned(0x400))) uint32_t _VectorsRam[256] = {0};
+__attribute__((section(".vectorTableRam"), aligned(0x400))) uint32_t _VectorsRam[NUMBER_OF_INT_VECTORS] = {0};
 
 
 #if defined(__CC_ARM) || defined(__ARMCC_VERSION)
@@ -337,7 +337,7 @@ void BOARD_RelocateVectorTableToRam(void)
     SCB_DisableICache();
 
     /* Copy the vector table from ROM to RAM */
-    for (n = 0; n < ((uint32_t)0x400) / sizeof(uint32_t); n++)
+    for (n = 0; n < NUMBER_OF_INT_VECTORS; n++)
     {
         _VectorsRam[n] = __VECTOR_TABLE[n];
     }
