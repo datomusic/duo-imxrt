@@ -80,7 +80,7 @@
 // #include <output_dac.h>
 // #include <mixer.h>
 // #include <synth_waveform.h>
-// #include <synth_dc.h>
+#include <synth_dc.h>
 // #include <synth_whitenoise.h>
 // #include <synth_pinknoise.h>
 // #include <synth_simple_drum.h>
