@@ -70,6 +70,11 @@
 #define noAUDIO_DEBUG_CLASS // disable this class by default
 
 #ifndef __ASSEMBLER__
+class AudioStream;
+class AudioConnection;
+#if defined(AUDIO_DEBUG_CLASS)
+class AudioDebug;  // for testing only, never for public release
+#endif // defined(AUDIO_DEBUG_CLASS)
 
 class AudioStream;
 class AudioConnection;
@@ -98,6 +103,7 @@ private:
 	int connect(AudioStream &source, AudioStream &destination) {return connect(source,0,destination,0);};
 	int connect(AudioStream &source, unsigned char sourceOutput,
 		AudioStream &destination, unsigned char destinationInput);
+protected:
 	AudioStream* src;	// can't use references as... 
 	AudioStream* dst;	// ...they can't be re-assigned!
 	unsigned char src_index;
@@ -150,33 +156,35 @@ public:
 	float processorUsage(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles); }
 	float processorUsageMax(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles_max); }
 	void processorUsageMaxReset(void) { cpu_cycles_max = cpu_cycles; }
-	static bool update_setup(void);
-	static bool update_scheduled;
-	static void update_all(void);
-protected:
-	static audio_block_t * allocate(void);
-	static void release(audio_block_t * block);
-	void transmit(audio_block_t *block, unsigned char index = 0);
-	audio_block_t * receiveReadOnly(unsigned int index = 0);
-	static void update_stop(void);
-	friend void software_isr(void);
-	friend class AudioConnection;
-private:
+	bool isActive(void) { return active; }
 	uint16_t cpu_cycles;
 	uint16_t cpu_cycles_max;
 	static uint16_t cpu_cycles_total;
 	static uint16_t cpu_cycles_total_max;
 	static uint16_t memory_used;
 	static uint16_t memory_used_max;
+protected:
 	bool active;
 	unsigned char num_inputs;
-	//static void update_stop(void);
+	static audio_block_t * allocate(void);
+	static void release(audio_block_t * block);
+	void transmit(audio_block_t *block, unsigned char index = 0);
+	audio_block_t * receiveReadOnly(unsigned int index = 0);
+	audio_block_t * receiveWritable(unsigned int index = 0);
+	static bool update_setup(void);
+	static void update_stop(void);
+	static void update_all(void);
 	friend void software_isr(void);
 	friend class AudioConnection;
+#if defined(AUDIO_DEBUG_CLASS)
+	friend class AudioDebug;
+#endif // defined(AUDIO_DEBUG_CLASS)
 	uint8_t numConnections;
+private:
 	static AudioConnection* unused; // linked list of unused but not destructed connections
 	AudioConnection *destination_list;
 	audio_block_t **inputQueue;
+	static bool update_scheduled;
 	virtual void update(void) = 0;
 	static AudioStream *first_update; // for update_all
 	AudioStream *next_update; // for update_all
@@ -185,6 +193,34 @@ private:
 	static uint16_t memory_pool_first_mask;
 };
 
+#if defined(AUDIO_DEBUG_CLASS)
+// This class aids debugging of the internal functionality of the
+// AudioStream and AudioConnection classes, but is NOT intended
+// for general users of the Audio library.
+class AudioDebug
+{
+	public:
+		// info on connections
+		AudioStream* getSrc(AudioConnection& c) { return c.src;};
+		AudioStream* getDst(AudioConnection& c) { return c.dst;};
+		unsigned char getSrcN(AudioConnection& c) { return c.src_index;};
+		unsigned char getDstN(AudioConnection& c) { return c.dest_index;};
+		AudioConnection* getNext(AudioConnection& c) { return c.next_dest;};
+		bool isConnected(AudioConnection& c) { return c.isConnected;};
+		AudioConnection* unusedList() { return AudioStream::unused;};
+		
+		// info on streams
+		AudioConnection* dstList(AudioStream& s) { return s.destination_list;};
+		audio_block_t ** inqList(AudioStream& s) { return s.inputQueue;};
+		uint8_t 	 	 getNumInputs(AudioStream& s) { return s.num_inputs;};
+		AudioStream*     firstUpdate(AudioStream& s) { return s.first_update;};
+		AudioStream* 	 nextUpdate(AudioStream& s) { return s.next_update;};
+		uint8_t 	 	 getNumConnections(AudioStream& s) { return s.numConnections;};
+		bool 	 	 	 isActive(AudioStream& s) { return s.active;};
+		 
+		
+};
+#endif // defined(AUDIO_DEBUG_CLASS)
 
 #endif // __ASSEMBLER__
 #endif // AudioStream_h
