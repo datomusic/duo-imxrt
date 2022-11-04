@@ -48,7 +48,7 @@ DMAMEM __attribute__((aligned(32)))
 
 static sai_transfer_t xfer;
 static edma_config_t dma_config = {0};
-static sai_transceiver_t transciever_config;
+static sai_transceiver_t transceiver_config;
 static edma_handle_t dma_handle = {0};
 AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t tx_handle) = {0};
 
@@ -126,11 +126,11 @@ void AudioOutputMQS::begin(void) {
   SAI_TransferTxCreateHandleEDMA(SAI, &tx_handle, isr, NULL, &dma_handle);
 
   // I2S mode configurations
-  SAI_GetClassicI2SConfig(&transciever_config, kSAI_WordWidth16bits,
+  SAI_GetClassicI2SConfig(&transceiver_config, kSAI_WordWidth16bits,
                           kSAI_Stereo, 1U << 0u);
-  transciever_config.frameSync.frameSyncEarly = false;
-  transciever_config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
-  SAI_TransferTxSetConfigEDMA(SAI, &tx_handle, &transciever_config);
+  transceiver_config.frameSync.frameSyncEarly = false;
+  transceiver_config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
+  SAI_TransferTxSetConfigEDMA(SAI, &tx_handle, &transceiver_config);
 
   // set bit clock divider
   SAI_TxSetBitClockRate(SAI, SAI_CLK_FREQ, kSAI_SampleRate44100Hz,
