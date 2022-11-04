@@ -31,27 +31,17 @@
 #ifndef AudioStream_h
 #define AudioStream_h
 
+#include "teensy_audio_config.h"
+
 #ifndef __ASSEMBLER__
 #include <stdio.h>  // for NULL
 #include <string.h> // for memcpy
 
+#include "fsl_iomuxc.h"
+#define F_CPU_ACTUAL SystemCoreClock
+
 #endif
 
-#include "rt1011_compat.h"
-
-// #define F_CPU 500000000
-#define F_CPU_ACTUAL 500000000
-#define NVIC_NUM_INTERRUPTS NUMBER_OF_INT_VECTORS
-
-#ifdef __cplusplus
-extern "C" void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-static inline void attachInterruptVector(IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-#else
-extern void (* _VectorsRam[NVIC_NUM_INTERRUPTS+16])(void);
-static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) __attribute__((always_inline, unused));
-static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(void)) { _VectorsRam[irq + 16] = function; asm volatile("": : :"memory"); }
-#endif
 
 // AUDIO_BLOCK_SAMPLES determines how many samples the audio library processes
 // per update.  It may be reduced to achieve lower latency response to events,
@@ -61,10 +51,14 @@ static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(vo
 // should be used, since some synthesis objects generate 16 samples per loop.
 //
 // Some parts of the audio library may have hard-coded dependency on 128 samples.
-// Please report these on the forum with reproducible test cases.
+// Please report these on the forum with reproducible test cases.  The following
+// audio classes are known to have problems with smaller block sizes:
+//   AudioInputUSB, AudioOutputUSB, AudioPlaySdWav, AudioAnalyzeFFT256,
+//   AudioAnalyzeFFT1024
 
+// TODO: set this back to 128 and make AudioMemory(64) initialize this correctly
 #ifndef AUDIO_BLOCK_SAMPLES
-#define AUDIO_BLOCK_SAMPLES  128
+#define AUDIO_BLOCK_SAMPLES  64
 #endif
 
 #ifndef AUDIO_SAMPLE_RATE_EXACT
@@ -73,7 +67,15 @@ static inline void attachInterruptVector(enum IRQn_Type irq, void (*function)(vo
 
 #define AUDIO_SAMPLE_RATE AUDIO_SAMPLE_RATE_EXACT
 
+#define noAUDIO_DEBUG_CLASS // disable this class by default
+
 #ifndef __ASSEMBLER__
+class AudioStream;
+class AudioConnection;
+#if defined(AUDIO_DEBUG_CLASS)
+class AudioDebug;  // for testing only, never for public release
+#endif // defined(AUDIO_DEBUG_CLASS)
+
 class AudioStream;
 class AudioConnection;
 
@@ -85,43 +87,38 @@ typedef struct audio_block_struct {
 } audio_block_t;
 
 
+
+
 class AudioConnection
 {
 public:
-	AudioConnection(AudioStream &source, AudioStream &destination) :
-		src(source), dst(destination), src_index(0), dest_index(0),
-		next_dest(NULL)
-		{ isConnected = false;
-		  connect(); }
+	AudioConnection(AudioStream &source, AudioStream &destination);
 	AudioConnection(AudioStream &source, unsigned char sourceOutput,
-		AudioStream &destination, unsigned char destinationInput) :
-		src(source), dst(destination),
-		src_index(sourceOutput), dest_index(destinationInput),
-		next_dest(NULL)
-		{ isConnected = false;
-		  connect(); }
+		AudioStream &destination, unsigned char destinationInput);
 	friend class AudioStream;
-	~AudioConnection() {
-		disconnect();
-	}
-	void disconnect(void);
-	void connect(void);
+	~AudioConnection(); 
+private:
+	int disconnect(void);
+	int connect(void);
+	int connect(AudioStream &source, AudioStream &destination) {return connect(source,0,destination,0);};
+	int connect(AudioStream &source, unsigned char sourceOutput,
+		AudioStream &destination, unsigned char destinationInput);
 protected:
-	AudioStream &src;
-	AudioStream &dst;
+	AudioStream* src;	// can't use references as... 
+	AudioStream* dst;	// ...they can't be re-assigned!
 	unsigned char src_index;
 	unsigned char dest_index;
-	AudioConnection *next_dest;
+	AudioConnection *next_dest; // linked list of connections from one source
 	bool isConnected;
 };
 
-
 #define AudioMemory(num) ({ \
-	static audio_block_t data[num]; \
+	static DMAMEM audio_block_t data[num]; \
 	AudioStream::initialize_memory(data, num); \
 })
 
-#define CYCLE_COUNTER_APPROX_PERCENT(n) (((n) + (F_CPU_ACTUAL / 32 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100)) / (F_CPU_ACTUAL / 16 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100))
+
+#define CYCLE_COUNTER_APPROX_PERCENT(n) (((float)((uint32_t)(n) * 6400u) * (float)(AUDIO_SAMPLE_RATE_EXACT / AUDIO_BLOCK_SAMPLES)) / (float)(F_CPU_ACTUAL))
 
 #define AudioProcessorUsage() (CYCLE_COUNTER_APPROX_PERCENT(AudioStream::cpu_cycles_total))
 #define AudioProcessorUsageMax() (CYCLE_COUNTER_APPROX_PERCENT(AudioStream::cpu_cycles_total_max))
@@ -129,6 +126,7 @@ protected:
 #define AudioMemoryUsage() (AudioStream::memory_used)
 #define AudioMemoryUsageMax() (AudioStream::memory_used_max)
 #define AudioMemoryUsageMaxReset() (AudioStream::memory_used_max = AudioStream::memory_used)
+
 
 class AudioStream
 {
@@ -155,8 +153,8 @@ public:
 			numConnections = 0;
 		}
 	static void initialize_memory(audio_block_t *data, unsigned int num);
-	int processorUsage(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles); }
-	int processorUsageMax(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles_max); }
+	float processorUsage(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles); }
+	float processorUsageMax(void) { return CYCLE_COUNTER_APPROX_PERCENT(cpu_cycles_max); }
 	void processorUsageMaxReset(void) { cpu_cycles_max = cpu_cycles; }
 	bool isActive(void) { return active; }
 	uint16_t cpu_cycles;
@@ -175,11 +173,15 @@ protected:
 	audio_block_t * receiveWritable(unsigned int index = 0);
 	static bool update_setup(void);
 	static void update_stop(void);
-	static void update_all(void) { NVIC_SET_PENDING(IRQ_SOFTWARE); }
+	static void update_all(void);
 	friend void software_isr(void);
 	friend class AudioConnection;
+#if defined(AUDIO_DEBUG_CLASS)
+	friend class AudioDebug;
+#endif // defined(AUDIO_DEBUG_CLASS)
 	uint8_t numConnections;
 private:
+	static AudioConnection* unused; // linked list of unused but not destructed connections
 	AudioConnection *destination_list;
 	audio_block_t **inputQueue;
 	static bool update_scheduled;
@@ -191,5 +193,34 @@ private:
 	static uint16_t memory_pool_first_mask;
 };
 
-#endif
-#endif
+#if defined(AUDIO_DEBUG_CLASS)
+// This class aids debugging of the internal functionality of the
+// AudioStream and AudioConnection classes, but is NOT intended
+// for general users of the Audio library.
+class AudioDebug
+{
+	public:
+		// info on connections
+		AudioStream* getSrc(AudioConnection& c) { return c.src;};
+		AudioStream* getDst(AudioConnection& c) { return c.dst;};
+		unsigned char getSrcN(AudioConnection& c) { return c.src_index;};
+		unsigned char getDstN(AudioConnection& c) { return c.dest_index;};
+		AudioConnection* getNext(AudioConnection& c) { return c.next_dest;};
+		bool isConnected(AudioConnection& c) { return c.isConnected;};
+		AudioConnection* unusedList() { return AudioStream::unused;};
+		
+		// info on streams
+		AudioConnection* dstList(AudioStream& s) { return s.destination_list;};
+		audio_block_t ** inqList(AudioStream& s) { return s.inputQueue;};
+		uint8_t 	 	 getNumInputs(AudioStream& s) { return s.num_inputs;};
+		AudioStream*     firstUpdate(AudioStream& s) { return s.first_update;};
+		AudioStream* 	 nextUpdate(AudioStream& s) { return s.next_update;};
+		uint8_t 	 	 getNumConnections(AudioStream& s) { return s.numConnections;};
+		bool 	 	 	 isActive(AudioStream& s) { return s.active;};
+		 
+		
+};
+#endif // defined(AUDIO_DEBUG_CLASS)
+
+#endif // __ASSEMBLER__
+#endif // AudioStream_h

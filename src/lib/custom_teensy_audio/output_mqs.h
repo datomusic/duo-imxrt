@@ -23,12 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__) || defined(__IMXRT1011__)
+
+#if defined(__IMXRT1011__)
+
+#ifndef output_mqs_h_
+#define output_mqs_h_
 
 #include "Arduino.h"
 #include "AudioStream.h"
-#include "DMAChannel.h"
+
+#include "fsl_dmamux.h"
+#include "fsl_sai_edma.h"
+#include "fsl_iomuxc.h"
 
 class AudioOutputMQS : public AudioStream
 {
@@ -38,18 +44,18 @@ public:
 	void begin(void);
 	friend class AudioInputI2S2;
 protected:
-	static void config_i2s(void);
 	static audio_block_t *block_left_1st;
 	static audio_block_t *block_right_1st;
 	static bool update_responsibility;
-	static DMAChannel dma;
-	static void isr(void);
-private:
+	//static DMAChannel dma;
+	static void isr(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData);
 	static audio_block_t *block_left_2nd;
 	static audio_block_t *block_right_2nd;
+private:
 	static uint16_t block_left_offset;
 	static uint16_t block_right_offset;
 	audio_block_t *inputQueueArray[2];
 };
 
 #endif
+#endif //defined(__IMXRT1011__)

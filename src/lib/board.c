@@ -16,6 +16,29 @@
 /*******************************************************************************
  * Variables
  ******************************************************************************/
+__attribute__((section(".vectorTableRam"), aligned(0x400))) uint32_t _VectorsRam[NUMBER_OF_INT_VECTORS] = {0};
+
+
+#if defined(__CC_ARM) || defined(__ARMCC_VERSION)
+extern uint32_t __Vectors[];
+extern uint32_t Image$$ARM_LIB_STACK$$ZI$$Limit;
+#define __VECTOR_TABLE __Vectors
+#define __StackTop     Image$$ARM_LIB_STACK$$ZI$$Limit
+#elif defined(__MCUXPRESSO)
+extern uint32_t __Vectors[];
+extern void _vStackTop(void);
+#define __VECTOR_TABLE __Vectors
+#define __StackTop     _vStackTop
+#elif defined(__ICCARM__)
+extern uint32_t __vector_table[];
+extern uint32_t CSTACK$$Limit;
+#define __VECTOR_TABLE __vector_table
+#define __StackTop     CSTACK$$Limit
+#elif defined(__GNUC__)
+extern uint32_t __StackTop;
+extern uint32_t __Vectors[];
+#define __VECTOR_TABLE __Vectors
+#endif
 
 /*******************************************************************************
  * Code
@@ -302,3 +325,33 @@ void SystemInitHook(void)
 }
 #endif
 
+
+void BOARD_RelocateVectorTableToRam(void)
+{
+    uint32_t n;
+    uint32_t irqMaskValue;
+
+    irqMaskValue = DisableGlobalIRQ();
+
+    SCB_DisableDCache();
+    SCB_DisableICache();
+
+    /* Copy the vector table from ROM to RAM */
+    for (n = 0; n < NUMBER_OF_INT_VECTORS; n++)
+    {
+        _VectorsRam[n] = __VECTOR_TABLE[n];
+    }
+
+    /* Set application defined stack pointer */
+    volatile unsigned int vStackTop = (unsigned int)&__StackTop;
+    _VectorsRam[0]                = vStackTop;
+
+    /* Point the VTOR to the position of vector table */
+    SCB->VTOR = (uint32_t)_VectorsRam;
+    __DSB();
+
+    SCB_EnableICache();
+    SCB_EnableDCache();
+
+    EnableGlobalIRQ(irqMaskValue);
+}

@@ -27,10 +27,8 @@
  (c) Frank B
 */
 
-#if defined(__IMXRT1052__) || defined(__IMXRT1062__) || defined(__IMXRT1011__)
-#include "rt1011_compat.h"
+#if defined(__IMXRT1052__) || defined(__IMXRT1062__)
 #include "imxrt_hw.h"
-#include "fsl_clock.h"
 
 FLASHMEM
 void set_audioClock(int nfact, int32_t nmult, uint32_t ndiv, bool force) // sets PLL4
@@ -53,9 +51,6 @@ void set_audioClock(int nfact, int32_t nmult, uint32_t ndiv, bool force) // sets
 	if(div_post_pll>3) CCM_ANALOG_MISC2 |= CCM_ANALOG_MISC2_DIV_MSB;
 	
 	CCM_ANALOG_PLL_AUDIO &= ~CCM_ANALOG_PLL_AUDIO_BYPASS;//Disable Bypass
-
-	
 }
 
 #endif
-

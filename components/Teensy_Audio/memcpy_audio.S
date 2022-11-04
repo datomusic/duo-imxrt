@@ -28,7 +28,7 @@
  */
 
 #if defined (__ARM_ARCH_7EM__)
-; #include <AudioStream.h>
+#include <AudioStream.h>
 
 .cpu cortex-m4
 .syntax unified
@@ -201,6 +201,41 @@
 #endif	
 	BX lr
 
+
+
+/* void memcpy_tointerleaveQuad(int16_t *dst, const int16_t *src1, const int16_t *src2, const int16_t *src3, const int16_t *src4) */
+ .global	memcpy_tointerleaveQuad
+.thumb_func
+	memcpy_tointerleaveQuad:
+
+	@ r0: dst
+	@ r1: src1
+	@ r2: src2
+	@ r3: src3
+	@ r4: src4
+
+	push	{r4-r11}
+	ldr r4, [sp, #(0+32)] //5th parameter is saved on the stack
+	add r11,r0,#(AUDIO_BLOCK_SAMPLES*4)
+	.align 2
+.loopQuad:
+
+	ldr r5, [r1],4
+	ldr r6, [r3],4
+	pkhbt r7,r5,r6,LSL #16
+	pkhtb r9,r6,r5,ASR #16
+	ldr r5, [r2],4
+	ldr r6, [r4],4
+	pkhbt r8,r5,r6,LSL #16
+	pkhtb r10,r6,r5,ASR #16
+
+	stmia r0!, {r7-r10}
+
+	cmp r11, r0
+	bne .loopQuad
+
+	pop	{r4-r11}
+	BX lr
 .END
 
 #endif
