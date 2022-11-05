@@ -1,8 +1,8 @@
 #include "Arduino.h"
-#include "board_init.h"
-#include "leds.h"
-#include "pin_mux.h"
-#include "usb/usb.h"
+#include "lib/board_init.h"
+#include "lib/leds.h"
+#include "lib/pin_mux.h"
+#include "lib/usb/usb.h"
 #include <USB-MIDI.h>
 
 USBMIDI_CREATE_DEFAULT_INSTANCE();
