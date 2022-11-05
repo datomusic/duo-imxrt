@@ -1,4 +1,17 @@
 #include "Arduino.h"
+
+long random(long _a, long _b){
+  // TODO
+  return 0;
+}
+
+long random(long _){
+  // TODO
+  return 0;
+}
+
+
+#include <Audio.h>
 #include "pinmap.h"
 #include "lib/board_init.h"
 #include "lib/usb/usb.h"
@@ -20,11 +33,11 @@ TempoHandler tempo_handler;
 #include "buttons.h"
 
 #include "duo-firmware/src/Sequencer.h"
-#include "stubs/leds_stub.h"
-#include "duo-firmware/src/Leds.h"
 
 #include "amp_controls.h"
 
+#include "duo-firmware/src/Synth.h"
+#include "duo-firmware/src/Leds.h"
 
 
 int eeprom_read_byte(int _){
@@ -33,8 +46,14 @@ int eeprom_read_byte(int _){
 }
 
 
-void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
-void note_off();
+int eeprom_write_byte(int _a, int _b){
+  // TODO
+  return 0;
+}
+
+void note_on(uint8_t midi_note, uint8_t velocity, bool enabled){}
+void note_off(){}
+void midi_handle_clock(){}
 
 int main(void) {
   board_init();
@@ -58,6 +77,22 @@ int main(void) {
   midi_init();
   led_init();
 
+  if(midi_get_channel() != stored_midi_channel) {
+    eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
+  }
+
+  //drum_init();
+
+  // TODO
+  //touch_init();
+
+  MIDI.setHandleStart(sequencer_restart);
+  MIDI.setHandleContinue(sequencer_restart);
+  MIDI.setHandleStop(sequencer_stop);
+
+  previous_note_on_time = millis();
+
+  headphone_enable();
   in_setup = false;
 
   while (true) {

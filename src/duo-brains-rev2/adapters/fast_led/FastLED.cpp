@@ -22,3 +22,10 @@ void FastLED_::show() {
 void FastLED_::clear() {
   memset(raw_pixels, 0, sizeof(raw_pixels));
 }
+
+void FastLED_::setBrightness(int){
+  // TODO
+}
+void FastLED_::setCorrection(int){
+  // TODO
+}

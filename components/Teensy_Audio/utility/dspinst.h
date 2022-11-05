@@ -33,11 +33,13 @@
 static inline int32_t signed_saturate_rshift(int32_t val, int bits, int rshift) __attribute__((always_inline, unused));
 static inline int32_t signed_saturate_rshift(int32_t val, int bits, int rshift)
 {
+  /*
 #if defined (__ARM_ARCH_7EM__)
 	int32_t out;
 	asm volatile("ssat %0, %1, %2, asr %3" : "=r" (out) : "I" (bits), "r" (val), "I" (rshift));
 	return out;
 #elif defined(KINETISL)
+*/
 	int32_t out, max;
 	out = val >> rshift;
 	max = 1 << (bits - 1);
@@ -47,7 +49,7 @@ static inline int32_t signed_saturate_rshift(int32_t val, int bits, int rshift)
 		if (out < -max) out = -max;
 	}
 	return out;
-#endif
+//#endif
 }
 
 // computes limit(val, 2**bits)
