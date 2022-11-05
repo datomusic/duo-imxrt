@@ -1,9 +1,11 @@
-set(LIB_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../src/lib)
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
-  ${LIB_SOURCE_DIR}
-  ${LIB_SOURCE_DIR}/custom_teensy_audio
+  ${CMAKE_CURRENT_LIST_DIR}/../src/
+  ${CMAKE_CURRENT_LIST_DIR}/../src/lib/custom_teensy_audio
+  ${CMAKE_CURRENT_LIST_DIR}/../src/arduino_compat
 )
+
+set(LIB_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../src/lib)
 
 file(GLOB LIB_SRC_FILES
   ${LIB_SOURCE_DIR}/*.cpp
