@@ -7,45 +7,68 @@
 #include "pinmap.h"
 #include <USB-MIDI.h>
 
-MIDI_CREATE_INSTANCE(HardwareSerial, Serial, MIDI);
-USBMIDI_CREATE_INSTANCE(0, usbMIDI)
-
 typedef int elapsedMillis;
 #include "globals.h"
+
+USBMIDI_CREATE_INSTANCE(0, usbMIDI)
+#include "stubs/MidiFunctions_stubs.h"
+#include "duo-firmware/src/MidiFunctions.h"
+
+#include "duo-firmware/src/TempoHandler.h"
+TempoHandler tempo_handler;
+
 #include "buttons.h"
 
 #include "duo-firmware/src/Sequencer.h"
 #include "stubs/leds_stub.h"
 #include "duo-firmware/src/Leds.h"
 
+#include "amp_controls.h"
+
+
+
+int eeprom_read_byte(int _){
+  // TODO
+  return 0;
+}
+
+
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
-
 
 int main(void) {
   board_init();
   DatoUSB::init();
   LEDs::init();
 
-  FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
+  amp_disable();
+  headphone_disable();
+  sequencer_init();
+  audio_init();
+
   
+  // Read the MIDI channel from EEPROM. Lowest four bits
+  uint8_t stored_midi_channel = eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
+  midi_set_channel(stored_midi_channel);
+
+  // The order sequencer_init, button_matrix_init, led_init and midi_init is important
+  // Hold a button of the keyboard at startup to select MIDI channel
   button_matrix_init();
+  keys_scan();
+  midi_init();
+  led_init();
 
-for (int i = 0; i < NUM_LEDS; ++i) {
-    physical_leds[i] = 0;
-  }
-  
-  for(int i = 0; i < 10; i++) {
-    physical_leds[i+9] = COLORS[SCALE[i]%24];
-    delay(20);
-    FastLED.show();
-  }
+  in_setup = false;
 
-  while (1) {
+  while (true) {
+    loop();
+  }
+}
+
+void loop(){
     keys_scan();
     FastLED.show();
     delayMicroseconds(40000);
-  }
 }
 
 bool process_key(char keycode, char state)

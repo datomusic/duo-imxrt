@@ -76,5 +76,3 @@ synth_parameters synth;
 #include "duo-firmware/src/note_stack.h"
 NoteStack<10> note_stack;
 
-#include "duo-firmware/src/TempoHandler.h"
-TempoHandler tempo_handler;
