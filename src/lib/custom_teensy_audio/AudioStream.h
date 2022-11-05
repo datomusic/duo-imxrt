@@ -76,16 +76,12 @@ class AudioConnection;
 class AudioDebug;  // for testing only, never for public release
 #endif // defined(AUDIO_DEBUG_CLASS)
 
-class AudioStream;
-class AudioConnection;
-
 typedef struct audio_block_struct {
 	uint8_t  ref_count;
 	uint8_t  reserved1;
 	uint16_t memory_pool_index;
 	int16_t  data[AUDIO_BLOCK_SAMPLES];
 } audio_block_t;
-
 
 
 
@@ -117,7 +113,6 @@ protected:
 	AudioStream::initialize_memory(data, num); \
 })
 
-
 #define CYCLE_COUNTER_APPROX_PERCENT(n) (((float)((uint32_t)(n) * 6400u) * (float)(AUDIO_SAMPLE_RATE_EXACT / AUDIO_BLOCK_SAMPLES)) / (float)(F_CPU_ACTUAL))
 
 #define AudioProcessorUsage() (CYCLE_COUNTER_APPROX_PERCENT(AudioStream::cpu_cycles_total))
@@ -126,7 +121,6 @@ protected:
 #define AudioMemoryUsage() (AudioStream::memory_used)
 #define AudioMemoryUsageMax() (AudioStream::memory_used_max)
 #define AudioMemoryUsageMaxReset() (AudioStream::memory_used_max = AudioStream::memory_used)
-
 
 class AudioStream
 {
