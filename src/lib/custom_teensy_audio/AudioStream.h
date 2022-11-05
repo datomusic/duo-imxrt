@@ -58,7 +58,7 @@
 
 // TODO: set this back to 128 and make AudioMemory(64) initialize this correctly
 #ifndef AUDIO_BLOCK_SAMPLES
-#define AUDIO_BLOCK_SAMPLES  64
+#define AUDIO_BLOCK_SAMPLES  128
 #endif
 
 #ifndef AUDIO_SAMPLE_RATE_EXACT
