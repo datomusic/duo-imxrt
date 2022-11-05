@@ -18,4 +18,5 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/adapters/fast_led
 )
 
+set(WITH_USB true)
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/build_app.cmake)

@@ -1,5 +1,5 @@
 #include "MIDIUSB.h"
-#include "usb/usb.h"
+#include "lib/usb/usb.h"
 
 const int CABLE_NUM = 0;
 

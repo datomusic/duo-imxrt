@@ -1,11 +1,16 @@
 #include "Arduino.h"
 #include "pinmap.h"
 #include "lib/board_init.h"
-#include "pinmap.h"
+#include "lib/usb/usb.h"
 #include "lib/pin_mux.h"
 #include "lib/leds.h"
+#include "pinmap.h"
+#include <USB-MIDI.h>
 
-#include "stubs/sequencer_stub.h"
+MIDI_CREATE_INSTANCE(HardwareSerial, Serial, MIDI);
+USBMIDI_CREATE_INSTANCE(0, usbMIDI)
+
+typedef int elapsedMillis;
 #include "globals.h"
 #include "buttons.h"
 
@@ -13,9 +18,13 @@
 #include "stubs/leds_stub.h"
 #include "duo-firmware/src/Leds.h"
 
+void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
+void note_off();
+
 
 int main(void) {
   board_init();
+  DatoUSB::init();
   LEDs::init();
 
   FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
