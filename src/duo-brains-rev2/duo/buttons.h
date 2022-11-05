@@ -2,7 +2,6 @@
 /*
   Rows are set to input_pullup and cols are pulled low one by one
 */
-#include "keys.h"
 #include "pinmap.h"
 #include "keypad.h"
 
@@ -94,19 +93,3 @@ bool keys_scan_powerbutton() {
 }
 
 
-void keys_scan()
-{
-  // scan all the kets and then process them
-  if (button_matrix.getKeys())
-  {
-    for (int i = 0; i < LIST_MAX; i++)
-    {
-      if (button_matrix.key[i].stateChanged)
-      {
-        char keycode = button_matrix.key[i].kchar;
-        char state = button_matrix.key[i].kstate;
-        process_key(keycode, state);
-      }
-    }
-  }
-}
