@@ -1,15 +1,5 @@
 #include "Arduino.h"
 
-long random(long _a, long _b){
-  // TODO
-  return 0;
-}
-
-long random(long _){
-  // TODO
-  return 0;
-}
-
 
 #include <Audio.h>
 #include "pinmap.h"
@@ -19,6 +9,7 @@ long random(long _){
 #include "lib/leds.h"
 #include "pinmap.h"
 #include <USB-MIDI.h>
+#include "stubs/arduino_stubs.h"
 
 typedef int elapsedMillis;
 #include "globals.h"
@@ -39,17 +30,9 @@ TempoHandler tempo_handler;
 #include "duo-firmware/src/Synth.h"
 #include "duo-firmware/src/Leds.h"
 
+#include "duo-firmware/src/TouchSlider.h"
+#include "duo-firmware/src/DrumSynth.h"
 
-int eeprom_read_byte(int _){
-  // TODO
-  return 0;
-}
-
-
-int eeprom_write_byte(int _a, int _b){
-  // TODO
-  return 0;
-}
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled){}
 void note_off(){}
@@ -81,10 +64,9 @@ int main(void) {
     eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
   }
 
-  //drum_init();
+  drum_init();
 
-  // TODO
-  //touch_init();
+  touch_init();
 
   MIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
