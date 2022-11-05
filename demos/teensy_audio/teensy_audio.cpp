@@ -1,10 +1,10 @@
 #include "Arduino.h"
 #include "Audio.h"
-#include "board_init.h"
-#include "clock_config.h"
+#include "lib/board_init.h"
+#include "lib/clock_config.h"
 #include "fsl_dmamux.h"
 #include "fsl_sai_edma.h"
-#include "pin_mux.h"
+#include "lib/pin_mux.h"
 
 static void headphone_enable(void) {
 #define HP_ENABLE_PINMUX IOMUXC_GPIO_AD_11_GPIOMUX_IO25
