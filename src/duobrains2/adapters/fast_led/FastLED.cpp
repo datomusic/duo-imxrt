@@ -1,5 +1,5 @@
 #include "FastLED.h"
-#include "leds.h"
+#include "lib/leds.h"
 
 void FastLED_::show() {
   static_assert(sizeof(LEDs::Pixel) == sizeof(CRGB));

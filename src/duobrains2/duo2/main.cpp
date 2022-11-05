@@ -1,17 +1,17 @@
 #include "Arduino.h"
 #include "pinmap.h"
-#include "board_init.h"
+#include "lib/board_init.h"
 #include "pinmap.h"
-#include "pin_mux.h"
-#include "leds.h"
+#include "lib/pin_mux.h"
+#include "lib/leds.h"
 
 #include "stubs/sequencer_stub.h"
 #include "globals.h"
 #include "buttons.h"
 
-#include "duo1/Sequencer.h"
+#include "duo-firmware/src/Sequencer.h"
 #include "stubs/leds_stub.h"
-#include "duo1/Leds.h"
+#include "duo-firmware/src/Leds.h"
 
 
 int main(void) {

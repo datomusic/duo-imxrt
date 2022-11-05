@@ -14,6 +14,7 @@ add_executable(${EXECUTABLE_NAME}
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/../../../
     ${CMAKE_CURRENT_LIST_DIR}/adapters/fast_led
 )
 
