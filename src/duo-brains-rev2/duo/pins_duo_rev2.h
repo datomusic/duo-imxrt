@@ -23,42 +23,35 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 
 // Multiplexer channels.
 
-enum Pin {
-  SLIDE_PIN,
-  DELAY_PIN,
-  ACCENT_PIN,
-  BITC_PIN
-
-};
+enum Pin { SLIDE_PIN = 1, DELAY_PIN = 2, ACCENT_PIN = 8, BITC_PIN = 30 };
 
 enum Pot {
-  AMP_POT,
-  AMP_ENV_POT,
-  FILTER_RES_POT,
-  FILTER_FREQ_POT,
-  OSC_DETUNE_POT,
-  OSC_PW_POT,
-  TEMPO_POT,
-  GATE_POT
+  FILTER_RES_POT = 0,
+  TEMPO_POT = 1,
+  GATE_POT = 2,
+  OSC_DETUNE_POT = 3,
+  AMP_ENV_POT = 4,
+  FILTER_FREQ_POT = 5,
+  AMP_POT = 6,
+  OSC_PW_POT = 7
 };
 
-/*
-int muxAnalogRead(uint8_t channel) {
-  // Any call to pinMode sets the port mux to GPIO mode.
-  // We want to force it back to analog mode
-  // Might be equivalent to pinMode(PIN_SYN_MUX_IO, INPUT_DISABLE);
-  //  volatile uint32_t *config;
-  //  config = portConfigRegister(PIN_SYN_MUX_IO);
-  //  *config = PORT_PCR_MUX(0);
-
+int muxAnalogRead(const uint8_t channel) {
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  // do we need to wait a few microseconds?
   delayMicroseconds(50);
-  return analogRead(PIN_SYN_MUX_IO);
+
+  // The rest of the firmware expected values between 0 and 1023.
+  // Scaling it down by a factor of 4 seems to be roughly correct...
+  int v = analogRead(PIN_SYN_MUX_IO) / 4;
+
+  if (v > 1023) {
+    return 1023;
+  }else{
+    return v;
+  }
 }
-*/
 
 uint8_t muxDigitalRead(const uint8_t channel) {
   pinMode(PIN_SYN_MUX_IO, INPUT_PULLUP);
@@ -72,22 +65,23 @@ uint8_t muxDigitalRead(const uint8_t channel) {
 
 int potRead(const Pot pot) {
   switch (pot) {
+    case AMP_POT:
+      return muxAnalogRead(AMP_POT);
     case TEMPO_POT:
       return 1023 - analogRead(PIN_POT_1);
     case GATE_POT:
       return 1023 - analogRead(PIN_POT_2);
     case FILTER_FREQ_POT:
-      return 500;
-    case AMP_ENV_POT:
-      return 500;
-    case OSC_PW_POT:
-      return 500;
-    case AMP_POT:
-      return 500;
-    case OSC_DETUNE_POT:
-      return 500;
+      return muxAnalogRead(pot);
     case FILTER_RES_POT:
-      return 500;
+      return muxAnalogRead(pot);
+    case OSC_PW_POT:
+      return muxAnalogRead(pot);
+    case OSC_DETUNE_POT:
+      return muxAnalogRead(pot);
+    case AMP_ENV_POT:
+      // TODO: This does not seem to work
+      return muxAnalogRead(pot);
     default:
       return 500;
   }
@@ -98,7 +92,7 @@ bool pinRead(const Pin pin) {
     case SLIDE_PIN:
       return false;
     case DELAY_PIN:
-      return muxDigitalRead(PIN_SW1) != 0;
+      return muxDigitalRead(pin) != 0;
     case BITC_PIN:
       return false;
     case ACCENT_PIN:
@@ -106,4 +100,23 @@ bool pinRead(const Pin pin) {
     default:
       return false;
   }
+}
+
+void pins_init() {
+  // pinMode(BITC_PIN, INPUT_PULLUP);
+  // pinMode(ACCENT_PIN, INPUT_PULLUP);
+
+  pinMode(SYNC_OUT_PIN, OUTPUT);
+  // pinMode(AMP_ENABLE, OUTPUT);
+  pinMode(PIN_HP_ENABLE, OUTPUT);
+  pinMode(PIN_SYNC_IN, INPUT);
+
+  pinMode(PIN_HP_JACK_DETECT, INPUT);
+  pinMode(PIN_SYNC_JACK_DETECT, INPUT);
+
+  pinMode(PIN_SYN_ADDR0, OUTPUT);
+  pinMode(PIN_SYN_ADDR1, OUTPUT);
+  pinMode(PIN_SYN_ADDR2, OUTPUT);
+
+//   randomSeed(analogRead(UNCONNECTED_ANALOG));
 }

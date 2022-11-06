@@ -96,6 +96,7 @@ int main(void) {
   board_init();
   DatoUSB::init();
   LEDs::init();
+  pins_init();
 
   Audio::amp_disable();
   Audio::headphone_disable();
