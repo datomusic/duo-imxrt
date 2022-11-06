@@ -31,6 +31,8 @@ TempoHandler tempo_handler;
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
+#include "output_mqs.h"
+#include "synth_sine.h"
 
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
@@ -66,12 +68,8 @@ void note_off() {
   if (note_is_playing) {
     MIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
     usbMIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
-    if (!step_enable[current_step]) {
-      leds(current_step) = CRGB::Black;
-    } else {
-      envelope1.noteOff();
-      envelope2.noteOff();
-    }
+    envelope1.noteOff();
+    envelope2.noteOff();
     note_is_playing = 0;
   }
 }
@@ -82,15 +80,17 @@ void midi_handle_clock() {
 }
 
 void pots_read() {
-  gate_length_msec = map(potRead(GATE_POT), 0, 1023, 10, 200);
+  gate_length_msec = 500;
 
-  synth.detune = potRead(OSC_DETUNE_POT);
-  synth.release = potRead(AMP_ENV_POT);
-  synth.filter = potRead(FILTER_FREQ_POT);
-  synth.amplitude = potRead(AMP_POT);
-  synth.pulseWidth = potRead(OSC_PW_POT);
-  synth.resonance = potRead(FILTER_RES_POT);
+  synth.detune = 0;
+  synth.release = 500;
+  synth.filter = 500;
+  synth.amplitude = 500;
+  synth.pulseWidth = 500;
+  synth.resonance = 500;
 }
+
+bool power_check() { return true; }
 
 int main(void) {
   board_init();
@@ -100,10 +100,18 @@ int main(void) {
   Audio::amp_disable();
   Audio::headphone_disable();
   sequencer_init();
+
+  AudioOutputMQS dac1; // xy=988.1000061035156,100
+  AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
+  AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
+
+  AudioNoInterrupts();
   audio_init();
+  AudioInterrupts();
 
   // Read the MIDI channel from EEPROM. Lowest four bits
-  uint8_t stored_midi_channel = eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
+  const uint8_t stored_midi_channel =
+      eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
   midi_set_channel(stored_midi_channel);
 
   // The order sequencer_init, button_matrix_init, led_init and midi_init is
@@ -118,7 +126,6 @@ int main(void) {
   }
 
   drum_init();
-
   touch_init();
 
   MIDI.setHandleStart(sequencer_restart);
@@ -128,40 +135,33 @@ int main(void) {
   previous_note_on_time = millis();
 
   Audio::headphone_enable();
+  Audio::amp_enable();
   in_setup = false;
 
   while (true) {
-    loop();
-  }
-}
+    if (power_check()) {
+      midi_handle();
+      sequencer_update();
 
-bool power_check() { return true; }
+      // Crude hard coded task switching
+      keys_scan(); // 14 or 175us (depending on debounce)
+      keyboard_to_note();
+      pitch_update(); // ~30us
+      pots_read();    // ~ 100us
 
-void loop() {
-  if (power_check()) {
-    midi_handle();
-    sequencer_update();
+      synth_update(); // ~ 100us
+      midi_send_cc();
 
-    // Crude hard coded task switching
-    keys_scan(); // 14 or 175us (depending on debounce)
-    keyboard_to_note();
-    pitch_update(); // ~30us
-    pots_read();    // ~ 100us
+      drum_read(); // ~ 700us
 
-    synth_update(); // ~ 100us
-    midi_send_cc();
+      midi_handle();
+      sequencer_update();
 
-    drum_read(); // ~ 700us
-
-    midi_handle();
-    sequencer_update();
-
-    if (!dfu_flag) {
-      led_update(); // ~ 2ms
+      if (!dfu_flag) {
+        led_update(); // ~ 2ms
+      }
     }
   }
-
-  FastLED.show();
 }
 
 void process_key(const char k, const char state) {
@@ -266,7 +266,7 @@ void process_key(const char k, const char state) {
 }
 
 void keys_scan() {
-  if(muxDigitalRead(DELAY_PIN)) {
+  if (muxDigitalRead(DELAY_PIN)) {
     synth.delay = false;
     mixer_delay.gain(0, 0.0); // Delay input
     mixer_delay.gain(3, 0.0);
