@@ -266,6 +266,19 @@ void process_key(const char k, const char state) {
 }
 
 void keys_scan() {
+  if(muxDigitalRead(DELAY_PIN)) {
+    synth.delay = false;
+    mixer_delay.gain(0, 0.0); // Delay input
+    mixer_delay.gain(3, 0.0);
+  } else {
+    synth.delay = true;
+    mixer_delay.gain(0, 0.5); // Delay input
+    mixer_delay.gain(3, 0.4); // Hat delay input
+  }
+
+  synth.glide = !muxDigitalRead(SLIDE_PIN);
+  synth.crush = !digitalRead(BITC_PIN);
+
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {
     for (int i = 0; i < LIST_MAX; i++) {
