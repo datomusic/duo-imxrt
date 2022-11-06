@@ -1,19 +1,22 @@
 #include "Arduino.h"
 
-#include <Audio.h>
-#include "pinmap.h"
 #include "lib/board_init.h"
-#include "lib/usb/usb.h"
-#include "lib/pin_mux.h"
 #include "lib/leds.h"
+#include "lib/audio.h"
+#include "lib/pin_mux.h"
+#include "lib/usb/usb.h"
 #include "pinmap.h"
-#include <USB-MIDI.h>
 #include "stubs/arduino_stubs.h"
+#include <Audio.h>
+#include <USB-MIDI.h>
 
 typedef int elapsedMillis;
 #include "globals.h"
 
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
+#include "stubs/midi_stub.h"
+MidiStub MIDI;
+
 #include "stubs/MidiFunctions_stubs.h"
 #include "duo-firmware/src/MidiFunctions.h"
 
@@ -21,30 +24,24 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 TempoHandler tempo_handler;
 
 #include "buttons.h"
-
 #include "duo-firmware/src/Sequencer.h"
-
-#include "amp_controls.h"
-
-#include "duo-firmware/src/Synth.h"
 #include "duo-firmware/src/Leds.h"
-
+#include "duo-firmware/src/Synth.h"
 #include "duo-firmware/src/TouchSlider.h"
 #include "duo-firmware/src/DrumSynth.h"
-
 #include "duo-firmware/src/Pitch.h"
-
 #include "stubs/power_stubs.h"
+
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
-  if(!digitalRead(ACCENT_PIN)) {
+  if (!digitalRead(ACCENT_PIN)) {
     velocity = 127;
   }
 
   note_is_playing = midi_note;
 
-  if(enabled) {
+  if (enabled) {
     AudioNoInterrupts();
 
     dc1.amplitude(velocity / 127.); // DC amplitude controls filter env amount.
@@ -52,17 +49,16 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
     osc_pulse_target_frequency = (int)midi_note_to_frequency(midi_note);
     osc_pulse.frequency(osc_pulse_frequency);
     // Detune OSC2
-    osc_saw.frequency(detune(osc_pulse_midi_note,detune_amount));
+    osc_saw.frequency(detune(osc_pulse_midi_note, detune_amount));
 
-    AudioInterrupts(); 
+    AudioInterrupts();
 
     MIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
     usbMIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
-    leds((current_step+random_offset)%SEQUENCER_NUM_STEPS) = LED_WHITE;
-
+    leds((current_step + random_offset) % SEQUENCER_NUM_STEPS) = LED_WHITE;
   }
 }
 
@@ -70,14 +66,14 @@ void note_off() {
   if (note_is_playing) {
     MIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
     usbMIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
-    if(!step_enable[current_step]) {
+    if (!step_enable[current_step]) {
       leds(current_step) = CRGB::Black;
     } else {
       envelope1.noteOff();
       envelope2.noteOff();
     }
     note_is_playing = 0;
-  } 
+  }
 }
 
 void midi_handle_clock() {
@@ -86,8 +82,8 @@ void midi_handle_clock() {
 }
 
 void pots_read() {
-  gate_length_msec = map(potRead(GATE_POT),0,1023,10,200);
-  
+  gate_length_msec = map(potRead(GATE_POT), 0, 1023, 10, 200);
+
   synth.detune = potRead(OSC_DETUNE_POT);
   synth.release = potRead(AMP_ENV_POT);
   synth.filter = potRead(FILTER_FREQ_POT);
@@ -101,24 +97,23 @@ int main(void) {
   DatoUSB::init();
   LEDs::init();
 
-  amp_disable();
-  headphone_disable();
+  Audio::amp_disable();
+  Audio::headphone_disable();
   sequencer_init();
   audio_init();
 
-  
   // Read the MIDI channel from EEPROM. Lowest four bits
   uint8_t stored_midi_channel = eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
   midi_set_channel(stored_midi_channel);
 
-  // The order sequencer_init, button_matrix_init, led_init and midi_init is important
-  // Hold a button of the keyboard at startup to select MIDI channel
+  // The order sequencer_init, button_matrix_init, led_init and midi_init is
+  // important Hold a button of the keyboard at startup to select MIDI channel
   button_matrix_init();
   keys_scan();
   midi_init();
   led_init();
 
-  if(midi_get_channel() != stored_midi_channel) {
+  if (midi_get_channel() != stored_midi_channel) {
     eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
   }
 
@@ -132,13 +127,15 @@ int main(void) {
 
   previous_note_on_time = millis();
 
-  headphone_enable();
+  Audio::headphone_enable();
   in_setup = false;
 
   while (true) {
     loop();
   }
 }
+
+bool power_check() { return true; }
 
 void loop() {
   if (power_check()) {
@@ -169,7 +166,7 @@ void loop() {
 
 void process_key(const char k, const char state) {
   switch (state) { // Report active key state : IDLE,
-                                         // PRESSED, HOLD, or RELEASED
+                   // PRESSED, HOLD, or RELEASED
     case PRESSED:
       if (k <= KEYB_9 && k >= KEYB_0) {
         if (in_setup) {

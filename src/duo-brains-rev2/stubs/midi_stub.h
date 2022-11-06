@@ -1,7 +1,7 @@
 #ifndef MIDI_STUB_H_5CQHLM80
 #define MIDI_STUB_H_5CQHLM80
 
-struct midi {
+struct MidiStub {
   enum {
     Clock,
     Start,
@@ -9,11 +9,13 @@ struct midi {
     Stop,
   };
 
+  static void sendNoteOn(int, int, int) {}
+  static void sendNoteOff(int, int, int) {}
   static void sendRealTime(int x) {}
   static void sendControlChange(int, int, int) {}
+  static void setHandleStart(void (*)()) {}
+  static void setHandleStop(void (*)()) {}
+  static void setHandleContinue(void (*)()) {}
 };
-
-midi MIDI;
-midi usbMIDI;
 
 #endif /* end of include guard: MIDI_STUB_H_5CQHLM80 */
