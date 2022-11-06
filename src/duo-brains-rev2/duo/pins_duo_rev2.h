@@ -4,7 +4,7 @@
  * the hardware pin mappings can be found in variant.h
  */
 #define SEQ_1_2
-#define MUX_IO PIN_SYN_MUX_IO
+
 // DAC_OUT
 #define TOUCH1 16
 #define TOUCH2 17
@@ -15,11 +15,6 @@
 #define JACK_DETECT 26
 #define SYNC_DETECT 2
 #define SYNC_IN 14
-#define LED_1 20
-#define LED_2 21
-#define LED_3 5
-#define SW1 8
-#define SW2 30
 
 // One more LED than the physical number of leds for loopback testing
 const int NUM_LEDS = 19 + 1;
@@ -51,7 +46,7 @@ enum Pot {
 int muxAnalogRead(uint8_t channel) {
   // Any call to pinMode sets the port mux to GPIO mode.
   // We want to force it back to analog mode
-  // Might be equivalent to pinMode(MUX_IO, INPUT_DISABLE);
+  // Might be equivalent to pinMode(PIN_SYN_MUX_IO, INPUT_DISABLE);
   //  volatile uint32_t *config;
   //  config = portConfigRegister(PIN_SYN_MUX_IO);
   //  *config = PORT_PCR_MUX(0);
@@ -63,18 +58,17 @@ int muxAnalogRead(uint8_t channel) {
   delayMicroseconds(50);
   return analogRead(PIN_SYN_MUX_IO);
 }
+*/
 
-uint8_t muxDigitalRead(const Pin channel) {
+uint8_t muxDigitalRead(const uint8_t channel) {
   pinMode(PIN_SYN_MUX_IO, INPUT_PULLUP);
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   delayMicroseconds(50);
   // Wait a few microseconds for the selection to propagate.
-  uint8_t p = digitalRead(PIN_SYN_MUX_IO);
-  return p;
+  return digitalRead(PIN_SYN_MUX_IO);
 }
-*/
 
 int potRead(const Pot pot) {
   switch (pot) {
@@ -104,7 +98,7 @@ bool pinRead(const Pin pin) {
     case SLIDE_PIN:
       return false;
     case DELAY_PIN:
-      return false;
+      return muxDigitalRead(PIN_SW1) != 0;
     case BITC_PIN:
       return false;
     case ACCENT_PIN:
