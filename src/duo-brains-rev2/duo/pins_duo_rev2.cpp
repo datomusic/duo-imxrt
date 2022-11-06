@@ -54,7 +54,6 @@ int potRead(const Pot pot) {
     case OSC_DETUNE_POT:
       return muxAnalogRead(pot);
     case AMP_ENV_POT:
-      // TODO: This does not seem to work
       return muxAnalogRead(pot);
     default:
       return 500;
@@ -64,13 +63,13 @@ int potRead(const Pot pot) {
 bool pinRead(const Pin pin) {
   switch (pin) {
     case SLIDE_PIN:
-      return false;
+      return muxDigitalRead(pin) == 0;
     case DELAY_PIN:
       return muxDigitalRead(pin) != 0;
     case BITC_PIN:
       return muxDigitalRead(pin) == 0;
     case ACCENT_PIN:
-      return false;
+      return muxDigitalRead(pin) == 0;
     default:
       return false;
   }
