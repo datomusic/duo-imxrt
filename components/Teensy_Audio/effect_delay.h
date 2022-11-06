@@ -42,6 +42,8 @@
 #elif defined(__MK20DX256__)
   // 0.45 second maximum on Teensy 3.1 & 3.2
   #define DELAY_QUEUE_SIZE  (19826 / AUDIO_BLOCK_SAMPLES)
+#elif defined(__IMXRT1011__)
+  #define DELAY_QUEUE_SIZE  ((6144*2) / AUDIO_BLOCK_SAMPLES)
 #else
   // 0.14 second maximum on Teensy 3.0
   #define DELAY_QUEUE_SIZE  (6144 / AUDIO_BLOCK_SAMPLES)
