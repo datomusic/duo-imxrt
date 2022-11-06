@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include "pins_duo_rev2.h"
+#include <Arduino.h>
 
 static int scaledAnalogRead(const int port) {
   // The rest of the firmware expected values between 0 and 1023.
