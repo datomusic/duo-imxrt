@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 static int scaledAnalogRead(const int port) {
-  // The rest of the firmware expected values between 0 and 1023.
+  // The rest of the firmware expects values between 0 and 1023.
   // Scaling it down by a factor of 4 seems to be roughly correct...
   int v = analogRead(port);
   v = v / 4;
