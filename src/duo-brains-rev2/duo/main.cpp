@@ -25,8 +25,8 @@ TempoHandler tempo_handler;
 
 #include "buttons.h"
 #include "duo-firmware/src/Sequencer.h"
-#include "duo-firmware/src/Leds.h"
 #include "duo-firmware/src/Synth.h"
+#include "duo-firmware/src/Leds.h"
 #include "duo-firmware/src/TouchSlider.h"
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
