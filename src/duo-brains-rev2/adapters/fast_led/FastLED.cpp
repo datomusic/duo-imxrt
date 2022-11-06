@@ -2,6 +2,8 @@
 #include "lib/leds.h"
 
 void FastLED_::show() {
+  return;
+
   static_assert(sizeof(LEDs::Pixel) == sizeof(CRGB));
 
   LEDs::show((LEDs::Pixel *)raw_pixels, pixel_count);
