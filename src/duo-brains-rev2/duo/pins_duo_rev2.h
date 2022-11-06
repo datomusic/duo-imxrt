@@ -21,17 +21,17 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 
 // Multiplexer channels.
 
-enum Pin { SLIDE_PIN = 1, DELAY_PIN = 2, ACCENT_PIN = 8, BITC_PIN = 30 };
+enum Pin { SLIDE_PIN = 1, DELAY_PIN = 2, ACCENT_PIN = 8, BITC_PIN = 4 };
 
 enum Pot {
   FILTER_RES_POT = 0,
   TEMPO_POT = 1,
   GATE_POT = 2,
   AMP_POT = 3,
-  AMP_ENV_POT = 4,
   FILTER_FREQ_POT = 5,
   OSC_DETUNE_POT = 6,
-  OSC_PW_POT = 7
+  OSC_PW_POT = 7,
+  AMP_ENV_POT = 8
 };
 
 int potRead(const Pot pot);
