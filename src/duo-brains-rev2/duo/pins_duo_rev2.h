@@ -27,10 +27,10 @@ enum Pot {
   FILTER_RES_POT = 0,
   TEMPO_POT = 1,
   GATE_POT = 2,
-  OSC_DETUNE_POT = 3,
+  AMP_POT = 3,
   AMP_ENV_POT = 4,
   FILTER_FREQ_POT = 5,
-  AMP_POT = 6,
+  OSC_DETUNE_POT = 6,
   OSC_PW_POT = 7
 };
 
