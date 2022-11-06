@@ -37,7 +37,7 @@ TempoHandler tempo_handler;
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
-  if (!digitalRead(ACCENT_PIN)) {
+  if (pinRead(ACCENT_PIN)) {
     velocity = 127;
   }
 
@@ -80,14 +80,14 @@ void midi_handle_clock() {
 }
 
 void pots_read() {
-  gate_length_msec = 500;
-
-  synth.detune = 0;
-  synth.release = 500;
-  synth.filter = 500;
-  synth.amplitude = 500;
-  synth.pulseWidth = 500;
-  synth.resonance = 500;
+  gate_length_msec = map(potRead(GATE_POT),0,1023,10,200);
+  
+  synth.detune = potRead(OSC_DETUNE_POT);
+  synth.release = potRead(AMP_ENV_POT);
+  synth.filter = potRead(FILTER_FREQ_POT);
+  synth.amplitude = potRead(AMP_POT);
+  synth.pulseWidth = potRead(OSC_PW_POT);
+  synth.resonance = potRead(FILTER_RES_POT);
 }
 
 bool power_check() { return true; }
@@ -266,7 +266,7 @@ void process_key(const char k, const char state) {
 }
 
 void keys_scan() {
-  if (muxDigitalRead(DELAY_PIN)) {
+  if (pinRead(DELAY_PIN)) {
     synth.delay = false;
     mixer_delay.gain(0, 0.0); // Delay input
     mixer_delay.gain(3, 0.0);
@@ -276,8 +276,8 @@ void keys_scan() {
     mixer_delay.gain(3, 0.4); // Hat delay input
   }
 
-  synth.glide = !muxDigitalRead(SLIDE_PIN);
-  synth.crush = !digitalRead(BITC_PIN);
+  synth.glide = pinRead(SLIDE_PIN);
+  synth.crush = pinRead(BITC_PIN);
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {
