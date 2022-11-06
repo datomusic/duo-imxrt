@@ -62,14 +62,14 @@ int potRead(const Pot pot) {
 
 bool pinRead(const Pin pin) {
   switch (pin) {
-    case SLIDE_PIN:
-      return muxDigitalRead(pin) == 0;
-    case DELAY_PIN:
-      return muxDigitalRead(pin) != 0;
-    case BITC_PIN:
-      return muxDigitalRead(pin) == 0;
     case ACCENT_PIN:
-      return muxDigitalRead(pin) == 0;
+      return false; // TODO: Not sure what to query here.
+    case SLIDE_PIN:
+      return false; // TODO: Not sure what to query here.
+    case DELAY_PIN:
+      return muxDigitalRead(2) != 0;
+    case BITC_PIN:
+      return muxDigitalRead(4) == 0;
     default:
       return false;
   }
