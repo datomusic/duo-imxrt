@@ -20,6 +20,7 @@ MidiStub MIDI;
 #include "stubs/MidiFunctions_stubs.h"
 #include "duo-firmware/src/MidiFunctions.h"
 
+#include "lib/sync.h"
 #include "duo-firmware/src/TempoHandler.h"
 TempoHandler tempo_handler;
 
@@ -95,6 +96,7 @@ bool power_check() { return true; }
 int main(void) {
   board_init();
   DatoUSB::init();
+  Sync::init();
   LEDs::init();
   pins_init();
 

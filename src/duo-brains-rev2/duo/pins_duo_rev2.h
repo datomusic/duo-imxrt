@@ -12,8 +12,6 @@
 #define TOUCH4 18
 #define LED_DATA 32
 #define LED_CLK 25
-#define JACK_DETECT 26
-#define SYNC_DETECT 2
 #define SYNC_IN 14
 
 // One more LED than the physical number of leds for loopback testing
@@ -36,87 +34,6 @@ enum Pot {
   OSC_PW_POT = 7
 };
 
-int muxAnalogRead(const uint8_t channel) {
-  digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
-  digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
-  digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  delayMicroseconds(50);
-
-  // The rest of the firmware expected values between 0 and 1023.
-  // Scaling it down by a factor of 4 seems to be roughly correct...
-  int v = analogRead(PIN_SYN_MUX_IO) / 4;
-
-  if (v > 1023) {
-    return 1023;
-  }else{
-    return v;
-  }
-}
-
-uint8_t muxDigitalRead(const uint8_t channel) {
-  pinMode(PIN_SYN_MUX_IO, INPUT_PULLUP);
-  digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
-  digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
-  digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  delayMicroseconds(50);
-  // Wait a few microseconds for the selection to propagate.
-  return digitalRead(PIN_SYN_MUX_IO);
-}
-
-int potRead(const Pot pot) {
-  switch (pot) {
-    case AMP_POT:
-      return muxAnalogRead(AMP_POT);
-    case TEMPO_POT:
-      return 1023 - analogRead(PIN_POT_1);
-    case GATE_POT:
-      return 1023 - analogRead(PIN_POT_2);
-    case FILTER_FREQ_POT:
-      return muxAnalogRead(pot);
-    case FILTER_RES_POT:
-      return muxAnalogRead(pot);
-    case OSC_PW_POT:
-      return muxAnalogRead(pot);
-    case OSC_DETUNE_POT:
-      return muxAnalogRead(pot);
-    case AMP_ENV_POT:
-      // TODO: This does not seem to work
-      return muxAnalogRead(pot);
-    default:
-      return 500;
-  }
-}
-
-bool pinRead(const Pin pin) {
-  switch (pin) {
-    case SLIDE_PIN:
-      return false;
-    case DELAY_PIN:
-      return muxDigitalRead(pin) != 0;
-    case BITC_PIN:
-      return false;
-    case ACCENT_PIN:
-      return false;
-    default:
-      return false;
-  }
-}
-
-void pins_init() {
-  // pinMode(BITC_PIN, INPUT_PULLUP);
-  // pinMode(ACCENT_PIN, INPUT_PULLUP);
-
-  pinMode(SYNC_OUT_PIN, OUTPUT);
-  // pinMode(AMP_ENABLE, OUTPUT);
-  pinMode(PIN_HP_ENABLE, OUTPUT);
-  pinMode(PIN_SYNC_IN, INPUT);
-
-  pinMode(PIN_HP_JACK_DETECT, INPUT);
-  pinMode(PIN_SYNC_JACK_DETECT, INPUT);
-
-  pinMode(PIN_SYN_ADDR0, OUTPUT);
-  pinMode(PIN_SYN_ADDR1, OUTPUT);
-  pinMode(PIN_SYN_ADDR2, OUTPUT);
-
-//   randomSeed(analogRead(UNCONNECTED_ANALOG));
-}
+int potRead(const Pot pot);
+bool pinRead(const Pin pin);
+void pins_init();
