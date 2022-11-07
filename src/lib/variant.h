@@ -89,8 +89,8 @@ extern "C"
 #define GPIO_SD_12          41U 
 #define GPIO_SD_13          42U 
 
-#define PIN_SW1              GPIO_00
-#define PIN_SW2              GPIO_02
+#define PIN_SW_ACCENT        GPIO_00
+#define PIN_SW_CRUSH         GPIO_02
 #define PIN_HP_JACK_DETECT   GPIO_01
 #define PIN_TOUCH_CLK        GPIO_03
 #define PIN_TOUCH_DATA       GPIO_04

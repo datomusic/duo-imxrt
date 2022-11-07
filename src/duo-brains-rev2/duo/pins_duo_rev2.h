@@ -21,7 +21,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 
 // Multiplexer channels.
 
-enum Pin { SLIDE_PIN, DELAY_PIN, ACCENT_PIN, BITC_PIN };
+enum Pin { GLIDE_PIN, DELAY_PIN, ACCENT_PIN, BITC_PIN };
 
 enum Pot {
   FILTER_RES_POT = 0,

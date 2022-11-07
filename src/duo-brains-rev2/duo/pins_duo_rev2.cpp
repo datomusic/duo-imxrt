@@ -63,24 +63,24 @@ int potRead(const Pot pot) {
 bool pinRead(const Pin pin) {
   switch (pin) {
     case ACCENT_PIN:
-      return false; // TODO: Not sure what to query here.
-    case SLIDE_PIN:
-      return false; // TODO: Not sure what to query here.
+      return !digitalRead(PIN_SW_ACCENT);
+    case GLIDE_PIN:
+      return muxDigitalRead(4) == 0;
     case DELAY_PIN:
       return muxDigitalRead(2) != 0;
     case BITC_PIN:
-      return muxDigitalRead(4) == 0;
+      return !digitalRead(PIN_SW_CRUSH);
     default:
       return false;
   }
 }
 
 void pins_init() {
-  // pinMode(BITC_PIN, INPUT_PULLUP);
-  // pinMode(ACCENT_PIN, INPUT_PULLUP);
+  pinMode(GLIDE_PIN, INPUT_PULLUP);
+  pinMode(ACCENT_PIN, INPUT_PULLUP);
 
   pinMode(SYNC_OUT_PIN, OUTPUT);
-  // pinMode(AMP_ENABLE, OUTPUT);
+
   pinMode(PIN_HP_ENABLE, OUTPUT);
   pinMode(PIN_SYNC_IN, INPUT);
 
