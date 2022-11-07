@@ -1,19 +1,6 @@
 #include "pins_duo_rev2.h"
 #include <Arduino.h>
 
-static int scaledAnalogRead(const int port) {
-  // The rest of the firmware expects values between 0 and 1023.
-  // Scaling it down by a factor of 4 seems to be roughly correct...
-  int v = analogRead(port);
-  v = v / 4;
-
-  if (v > 1023) {
-    return 1023;
-  } else {
-    return v;
-  }
-}
-
 static int muxAnalogRead(const uint8_t channel) {
   // Any call to pinMode sets the port mux to GPIO mode.
   // We want to force it back to analog mode
@@ -24,7 +11,7 @@ static int muxAnalogRead(const uint8_t channel) {
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   delayMicroseconds(50);
 
-  return scaledAnalogRead(PIN_SYN_MUX_IO);
+  return analogRead(PIN_SYN_MUX_IO);
 }
 
 static uint8_t muxDigitalRead(const uint8_t channel) {
@@ -42,9 +29,9 @@ int potRead(const Pot pot) {
     case AMP_POT:
       return muxAnalogRead(AMP_POT);
     case TEMPO_POT:
-      return scaledAnalogRead(PIN_POT_1);
+      return 1023-analogRead(PIN_POT_2);
     case GATE_POT:
-      return scaledAnalogRead(PIN_POT_2);
+      return 1023-analogRead(PIN_POT_1);
     case FILTER_FREQ_POT:
       return muxAnalogRead(pot);
     case FILTER_RES_POT:
