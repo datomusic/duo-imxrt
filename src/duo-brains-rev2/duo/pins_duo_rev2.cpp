@@ -63,8 +63,8 @@ bool pinRead(const Pin pin) {
 }
 
 void pins_init() {
-  pinMode(GLIDE_PIN, INPUT_PULLUP);
-  pinMode(ACCENT_PIN, INPUT_PULLUP);
+  pinMode(PIN_SW_ACCENT, INPUT_PULLUP);
+  pinMode(PIN_SW_CRUSH, INPUT_PULLUP);
 
   pinMode(SYNC_OUT_PIN, OUTPUT);
 
