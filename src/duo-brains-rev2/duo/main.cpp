@@ -108,6 +108,7 @@ int main(void) {
   AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
   AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
 
+  led_init();
   AudioNoInterrupts();
   audio_init();
   AudioInterrupts();
@@ -122,7 +123,6 @@ int main(void) {
   button_matrix_init();
   keys_scan();
   midi_init();
-  led_init();
 
   if (midi_get_channel() != stored_midi_channel) {
     eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
@@ -161,7 +161,7 @@ int main(void) {
       sequencer_update();
 
       if (!dfu_flag) {
-        led_update(); // ~ 2ms
+        // led_update(); // ~ 2ms
       }
     }
   }
