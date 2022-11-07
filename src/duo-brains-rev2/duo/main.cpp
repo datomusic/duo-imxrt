@@ -279,7 +279,7 @@ void keys_scan() {
     mixer_delay.gain(3, 0.4); // Hat delay input
   }
 
-  synth.glide = pinRead(SLIDE_PIN);
+  synth.glide = pinRead(GLIDE_PIN);
   synth.crush = pinRead(BITC_PIN);
 
   // scan all the keys and then process them
