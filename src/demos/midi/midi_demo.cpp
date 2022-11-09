@@ -1,7 +1,7 @@
 #define UART_RETRY_TIMES true
-#include "pin_mux.h"
+#include "lib/pin_mux.h"
 #include "Arduino.h"
-#include "board_init.h"
+#include "lib/board_init.h"
 // #include "Audio.h"
 #include <MIDI.h>
 

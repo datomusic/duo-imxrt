@@ -1,9 +1,9 @@
-#include "pin_mux.h"
+#include "lib/pin_mux.h"
 #include "Arduino.h"
-#include "board_init.h"
+#include "lib/board_init.h"
 #define TEENSYDUINO 999
-#include "sync.h"
-#include "board.h"
+#include "lib/sync.h"
+#include "lib/board.h"
 
 /*!
  * @brief Main function
