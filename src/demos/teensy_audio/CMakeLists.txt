@@ -4,8 +4,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(teensy_audio_demo-rt1011)
 set(EXECUTABLE_NAME teensy_audio_demo-rt1011.elf)
 
-SET(COMMON_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
-
 add_executable(${EXECUTABLE_NAME} 
     ${CMAKE_CURRENT_SOURCE_DIR}/teensy_audio.cpp
     ${LIB_SRC_FILES}
@@ -16,4 +14,4 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${LIB_INCLUDE_DIRS}
 )
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/build_app.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/build_app.cmake)

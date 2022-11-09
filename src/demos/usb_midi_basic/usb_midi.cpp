@@ -1,8 +1,7 @@
 #include "Arduino.h"
-#include "board_init.h"
-#include "leds.h"
-#include "pin_mux.h"
-#include "usb/usb.h"
+#include "lib/board_init.h"
+#include "lib/leds.h"
+#include "lib/usb/usb.h"
 
 using LEDs::Pixel;
 

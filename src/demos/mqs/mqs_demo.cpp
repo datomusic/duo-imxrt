@@ -1,7 +1,7 @@
 #include "board.h"
-#include "pin_mux.h"
+#include "lib/pin_mux.h"
 #include "music-silence.h"
-#include "clock_config.h"
+#include "lib/clock_config.h"
 
 #include "fsl_dmamux.h"
 #include "fsl_sai_edma.h"
