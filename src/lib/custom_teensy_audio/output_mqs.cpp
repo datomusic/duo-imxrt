@@ -79,22 +79,27 @@ AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t tx_handle) = {0};
  *                              = 24 * (32 + 768/1000)
  *                              = 786.432 MHz
  */
+// const clock_audio_pll_config_t audioPllConfig = {
+//     .loopDivider = 28, /* PLL loop divider. Valid range for DIV_SELECT divider
+//                           value: 27~54. */
+//     .postDivider =
+//         1, /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
+//     .numerator = 2240,    /* 30 bit numerator of fractional loop divider. */
+//     .denominator = 10000, /* 30 bit denominator of fractional loop divider */
+// };
 const clock_audio_pll_config_t audioPllConfig = {
-    .loopDivider = 28, /* PLL loop divider. Valid range for DIV_SELECT divider
-                          value: 27~54. */
-    .postDivider =
-        4, /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
-    .numerator = 2240,    /* 30 bit numerator of fractional loop divider. */
-    .denominator = 10000, /* 30 bit denominator of fractional loop divider */
+    .loopDivider = 32,  /* PLL loop divider. Valid range for DIV_SELECT divider value: 27~54. */
+    .postDivider = 1,   /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
+    .numerator = 768,   /* 30 bit numerator of fractional loop divider. */
+    .denominator = 1000,/* 30 bit denominator of fractional loop divider */
 };
-
 static void configMQS(void) {
   CLOCK_EnableClock(kCLOCK_Mqs);
   IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, true);  /* Reset MQS. */
   IOMUXC_MQSEnterSoftwareReset(IOMUXC_GPR, false); /* Release reset MQS. */
   IOMUXC_MQSEnable(IOMUXC_GPR, true);              /* Enable MQS. */
   IOMUXC_MQSConfig(
-      IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate32,
+      IOMUXC_GPR, kIOMUXC_MqsPwmOverSampleRate64,
       0u); /* 98.304MHz/64/(0+1) = 1.536MHz
            Higher frequency PWM involves less low frequency harmonic.*/
 }

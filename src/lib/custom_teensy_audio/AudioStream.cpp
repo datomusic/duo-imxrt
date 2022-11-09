@@ -32,13 +32,12 @@
 #include <Arduino.h>
 
 #if defined(__IMXRT1052__)
-  #define MAX_AUDIO_MEMORY 229376
+#define MAX_AUDIO_MEMORY 229376
 #elif defined(__IMXRT1062__)
-  #define MAX_AUDIO_MEMORY 229376
+#define MAX_AUDIO_MEMORY 229376
 #elif defined(__IMXRT1011__)
-  #define MAX_AUDIO_MEMORY 57344
+#define MAX_AUDIO_MEMORY 57344
 #endif
-
 
 #define NUM_MASKS (((MAX_AUDIO_MEMORY / AUDIO_BLOCK_SAMPLES / 2) + 31) / 32)
 
@@ -175,6 +174,25 @@ audio_block_t *AudioStream::receiveReadOnly(unsigned int index) {
     return NULL;
   in = inputQueue[index];
   inputQueue[index] = NULL;
+  return in;
+}
+
+// Receive block from an input.  The block will not
+// be shared, so its contents may be changed.
+audio_block_t *AudioStream::receiveWritable(unsigned int index) {
+  audio_block_t *in, *p;
+
+  if (index >= num_inputs)
+    return NULL;
+  in = inputQueue[index];
+  inputQueue[index] = NULL;
+  if (in && in->ref_count > 1) {
+    p = allocate();
+    if (p)
+      memcpy(p->data, in->data, sizeof(p->data));
+    in->ref_count--;
+    in = p;
+  }
   return in;
 }
 
@@ -397,7 +415,7 @@ int AudioConnection::disconnect(void) {
 bool AudioStream::update_scheduled = false;
 
 bool AudioStream::update_setup(void) {
-  if (update_scheduled){
+  if (update_scheduled) {
     return false;
   }
 

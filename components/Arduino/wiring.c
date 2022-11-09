@@ -31,7 +31,6 @@
 #include "fsl_xbara.h"
 #include "fsl_pwm.h"
 #include "fsl_common.h"
-#include "board.h"
 
 volatile uint32_t systick_millis_count = 0;
 volatile uint32_t systick_cycle_count = 0;

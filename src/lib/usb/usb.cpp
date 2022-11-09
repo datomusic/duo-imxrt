@@ -1,4 +1,4 @@
-#include "usb/usb.h"
+#include "lib/usb/usb.h"
 #include "device/usbd.h"
 #include "fsl_clock.h"
 #include "tusb.h"

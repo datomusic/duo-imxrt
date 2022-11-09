@@ -7,3 +7,6 @@
 [submodule "libraries/Arduino-USBMIDI"]
 	path = libraries/Arduino-USBMIDI
 	url = git@github.com:lathoub/Arduino-USBMIDI.git
+[submodule "libraries/duo-firmware"]
+	path = libraries/duo-firmware
+	url = git@github.com:datomusic/duo-firmware.git

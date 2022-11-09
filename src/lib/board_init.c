@@ -9,4 +9,6 @@ void board_init() {
   BOARD_InitBootClocks();
   BOARD_InitDebugConsole();
   init(); // Seeeduino init
+  
+  analogReadResolution(10); // Set resolution to 10 bits, so from 0-1023
 }

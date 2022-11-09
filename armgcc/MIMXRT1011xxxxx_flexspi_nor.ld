@@ -241,6 +241,12 @@ SECTIONS
     __END_BSS = .;
   } > m_data
 
+  .bss.dma (NOLOAD) : {
+          *(.hab_log)
+          *(.dmabuffers)
+          . = ALIGN(32);
+  } > m_data2
+
   .heap :
   {
     . = ALIGN(8);

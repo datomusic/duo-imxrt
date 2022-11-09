@@ -10,9 +10,9 @@ namespace LEDs {
 // NeoPixel color order is GRB, and is represented by the order of fields in
 // this struct.
 struct Pixel {
-  uint8_t b;
   uint8_t g;
   uint8_t r;
+  uint8_t b;
 };
 
 void init();

@@ -73,8 +73,6 @@ typedef struct {
 } synth_parameters;
 
 synth_parameters synth;
-#include "duo1/note_stack.h"
+#include "duo-firmware/src/note_stack.h"
 NoteStack<10> note_stack;
 
-#include "duo1/TempoHandler.h"
-TempoHandler tempo_handler;

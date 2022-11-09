@@ -1,6 +1,6 @@
 #include "board.h"
 #include "pin_mux.h"
-#include "music.h"
+#include "music-silence.h"
 #include "clock_config.h"
 
 #include "fsl_dmamux.h"

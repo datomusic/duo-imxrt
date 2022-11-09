@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-if [[ -e "$1" ]]; then
-  pushd ./"$1"
+SCRIPT_PATH=$(dirname $(realpath -s $0))/$1
+if [[ -e "$SCRIPT_PATH" ]]; then
+  pushd "$SCRIPT_PATH"
   rm -r ./build
   popd
 else

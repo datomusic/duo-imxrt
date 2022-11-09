@@ -29,16 +29,20 @@
 
 #include <stdint.h>
 
-// computes limit((val >> rshift), 2**bits)
-static inline int32_t signed_saturate_rshift(int32_t val, int bits, int rshift) __attribute__((always_inline, unused));
-static inline int32_t signed_saturate_rshift(int32_t val, int bits, int rshift)
-{
+// // computes limit((val >> rshift), 2**bits)
 #if defined (__ARM_ARCH_7EM__)
-	int32_t out;
-	asm volatile("ssat %0, %1, %2, asr %3" : "=r" (out) : "I" (bits), "r" (val), "I" (rshift));
-	return out;
+#define signed_saturate_rshift(ARG1, ARG2, ARG3) \
+__extension__ \
+({                          \
+  int32_t __RES, __ARG1 = (ARG1); \
+  __ASM volatile ("ssat %0, %1, %2, asr %3" : "=r" (__RES) :  "I" (ARG2), "r" (__ARG1), "I" (ARG3) : "cc" ); \
+  __RES; \
+ })
 #elif defined(KINETISL)
-	int32_t out, max;
+static inline int32_t signed_saturate_rshift(int32_t val, int32_t bits, int32_t rshift) __attribute__((always_inline, unused));
+static inline int32_t signed_saturate_rshift(int32_t val, int32_t bits, int32_t rshift)
+{
+// 	int32_t out, max;
 	out = val >> rshift;
 	max = 1 << (bits - 1);
 	if (out >= 0) {
@@ -47,8 +51,9 @@ static inline int32_t signed_saturate_rshift(int32_t val, int bits, int rshift)
 		if (out < -max) out = -max;
 	}
 	return out;
-#endif
 }
+#endif
+
 
 // computes limit(val, 2**bits)
 static inline int16_t saturate16(int32_t val) __attribute__((always_inline, unused));
