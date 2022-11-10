@@ -5,11 +5,12 @@
 
 #include "board.h"
 #include "lib/pin_mux.h"
-#include "music.h"
+#include "music-silence.h"
 #include "lib/clock_config.h"
 
 #include "fsl_dmamux.h"
 #include "fsl_sai_edma.h"
+#include "fsl_sai.h"
 #include "fsl_iomuxc.h"
 #include "fsl_debug_console.h"
 /*******************************************************************************
@@ -46,7 +47,7 @@ static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status,
  */
 const clock_audio_pll_config_t audioPllConfig = {
     .loopDivider = 32,  /* PLL loop divider. Valid range for DIV_SELECT divider value: 27~54. */
-    .postDivider = 1,   /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
+    .postDivider = 2,   /* Divider after the PLL, should only be 1, 2, 4, 8, 16. */
     .numerator = 768,   /* 30 bit numerator of fractional loop divider. */
     .denominator = 1000,/* 30 bit denominator of fractional loop divider */
 };
@@ -91,15 +92,6 @@ void config_pt8211(){
 //	I2S1_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF | I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD; //TDA1543
 	I2S1_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF(1) /*| I2S_TCR4_FSE*/ | I2S_TCR4_FSP(1) | I2S_TCR4_FSD(1); //PT8211
 	I2S1_TCR5 = I2S_TCR5_WNW(15) | I2S_TCR5_W0W(15) | I2S_TCR5_FBT(15);
-
-	I2S1_RMR = 0;
-	//I2S1_RCSR = (1<<25); //Reset
-	I2S1_RCR1 = I2S_RCR1_RFW(0);
-	I2S1_RCR2 = I2S_RCR2_SYNC(rsync) | I2S_RCR2_BCP(1) | I2S_RCR2_MSEL(1) | I2S_TCR2_BCD(1) | I2S_TCR2_DIV(div);
-	I2S1_RCR3 = I2S_RCR3_RCE(1);
-//	I2S1_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF | I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD; //TDA1543
-	I2S1_RCR4 = I2S_RCR4_FRSZ(1) | I2S_RCR4_SYWD(15) | I2S_RCR4_MF(1) /*| I2S_RCR4_FSE*/ | I2S_RCR4_FSP(1) | I2S_RCR4_FSD(1); //PT8211
-	I2S1_RCR5 = I2S_RCR5_WNW(15) | I2S_RCR5_W0W(15) | I2S_RCR5_FBT(15);
 }
 
 void headphone_enable(void) {
@@ -176,7 +168,9 @@ int main(void)
     /* I2S mode configurations */
     SAI_GetClassicI2SConfig(&config, kSAI_WordWidth16bits, kSAI_Stereo, 1U << 0u);
     config.frameSync.frameSyncEarly = false;
-    config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
+    config.frameSync.frameSyncPolarity = kSAI_PolarityActiveLow;
+    config.masterSlave = kSAI_Master;
+    config.syncMode = kSAI_ModeAsync;
     SAI_TransferTxSetConfigEDMA(DEMO_SAI, &txHandle, &config);
     /* set bit clock divider */
 

@@ -44,16 +44,17 @@ uint16_t  AudioOutputPT8211::block_left_offset = 0;
 uint16_t  AudioOutputPT8211::block_right_offset = 0;
 
 bool AudioOutputPT8211::update_responsibility = false;
+DMAMEM __attribute__((aligned(32)))
 
-#if defined(AUDIO_PT8211_OVERSAMPLING)
-DMAMEM __attribute__((aligned(32))) static uint32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES*4];
-#else
-DMAMEM __attribute__((aligned(32))) static uint32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES];
-#endif
+// #if defined(AUDIO_PT8211_OVERSAMPLING)
+// DMAMEM __attribute__((aligned(32))) static uint32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES*4];
+// #else
+// DMAMEM __attribute__((aligned(32))) 
+// #endif
 
 // DMAChannel AudioOutputPT8211::dma(false);
 
-
+static uint32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES];
 static sai_transfer_t xfer;
 static edma_config_t dma_config = {0};
 static sai_transceiver_t transceiver_config;
@@ -64,7 +65,7 @@ AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t tx_handle) = {0};
 /* Select Audio PLL (786.432 MHz) as sai1 clock source */
 #define SAI_CLOCK_SOURCE_SELECT (2U)
 /* Clock pre divider for sai clock source */
-#define SAI_CLOCK_SOURCE_PRE_DIVIDER (0U)
+#define SAI_CLOCK_SOURCE_PRE_DIVIDER (3U)
 /* Clock divider for sai clock source */
 #define SAI_CLOCK_SOURCE_DIVIDER (1U)
 /* Get frequency of sai clock: SAI3_Clock = 786.432MHz /(3+1)/(1+1) = 98.304MHz
@@ -111,6 +112,7 @@ void AudioOutputPT8211::begin(void)
 	block_left_1st = NULL;
 	block_right_1st = NULL;
 
+	// config_i2s();
 	CLOCK_InitAudioPll(&audioPllConfig);
 
   // Clock setting for SAI.
@@ -145,28 +147,17 @@ void AudioOutputPT8211::begin(void)
 	SAI_TransferTxSetConfigEDMA(SAI, &tx_handle, &transceiver_config);
 	/* set bit clock divider */
 
-  // if (SAI->TCSR & I2S_TCSR_TE(1)) return;
-		
 	// configure transmitter
 	SAI->TMR = 0;
 	SAI->TCR1 = I2S_TCR1_TFW(0);
   SAI_TxSetBitClockRate(SAI, SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
-	SAI->TCR2 |= I2S_TCR2_BCP(1) | I2S_TCR2_MSEL(1) | I2S_TCR2_BCD(1);
+	// I2S1_TCR2 = I2S_TCR2_SYNC(tsync) | I2S_TCR2_BCP(1) | I2S_TCR2_MSEL(1) | I2S_TCR2_BCD(1) | I2S_TCR2_DIV(div);
 	SAI->TCR3 = I2S_TCR3_TCE(1);
   //	I2S1_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF | I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD; //TDA1543
 	SAI->TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF(1) /*| I2S_TCR4_FSE*/ | I2S_TCR4_FSP(1) | I2S_TCR4_FSD(1); //PT8211
 	SAI->TCR5 = I2S_TCR5_WNW(15) | I2S_TCR5_W0W(15) | I2S_TCR5_FBT(15);
-  
-// 	SAI->RMR = 0;
-// 	//SAI->RCSR = (1<<25); //Reset
-// 	SAI->RCR1 = I2S_RCR1_RFW(0);
-// 	SAI->RCR2 = I2S_RCR2_SYNC(0) | I2S_TCR2_BCP(1) | I2S_TCR2_MSEL(1) | I2S_TCR2_BCD(1) | I2S_TCR2_DIV(3);
-// 	SAI->RCR3 = I2S_RCR3_RCE(1);
-// //	SAI->TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF | I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD; //TDA1543
-// 	SAI->RCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF(1) /*| I2S_TCR4_FSE*/ | I2S_TCR4_FSP(1) | I2S_TCR4_FSD(1); //PT8211
-// 	SAI->RCR5 = I2S_RCR5_WNW(15) | I2S_RCR5_W0W(15) | I2S_RCR5_FBT(15);
-	
-	update_responsibility = update_setup();
+
+  update_responsibility = update_setup();
 
 	memset(i2s_tx_buffer, 0, sizeof(i2s_tx_buffer));
   xfer.data = (uint8_t *)(uint32_t)i2s_tx_buffer;
@@ -185,10 +176,10 @@ static bool buffer_toggle = false;
 
 void AudioOutputPT8211::isr(I2S_Type *base, sai_edma_handle_t *handle,
                          status_t status, void *userData) {
-  __disable_irq();
-	int16_t *dest, *dest_copy; 
+
+	int16_t *dest, *dest_copy;
 	audio_block_t *blockL, *blockR;
-	uint32_t offsetL, offsetR;
+	uint32_t saddr, offsetL, offsetR;
 
 if (buffer_toggle) {
 		// DMA is transmitting the first half of the buffer
@@ -206,7 +197,6 @@ if (buffer_toggle) {
 		// so we must fill the first half
 		dest = (int16_t *)i2s_tx_buffer;
 	}
-
   buffer_toggle = !buffer_toggle;
 
 	dest_copy = dest;
@@ -439,7 +429,6 @@ if (buffer_toggle) {
 	}
 	xfer.data = (uint8_t *)dest;
   SAI_TransferSendEDMA(SAI1, &tx_handle, &xfer);
-	__enable_irq();
 }
 
 
