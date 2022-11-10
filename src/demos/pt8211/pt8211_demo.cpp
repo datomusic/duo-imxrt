@@ -1,7 +1,11 @@
+#include "Arduino.h"
+#include "lib/board_init.h"
+#include "lib/leds.h"
+
 
 #include "board.h"
 #include "lib/pin_mux.h"
-#include "music-silence.h"
+#include "music.h"
 #include "lib/clock_config.h"
 
 #include "fsl_dmamux.h"
@@ -17,7 +21,7 @@
 /* Select Audio PLL (786.432 MHz) as sai1 clock source */
 #define DEMO_SAI_CLOCK_SOURCE_SELECT (2U)
 /* Clock pre divider for sai clock source */
-#define DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER (4U)
+#define DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER (3U)
 /* Clock divider for sai clock source */
 #define DEMO_SAI_CLOCK_SOURCE_DIVIDER (1U)
 /* Get frequency of sai clock: SAI3_Clock = 786.432MHz /(3+1)/(1+1) = 98.304MHz */
@@ -50,6 +54,7 @@ AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t txHandle) = {0};
 edma_handle_t g_dmaHandle                                = {0};
 volatile bool isFinished      = false;
 
+using LEDs::Pixel;
 static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData)
 {
     isFinished = true;
@@ -70,7 +75,7 @@ static void callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status,
 #define I2S1_RCR5 SAI1->RCR5
 
 void config_pt8211(){
-    int rsync = 0;
+  int rsync = 0;
 	int tsync = 1;
 	#if defined(AUDIO_PT8211_OVERSAMPLING)
 	int div = 0;
@@ -80,7 +85,8 @@ void config_pt8211(){
 	// configure transmitter
 	I2S1_TMR = 0;
 	I2S1_TCR1 = I2S_TCR1_TFW(0);
-	I2S1_TCR2 = I2S_TCR2_SYNC(tsync) | I2S_TCR2_BCP(1) | I2S_TCR2_MSEL(1) | I2S_TCR2_BCD(1) | I2S_TCR2_DIV(div);
+    SAI_TxSetBitClockRate(SAI1, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 1u);
+	// I2S1_TCR2 = I2S_TCR2_SYNC(tsync) | I2S_TCR2_BCP(1) | I2S_TCR2_MSEL(1) | I2S_TCR2_BCD(1) | I2S_TCR2_DIV(div);
 	I2S1_TCR3 = I2S_TCR3_TCE(1);
 //	I2S1_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF | I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD; //TDA1543
 	I2S1_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF(1) /*| I2S_TCR4_FSE*/ | I2S_TCR4_FSP(1) | I2S_TCR4_FSD(1); //PT8211
@@ -134,10 +140,20 @@ int main(void)
     headphone_enable();
     amp_enable();
 
+    LEDs::init();
+
+    const int PIXEL_COUNT = 19;
+    Pixel pixels[PIXEL_COUNT];
+
+    int led_index = 0;
+    int color = 0;
+
+    bool fast_speed = false;
+
     /*Clock setting for SAI. */
-    CLOCK_SetMux(kCLOCK_Sai3Mux, DEMO_SAI_CLOCK_SOURCE_SELECT);
-    CLOCK_SetDiv(kCLOCK_Sai3PreDiv, DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER);
-    CLOCK_SetDiv(kCLOCK_Sai3Div, DEMO_SAI_CLOCK_SOURCE_DIVIDER);
+    CLOCK_SetMux(kCLOCK_Sai1Mux, DEMO_SAI_CLOCK_SOURCE_SELECT);
+    CLOCK_SetDiv(kCLOCK_Sai1PreDiv, DEMO_SAI_CLOCK_SOURCE_PRE_DIVIDER);
+    CLOCK_SetDiv(kCLOCK_Sai1Div, DEMO_SAI_CLOCK_SOURCE_DIVIDER);
 
 	IOMUXC_SetPinMux(IOMUXC_GPIO_04_SAI1_TX_DATA00, 0);
 	IOMUXC_SetPinMux(IOMUXC_GPIO_06_SAI1_TX_BCLK, 0);
@@ -147,8 +163,6 @@ int main(void)
     DMAMUX_SetSource(DMAMUX, DEMO_EDMA_CHANNEL, DEMO_SAI_TX_SOURCE);
     DMAMUX_EnableChannel(DMAMUX, DEMO_EDMA_CHANNEL);
 
-    PRINTF("SAI MQS DMA example started.\n\r");
-
     /* Create EDMA handle */
     EDMA_GetDefaultConfig(&dmaConfig);
     EDMA_Init(DEMO_DMA, &dmaConfig);
@@ -156,7 +170,6 @@ int main(void)
 
     /* SAI init */
     SAI_Init(DEMO_SAI);
-
     
     SAI_TransferTxCreateHandleEDMA(DEMO_SAI, &txHandle, callback, NULL, &g_dmaHandle);
 
@@ -166,7 +179,6 @@ int main(void)
     config.frameSync.frameSyncPolarity = kSAI_PolarityActiveHigh;
     SAI_TransferTxSetConfigEDMA(DEMO_SAI, &txHandle, &config);
     /* set bit clock divider */
-    SAI_TxSetBitClockRate(DEMO_SAI, DEMO_SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
 
     config_pt8211();
 
