@@ -163,7 +163,7 @@ int main(void) {
       sequencer_update();
 
       if (!dfu_flag) {
-        // led_update(); // ~ 2ms
+        led_update(); // ~ 2ms
       }
     }
   }
