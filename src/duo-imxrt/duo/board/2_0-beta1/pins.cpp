@@ -1,6 +1,16 @@
 #include "../../pins.h"
 #include <Arduino.h>
 
+#define PIN_SW_ACCENT        GPIO_00
+#define PIN_SW_CRUSH         GPIO_02
+#define PIN_HP_JACK_DETECT   GPIO_01
+#define PIN_HP_ENABLE	     GPIO_AD_11
+
+#define PIN_SYN_MUX_IO       GPIO_AD_14
+#define PIN_SYN_ADDR0        GPIO_SD_00
+#define PIN_SYN_ADDR1        GPIO_SD_01
+#define PIN_SYN_ADDR2        GPIO_SD_02
+
 static int muxAnalogRead(const uint8_t channel) {
   // Any call to pinMode sets the port mux to GPIO mode.
   // We want to force it back to analog mode
@@ -66,13 +76,9 @@ void pins_init() {
   pinMode(PIN_SW_ACCENT, INPUT_PULLUP);
   pinMode(PIN_SW_CRUSH, INPUT_PULLUP);
 
-  pinMode(SYNC_OUT_PIN, OUTPUT);
-
   pinMode(PIN_HP_ENABLE, OUTPUT);
-  pinMode(PIN_SYNC_IN, INPUT);
 
   pinMode(PIN_HP_JACK_DETECT, INPUT);
-  pinMode(PIN_SYNC_JACK_DETECT, INPUT);
 
   pinMode(PIN_SYN_ADDR0, OUTPUT);
   pinMode(PIN_SYN_ADDR1, OUTPUT);

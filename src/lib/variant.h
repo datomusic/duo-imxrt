@@ -89,44 +89,6 @@ extern "C"
 #define GPIO_SD_12          41U 
 #define GPIO_SD_13          42U 
 
-#define PIN_SW_ACCENT        GPIO_00
-#define PIN_SW_CRUSH         GPIO_02
-#define PIN_HP_JACK_DETECT   GPIO_01
-#define PIN_TOUCH_CLK        GPIO_03
-#define PIN_TOUCH_DATA       GPIO_04
-#define PIN_SYNC_JACK_DETECT GPIO_05
-#define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_07
-#define PIN_LED_3            GPIO_06
-#define PIN_MIDI_RX          GPIO_09
-#define PIN_MIDI_TX          GPIO_10
-#define PIN_ROW_1            GPIO_13
-#define PIN_ROW_2            GPIO_12
-#define PIN_ROW_3            GPIO_SD_04
-#define PIN_ROW_4            GPIO_11
-
-#define PIN_SYNC_IN          GPIO_AD_00
-#define PIN_SYNC_OUT        15U
-#define PIN_MQS_R           16U
-#define PIN_POT_1            GPIO_AD_03
-#define PIN_POT_2            GPIO_AD_04
-#define PIN_COL_6           19U
-#define PIN_COL_4           20U
-#define PIN_COL_3           21U
-#define PIN_COL_2           22U
-#define PIN_COL_1           23U
-#define PIN_AMP_MUTE        24U
-#define PIN_HP_ENABLE       25U
-#define PIN_SWD_CLK         26U
-#define PIN_SWD_SWDIO       27U
-#define PIN_SYN_MUX_IO       GPIO_AD_14
-
-#define PIN_SYN_ADDR0       29U
-#define PIN_SYN_ADDR1       30U
-#define PIN_SYN_ADDR2       31U
-#define PIN_COL_5           GPIO_SD_13
-
-
 #define UART_INTERFACES_COUNT 1
 
 #define PIN_UART1_RX      GPIO_09 
