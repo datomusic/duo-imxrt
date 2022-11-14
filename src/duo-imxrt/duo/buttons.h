@@ -2,7 +2,6 @@
 /*
   Rows are set to input_pullup and cols are pulled low one by one
 */
-#include "pinmap.h"
 #include "keypad.h"
 
 enum BUTTONS {

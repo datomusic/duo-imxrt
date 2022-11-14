@@ -5,7 +5,7 @@
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
 #include "lib/usb/usb.h"
-#include "pinmap.h"
+#include "pins.h"
 #include "stubs/arduino_stubs.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
@@ -28,7 +28,6 @@ TempoHandler tempo_handler;
 #include "duo-firmware/src/Sequencer.h"
 #include "duo-firmware/src/Synth.h"
 
-
 // One more LED than the physical number of leds for loopback testing
 const int NUM_LEDS = 19 + 1;
 const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
@@ -43,10 +42,8 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
-#include "output_mqs.h"
 #include "synth_sine.h"
-
-
+#include "board_audio_output.h"
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
@@ -116,7 +113,7 @@ int main(void) {
   Audio::headphone_disable();
   sequencer_init();
 
-  AudioOutputMQS dac1; // xy=988.1000061035156,100
+  BoardAudioOutput dac1; // xy=988.1000061035156,100
   AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
   AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
 

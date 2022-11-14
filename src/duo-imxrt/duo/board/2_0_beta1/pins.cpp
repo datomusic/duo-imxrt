@@ -1,4 +1,4 @@
-#include "pins_duo_imxrt.h"
+#include "../../pins.h"
 #include <Arduino.h>
 
 static int muxAnalogRead(const uint8_t channel) {
