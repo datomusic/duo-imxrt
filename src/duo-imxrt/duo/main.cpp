@@ -27,13 +27,25 @@ TempoHandler tempo_handler;
 #include "buttons.h"
 #include "duo-firmware/src/Sequencer.h"
 #include "duo-firmware/src/Synth.h"
+
+
+// One more LED than the physical number of leds for loopback testing
+const int NUM_LEDS = 19 + 1;
+const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
+                                 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+
 #include "duo-firmware/src/Leds.h"
 #include "duo-firmware/src/TouchSlider.h"
+#define TOUCH1 16
+#define TOUCH2 17
+#define TOUCH3 19
+#define TOUCH4 18
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
 #include "output_mqs.h"
 #include "synth_sine.h"
+
 
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {

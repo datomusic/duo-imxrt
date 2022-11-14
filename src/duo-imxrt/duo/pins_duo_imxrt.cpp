@@ -26,22 +26,22 @@ static uint8_t muxDigitalRead(const uint8_t channel) {
 
 int potRead(const Pot pot) {
   switch (pot) {
-    case AMP_POT:
-      return muxAnalogRead(AMP_POT);
-    case TEMPO_POT:
-      return 1023-analogRead(PIN_POT_2);
-    case GATE_POT:
-      return 1023-analogRead(PIN_POT_1);
-    case FILTER_FREQ_POT:
-      return muxAnalogRead(pot);
     case FILTER_RES_POT:
-      return muxAnalogRead(pot);
+      return muxAnalogRead(0);
+    case TEMPO_POT:
+      return 1023 - analogRead(1);
+    case GATE_POT:
+      return 1023 - analogRead(2);
+    case AMP_POT:
+      return muxAnalogRead(3);
+    case FILTER_FREQ_POT:
+      return muxAnalogRead(5);
     case OSC_PW_POT:
-      return muxAnalogRead(pot);
+      return muxAnalogRead(7);
     case OSC_DETUNE_POT:
-      return muxAnalogRead(pot);
+      return muxAnalogRead(6);
     case AMP_ENV_POT:
-      return muxAnalogRead(pot);
+      return muxAnalogRead(9);
     default:
       return 500;
   }
