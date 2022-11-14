@@ -106,25 +106,25 @@ extern "C"
 #define PIN_ROW_4            GPIO_11
 
 #define PIN_SYNC_IN          GPIO_AD_00
-#define PIN_SYNC_OUT        15U
-#define PIN_MQS_R           16U
+#define PIN_SYNC_OUT         GPIO_AD_01
+#define PIN_MQS_R            GPIO_AD_02
 #define PIN_POT_1            GPIO_AD_03
 #define PIN_POT_2            GPIO_AD_04
-#define PIN_COL_6           19U
-#define PIN_COL_4           20U
-#define PIN_COL_3           21U
-#define PIN_COL_2           22U
-#define PIN_COL_1           23U
-#define PIN_AMP_MUTE        24U
-#define PIN_HP_ENABLE       25U
-#define PIN_SWD_CLK         26U
-#define PIN_SWD_SWDIO       27U
+#define PIN_COL_6            GPIO_AD_05
+#define PIN_COL_4            GPIO_AD_06
+#define PIN_COL_3            GPIO_AD_07
+#define PIN_COL_2            GPIO_AD_08
+#define PIN_COL_1            GPIO_AD_09
+#define PIN_AMP_MUTE         GPIO_AD_10
+#define PIN_HP_ENABLE        GPIO_AD_11
+#define PIN_SWD_CLK          GPIO_AD_12
+#define PIN_SWD_SWDIO        GPIO_AD_13
 #define PIN_SYN_MUX_IO       GPIO_AD_14
 
-#define PIN_SYN_ADDR0       29U
-#define PIN_SYN_ADDR1       30U
-#define PIN_SYN_ADDR2       31U
-#define PIN_COL_5           GPIO_SD_13
+#define PIN_SYN_ADDR0        GPIO_SD_00
+#define PIN_SYN_ADDR1        GPIO_SD_01
+#define PIN_SYN_ADDR2        GPIO_SD_02
+#define PIN_COL_5            GPIO_SD_13
 
 
 #define UART_INTERFACES_COUNT 1
