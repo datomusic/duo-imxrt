@@ -7,8 +7,10 @@ ENABLE_LANGUAGE(ASM)
 
 set(EXECUTABLE_NAME duo-imxrt.elf)
 
+if(NOT DEFINED DUO_BOARD)
+    set(DUO_BOARD "2_0-rc1")
+endif(NOT DEFINED DUO_BOARD)
 
-set(DUO_BOARD "2_0_beta1")
 add_definitions(-DDUO_BOARD=${DUO_BOARD})
 
 add_executable(${EXECUTABLE_NAME}
