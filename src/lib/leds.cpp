@@ -30,10 +30,20 @@ void init(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
+#define NS_PER_SEC                                                             \
+  (1000000000L) // Note that this has to be SIGNED since we want to be able to
+                // check for negative values of derivatives
+#define CYCLES_PER_SEC (SystemCoreClock)
+#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
+#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
+
 static inline void send_bit(uint8_t bit) {
-  const uint32_t interval = SystemCoreClock / MAGIC_800_INT;
-  const uint32_t t0 = SystemCoreClock / MAGIC_800_T0H;
-  const uint32_t t1 = SystemCoreClock / MAGIC_800_T1H;
+  const uint32_t cycle = NS_TO_CYCLES(160);
+  const uint32_t delta = NS_TO_CYCLES(70);
+
+  const uint32_t t0 = cycle + delta;
+  const uint32_t t1 = t0 + 3 * cycle;
+  const uint32_t interval = t1 + t0 + delta;
 
   const uint32_t cyc = bit ? t1 : t0;
   const auto start = DWT->CYCCNT;
@@ -69,9 +79,9 @@ void show(const Pixel *const pixels, const int pixel_count) {
   const uint32_t byte_count = pixel_count * 3;
   const uint8_t *const end = pixel_bytes + byte_count;
 
+  const uint32_t last = DWT->CYCCNT;
   __disable_irq();
   while (byte_ptr != end) {
-    __disable_irq();
 
     send_byte(*byte_ptr);
     byte_ptr++;
@@ -80,7 +90,20 @@ void show(const Pixel *const pixels, const int pixel_count) {
     send_byte(*byte_ptr);
     byte_ptr++;
 
+    uint32_t last = DWT->CYCCNT;
     __enable_irq();
+
+    const uint32_t cycle = NS_TO_CYCLES(160);
+    const uint32_t delta = NS_TO_CYCLES(70);
+
+    const uint32_t t0 = cycle + delta;
+    const uint32_t t1 = t0 + 3 * cycle;
+    const uint32_t interval = t1 + t0 + delta;
+
+    __disable_irq();
+    if (DWT->CYCCNT - last > interval) {
+      break;
+    }
   }
 
   __enable_irq();
