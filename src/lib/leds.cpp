@@ -38,6 +38,29 @@ void init(void) {
   (((SystemCoreClock >> 16) * (_NS)) / (1000000000UL >> 16))
 
 static inline uint32_t send_bit(uint8_t bit) {
+  const uint32_t t0 = NS_TO_CYCLES(300);
+  const uint32_t t1 = NS_TO_CYCLES(600);
+  const uint32_t interval = NS_TO_CYCLES(1000);
+
+  const uint32_t on_cycles = bit ? t1 : t0;
+  const uint32_t start = DWT->CYCCNT; 
+  const uint32_t end = start + interval;
+  const uint32_t next = start + on_cycles;
+
+  pin_hi();
+
+  while (DWT->CYCCNT < next) ;
+
+  pin_lo();
+
+  while (DWT->CYCCNT < end) ;
+
+  const uint32_t next_cyc = bit ? t1 : t0;
+
+  return next_cyc;
+}
+
+static inline uint32_t _send_bit(uint8_t bit) {
 #define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field
 #define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
 #define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
