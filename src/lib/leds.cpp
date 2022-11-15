@@ -137,7 +137,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
     if (DWT->CYCCNT > next_mark) {
       if ((DWT->CYCCNT - next_mark) > wait_off) {
         yes_interrupts();
-        return DWT->CYCCNT - start;
+        return false;
       }
     }
 #endif
@@ -156,7 +156,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   pin_lo();
 
   yes_interrupts();
-  return DWT->CYCCNT - start;
+  return true;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
