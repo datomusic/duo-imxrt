@@ -7,10 +7,7 @@
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
 
-#define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field
-#define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
-#define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
-#define MAGIC_800_RST 4000      // 80 us reset time
+#define DELTA_NS 70
 
 static void pin_hi() { GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 1); }
 static void pin_lo() { GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 0); }
@@ -37,13 +34,21 @@ void init(void) {
 #define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
 #define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
 
-static inline void send_bit(uint8_t bit) {
-  const uint32_t cycle = NS_TO_CYCLES(160);
-  const uint32_t delta = NS_TO_CYCLES(70);
+static inline uint32_t send_bit(uint8_t bit) {
+/* #define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field */
+/* #define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field */
+/* #define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field */
+/* #define MAGIC_800_RST 4000      // 80 us reset time */
+/*   const uint32_t interval = SystemCoreClock / MAGIC_800_INT; */
+/*   const uint32_t t0 = SystemCoreClock / MAGIC_800_T0H; */
+/*   const uint32_t t1 = SystemCoreClock / MAGIC_800_T1H; */
 
-  const uint32_t t0 = cycle + delta;
-  const uint32_t t1 = t0 + 3 * cycle;
-  const uint32_t interval = t1 + t0 + delta;
+  /* const uint32_t cycle = NS_TO_CYCLES(160); */
+  /* const uint32_t delta = NS_TO_CYCLES(70); */
+
+  const uint32_t t0 = NS_TO_CYCLES(300);
+  const uint32_t t1 = NS_TO_CYCLES(600);
+  const uint32_t interval = NS_TO_CYCLES(1000);
 
   const uint32_t cyc = bit ? t1 : t0;
   const auto start = DWT->CYCCNT;
@@ -55,19 +60,71 @@ static inline void send_bit(uint8_t bit) {
   pin_lo();
   while ((DWT->CYCCNT - start) < interval)
     ;
+  const uint32_t next_cyc = bit ? t1 : t0;
+  return next_cyc;
 }
 
-static inline void send_byte(uint8_t byte) {
+static inline uint32_t send_byte(uint8_t byte, uint32_t ) {
   uint32_t mask = 0x80;
+
+  uint32_t next_cyc;
 
   while (mask) {
     const uint8_t bit = byte & mask;
-    send_bit(bit);
+    next_cyc = send_bit(bit);
     mask >>= 1;
   }
+
+  return next_cyc;
+}
+
+static inline uint32_t _send_byte(uint8_t byte, uint32_t next_mark) {
+  const uint32_t delta = NS_TO_CYCLES(DELTA_NS);
+  const uint32_t t0 = delta + NS_TO_CYCLES(160);
+  const uint32_t t1 = delta + t0 + NS_TO_CYCLES(160);
+
+#define BITS 8
+  for (register uint32_t i = BITS - 1; i > 0; --i) {
+    while (DWT->CYCCNT < next_mark)
+      ;
+
+    next_mark = DWT->CYCCNT + delta;
+    pin_hi();
+
+    if (byte & 0x80) {
+      while ((next_mark - DWT->CYCCNT) > t1)
+        ;
+      pin_lo();
+    } else {
+      while ((next_mark - DWT->CYCCNT) > t0)
+        ;
+      pin_lo();
+    }
+
+    byte <<= 1;
+  }
+
+  while (DWT->CYCCNT < next_mark)
+    ;
+  next_mark = DWT->CYCCNT + delta;
+  pin_hi();
+
+  if (byte & 0x80) {
+    while ((next_mark - DWT->CYCCNT) > t1)
+      ;
+    pin_lo();
+  } else {
+    while ((next_mark - DWT->CYCCNT) > t0)
+      ;
+    pin_lo();
+  }
+
+  return next_mark;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
   // assumes 800_000Hz frequency
   // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
@@ -79,37 +136,30 @@ void show(const Pixel *const pixels, const int pixel_count) {
   const uint32_t byte_count = pixel_count * 3;
   const uint8_t *const end = pixel_bytes + byte_count;
 
-  const uint32_t last = DWT->CYCCNT;
+
+  /* const uint32_t last = DWT->CYCCNT; */
+
   __disable_irq();
+  uint32_t next_mark = DWT->CYCCNT + NS_TO_CYCLES(DELTA_NS);
   while (byte_ptr != end) {
-
-    send_byte(*byte_ptr);
-    byte_ptr++;
-    send_byte(*byte_ptr);
-    byte_ptr++;
-    send_byte(*byte_ptr);
+    next_mark = send_byte(*byte_ptr, next_mark);
     byte_ptr++;
 
-    uint32_t last = DWT->CYCCNT;
-    __enable_irq();
+    next_mark = send_byte(*byte_ptr, next_mark);
+    byte_ptr++;
 
-    const uint32_t cycle = NS_TO_CYCLES(160);
-    const uint32_t delta = NS_TO_CYCLES(70);
+    next_mark = send_byte(*byte_ptr, next_mark);
+    byte_ptr++;
 
-    const uint32_t t0 = cycle + delta;
-    const uint32_t t1 = t0 + 3 * cycle;
-    const uint32_t interval = t1 + t0 + delta;
-
-    __disable_irq();
-    if (DWT->CYCCNT - last > interval) {
-      break;
-    }
+    /* if (DWT->CYCCNT - last > next_cyc) { */
+    /*   break; */
+    /* } */
+    /* __disable_irq(); */
   }
 
-  __enable_irq();
-
   const uint32_t start = DWT->CYCCNT;
-  const uint32_t rst = SystemCoreClock / MAGIC_800_RST;
+  __enable_irq();
+  const uint32_t rst = NS_TO_CYCLES(100000);
 
   while ((DWT->CYCCNT - start) < rst)
     ;
