@@ -21,7 +21,7 @@ static uint32_t no_interrupts() {
 static void yes_interrupts() {
   /* EnableGlobalIRQ(primask); */
   __enable_irq();
-  /* EnableIRQ(DMA0_IRQn); */
+  EnableIRQ(DMA0_IRQn);
 }
 
 inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
@@ -86,11 +86,12 @@ public:
   void mark() { mLastMicros = micros() & 0xFFFF; }
 };
 
-#define WAIT_TIME 1
+#define WAIT_TIME 50
 
 CMinWait<WAIT_TIME> mWait;
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
+  const uint32_t start = DWT->CYCCNT;
   // assumes 800_000Hz frequency
   // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
   // 1250000->0.8us
@@ -115,35 +116,40 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 #define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
 #define MAGIC_800_RST 4000      // 80 us reset time
 
-#define interval (SystemCoreClock / MAGIC_800_INT)
-#define t0 (SystemCoreClock / MAGIC_800_T0H)
-#define t1 (SystemCoreClock / MAGIC_800_T1H)
+  /* #define interval (SystemCoreClock / MAGIC_800_INT) */
+  /* #define t0 (SystemCoreClock / MAGIC_800_T0H) */
+  /* #define t1 (SystemCoreClock / MAGIC_800_T1H) */
 
+#define T1 250
+#define T2 625
+#define T3 375
   uint32_t off[3];
-  off[0] = interval;
-  off[1] = t0;
-  off[2] = t1;
+  off[0] = NS_TO_CYCLES(T1 + T2 + T3);
+  off[1] = NS_TO_CYCLES(T2 + T3);
+  off[2] = NS_TO_CYCLES(T3);
 
 #define INTERRUPT_THRESHOLD 1
 
-  /* #define ALLOW_INTERRUPTS */
+#define ALLOW_INTERRUPTS
 
   const uint32_t wait_off =
       NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
 
   pin_lo();
 
-  const auto primask = no_interrupts();
-  uint32_t next_mark = DWT->CYCCNT + off[0];
-  while (byte_ptr != end) {
+  no_interrupts();
 
+  uint32_t next_mark = DWT->CYCCNT + off[0];
+
+  while (byte_ptr != end) {
 #ifdef ALLOW_INTERRUPTS
     no_interrupts();
 
-    if (next_mark > 0 && DWT->CYCCNT > next_mark) {
-      /* if ((DWT->CYCCNT - next_mark) > wait_off) { */
-      return 0;
-      /* } */
+    if (DWT->CYCCNT > next_mark) {
+      if ((DWT->CYCCNT - next_mark) > wait_off) {
+        yes_interrupts();
+        return DWT->CYCCNT - start;
+      }
     }
 #endif
 
@@ -163,8 +169,8 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
   pin_lo();
   const uint32_t rst = SystemCoreClock / MAGIC_800_RST;
-  const uint32_t start = DWT->CYCCNT;
-  while ((DWT->CYCCNT - start) < rst)
+  const uint32_t from = DWT->CYCCNT;
+  while ((DWT->CYCCNT - from) < rst)
     ;
 
   return DWT->CYCCNT - start;
@@ -172,16 +178,15 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
 void show(const Pixel *const pixels, const int pixel_count) {
   /* mWait.wait(); */
-  show_pixels(pixels, pixel_count);
-  /* if (!show_pixels(pixels, pixel_count)) { */
-  /*   yes_interrupts(); */
-  /*   delayMicroseconds(WAIT_TIME); */
-  /*   no_interrupts(); */
-  /*   show_pixels(pixels, pixel_count); */
-  /* } */
-  /* mWait.mark(); */
-  /* delayMicroseconds(50); */
-  yes_interrupts();
+  if (!show_pixels(pixels, pixel_count)) {
+    yes_interrupts();
+    delayMicroseconds(WAIT_TIME);
+    no_interrupts();
+    show_pixels(pixels, pixel_count);
+  }
+
+  mWait.mark();
+  delayMicroseconds(50);
 }
 
 } // namespace LEDs
