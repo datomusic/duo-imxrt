@@ -86,7 +86,7 @@ public:
   void mark() { mLastMicros = micros() & 0xFFFF; }
 };
 
-#define WAIT_TIME 50
+#define WAIT_TIME 20
 
 CMinWait<WAIT_TIME> mWait;
 
@@ -154,17 +154,13 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   }
 
   pin_lo();
-  const uint32_t rst = NS_TO_CYCLES(80);
-  const uint32_t from = DWT->CYCCNT;
-  while ((DWT->CYCCNT - from) < rst)
-    ;
 
   yes_interrupts();
   return DWT->CYCCNT - start;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
-  mWait.wait();
+  /* mWait.wait(); */
   if (!show_pixels(pixels, pixel_count)) {
     yes_interrupts();
     delayMicroseconds(WAIT_TIME);
@@ -172,7 +168,7 @@ void show(const Pixel *const pixels, const int pixel_count) {
     show_pixels(pixels, pixel_count);
   }
 
-  mWait.mark();
+  /* mWait.mark(); */
 }
 
 } // namespace LEDs
