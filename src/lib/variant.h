@@ -89,44 +89,6 @@ extern "C"
 #define GPIO_SD_12          41U 
 #define GPIO_SD_13          42U 
 
-#define PIN_SW_ACCENT        GPIO_00
-#define PIN_SW_CRUSH         GPIO_02
-#define PIN_HP_JACK_DETECT   GPIO_01
-#define PIN_TOUCH_CLK        GPIO_03
-#define PIN_TOUCH_DATA       GPIO_04
-#define PIN_SYNC_JACK_DETECT GPIO_05
-#define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_07
-#define PIN_LED_3            GPIO_06
-#define PIN_MIDI_RX          GPIO_09
-#define PIN_MIDI_TX          GPIO_10
-#define PIN_ROW_1            GPIO_13
-#define PIN_ROW_2            GPIO_12
-#define PIN_ROW_3            GPIO_SD_04
-#define PIN_ROW_4            GPIO_11
-
-#define PIN_SYNC_IN          GPIO_AD_00
-#define PIN_SYNC_OUT         GPIO_AD_01
-#define PIN_MQS_R            GPIO_AD_02
-#define PIN_POT_1            GPIO_AD_03
-#define PIN_POT_2            GPIO_AD_04
-#define PIN_COL_6            GPIO_AD_05
-#define PIN_COL_4            GPIO_AD_06
-#define PIN_COL_3            GPIO_AD_07
-#define PIN_COL_2            GPIO_AD_08
-#define PIN_COL_1            GPIO_AD_09
-#define PIN_AMP_MUTE         GPIO_AD_10
-#define PIN_HP_ENABLE        GPIO_AD_11
-#define PIN_SWD_CLK          GPIO_AD_12
-#define PIN_SWD_SWDIO        GPIO_AD_13
-#define PIN_SYN_MUX_IO       GPIO_AD_14
-
-#define PIN_SYN_ADDR0        GPIO_SD_00
-#define PIN_SYN_ADDR1        GPIO_SD_01
-#define PIN_SYN_ADDR2        GPIO_SD_02
-#define PIN_COL_5            GPIO_SD_13
-
-
 #define UART_INTERFACES_COUNT 1
 
 #define PIN_UART1_RX      GPIO_09 
