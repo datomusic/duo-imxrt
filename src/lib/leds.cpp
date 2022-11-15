@@ -2,10 +2,23 @@
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
 #include <Arduino.h>
+#include <Audio.h>
+#include "teensy_audio_config.h"
 
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
+
+
+static void no_interrupts(){
+  AudioNoInterrupts();
+  __disable_irq();
+}
+
+static void yes_interrupts(){
+  AudioInterrupts();
+  __enable_irq();
+}
 
 inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
 inline static void pin_lo() { NEOPIXEL_PORT->DR &= ~(1UL << NEOPIXEL_PIN); }
@@ -88,8 +101,6 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
   /* const uint32_t last = DWT->CYCCNT; */
 
-  __disable_irq();
-
 #define NS_PER_SEC                                                             \
   (1000000000L) // Note that this has to be SIGNED since we want to be able to
                 // check for negative values of derivatives
@@ -116,16 +127,16 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   const uint32_t wait_off =
       NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
 
-  __disable_irq();
+  no_interrupts();
   pin_lo();
 
   uint32_t next_mark = DWT->CYCCNT + off[0];
   while (byte_ptr != end) {
-    __disable_irq();
+    /* no_interrupts(); */
 
     /* if (next_mark > 0 && DWT->CYCCNT > next_mark) { */
     /*   if ((DWT->CYCCNT - next_mark) > wait_off) { */
-    /*     __enable_irq(); */
+    /*     yes_interrupts(); */
     /*     return DWT->CYCCNT - start; */
     /*   } */
     /* } */
@@ -139,7 +150,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
     send_byte(*byte_ptr, next_mark, off);
     byte_ptr++;
 
-    __enable_irq();
+    /* yes_interrupts(); */
   }
 
   pin_lo();
@@ -148,17 +159,18 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   while ((DWT->CYCCNT - start) < rst)
     ;
 
-  __enable_irq();
+  yes_interrupts();
   return DWT->CYCCNT - start;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
   show_pixels(pixels, pixel_count);
+
   /* mWait.wait(); */
   /* if (!show_pixels(pixels, pixel_count)) { */
-  /*   __enable_irq(); */
+  /*   yes_interrupts(); */
   /*   delayMicroseconds(WAIT_TIME); */
-  /*   __disable_irq(); */
+  /*   no_interrupts(); */
   /*   show_pixels(pixels, pixel_count); */
   /* } */
   /* mWait.mark(); */
