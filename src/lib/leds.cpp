@@ -41,35 +41,39 @@ void init(void) {
 #define t0 (SystemCoreClock / MAGIC_800_T0H)
 #define t1 (SystemCoreClock / MAGIC_800_T1H)
 
-static inline uint32_t send_bit(uint8_t bit, uint32_t next_mark) {
+static inline void send_byte(uint8_t byte, uint32_t &next_mark) {
+#define BITS 8
+
+  uint32_t on_cycles;
+
+  for (register uint32_t i = BITS - 1; i > 0; --i) {
+    const uint8_t bit = byte & 0x80;
+
+    while (DWT->CYCCNT < next_mark)
+      ;
+    next_mark = DWT->CYCCNT + interval;
+    pin_hi();
+
+    on_cycles = bit ? t1 : t0;
+    const uint32_t on_cutoff = next_mark - (interval - on_cycles);
+
+    while (DWT->CYCCNT < on_cutoff)
+      ;
+    pin_lo();
+    byte <<= 1;
+  }
+
   while (DWT->CYCCNT < next_mark)
     ;
-
-  const uint32_t on_cycles = bit ? t1 : t0;
-
   next_mark = DWT->CYCCNT + interval;
-  const uint32_t on_cutoff = next_mark - (interval - on_cycles);
-
   pin_hi();
+
+  on_cycles = (byte & 0x80) ? t1 : t0;
+  const uint32_t on_cutoff = next_mark - (interval - on_cycles);
 
   while (DWT->CYCCNT < on_cutoff)
     ;
-
   pin_lo();
-
-  return next_mark;
-}
-
-static inline uint32_t send_byte(uint8_t byte, uint32_t next_mark) {
-  uint32_t mask = 0x80;
-
-  while (mask) {
-    const uint8_t bit = byte & mask;
-    next_mark = send_bit(bit, next_mark);
-    mask >>= 1;
-  }
-
-  return next_mark;
 }
 
 template <int WAIT> class CMinWait {
@@ -112,7 +116,8 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
 #define INTERRUPT_THRESHOLD 1
 
-  const uint32_t wait_off = NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
+  const uint32_t wait_off =
+      NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
 
   while (byte_ptr != end) {
     __disable_irq();
@@ -124,13 +129,13 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
       }
     }
 
-    next_mark = send_byte(*byte_ptr, next_mark);
+    send_byte(*byte_ptr, next_mark);
     byte_ptr++;
 
-    next_mark = send_byte(*byte_ptr, next_mark);
+    send_byte(*byte_ptr, next_mark);
     byte_ptr++;
 
-    next_mark = send_byte(*byte_ptr, next_mark);
+    send_byte(*byte_ptr, next_mark);
     byte_ptr++;
 
     __enable_irq();
