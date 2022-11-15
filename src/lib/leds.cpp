@@ -97,10 +97,8 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   // 1250000->0.8us
   // TODO: try to get dynamic weighting working again
 
-  const uint8_t *const pixel_bytes = (uint8_t *)pixels;
-  const uint8_t *byte_ptr = pixel_bytes;
-  const uint32_t byte_count = pixel_count * 3;
-  const uint8_t *const end = pixel_bytes + byte_count;
+  const Pixel *const end = pixels + pixel_count;
+  const Pixel *pixel_ptr = pixels;
 
   /* const uint32_t last = DWT->CYCCNT; */
 
@@ -110,15 +108,6 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 #define CYCLES_PER_SEC (SystemCoreClock)
 #define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
 #define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
-
-#define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field
-#define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
-#define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
-#define MAGIC_800_RST 4000      // 80 us reset time
-
-  /* #define interval (SystemCoreClock / MAGIC_800_INT) */
-  /* #define t0 (SystemCoreClock / MAGIC_800_T0H) */
-  /* #define t1 (SystemCoreClock / MAGIC_800_T1H) */
 
 #define T1 250
 #define T2 625
@@ -141,7 +130,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
   uint32_t next_mark = DWT->CYCCNT + off[0];
 
-  while (byte_ptr != end) {
+  while (pixel_ptr != end) {
 #ifdef ALLOW_INTERRUPTS
     no_interrupts();
 
@@ -152,14 +141,12 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
       }
     }
 #endif
+      
+    const Pixel pix = *(pixel_ptr++);
 
-    uint32_t r = *(byte_ptr++);
-    uint32_t g = *(byte_ptr++);
-    uint32_t b = *(byte_ptr++);
-
-    send_byte(g, next_mark, off);
-    send_byte(r, next_mark, off);
-    send_byte(b, next_mark, off);
+    send_byte(pix.g, next_mark, off);
+    send_byte(pix.r, next_mark, off);
+    send_byte(pix.b, next_mark, off);
 
 #ifdef ALLOW_INTERRUPTS
     yes_interrupts();
@@ -167,7 +154,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   }
 
   pin_lo();
-  const uint32_t rst = SystemCoreClock / MAGIC_800_RST;
+  const uint32_t rst = NS_TO_CYCLES(80);
   const uint32_t from = DWT->CYCCNT;
   while ((DWT->CYCCNT - from) < rst)
     ;
