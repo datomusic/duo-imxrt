@@ -6,22 +6,45 @@
 #include <Arduino.h>
 #include <Audio.h>
 
+#define ALLOW_INTERRUPTS
+#define INTERRUPT_THRESHOLD 1
+#define WAIT_TIME 50
+
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
 
-static uint32_t no_interrupts() {
+#define NS_PER_SEC (1000000000L)
+#define CYCLES_PER_SEC (SystemCoreClock)
+#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
+#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
+
+struct Timings {
+  const uint32_t interval;
+  const uint32_t bit_on;
+  const uint32_t bit_off;
+};
+
+// Specific timings for WS2812
+#define T1 300
+#define T2 600
+#define T3 300
+
+// We need a macro to invoke every frame, since timings
+// depend on SystemCoreClock, which is variable.
+#define GET_TIMINGS()                                                          \
+  Timings{.interval = NS_TO_CYCLES(T1 + T2 + T3),                              \
+          .bit_on = NS_TO_CYCLES(T2 + T3),                                     \
+          .bit_off = NS_TO_CYCLES(T3)};
+
+static void no_interrupts() {
   DisableIRQ(DMA0_IRQn);
   __disable_irq();
-  return 0;
-  /* return DisableGlobalIRQ(); */
 }
 
-/* static void yes_interrupts(const uint32_t primask) { */
 static void yes_interrupts() {
-  /* EnableGlobalIRQ(primask); */
-  __enable_irq();
   EnableIRQ(DMA0_IRQn);
+  __enable_irq();
 }
 
 inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
@@ -42,95 +65,63 @@ void init(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
-static inline void send_bit(uint8_t bit, uint32_t &next_mark, uint32_t *off) {}
+static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
+                             const Timings &timings) {
 
-static inline void send_byte(uint8_t byte, uint32_t &next_mark, uint32_t *off) {
+  // Read bits from highest to lowest by using a bitmask
+  // which we shift for each bit.
+  // Starting at 0x80 will give us 8 bits and when it is 0 we are done.
+
   uint32_t mask = 0x80;
-
   while (mask) {
     const uint8_t bit = byte & mask;
 
-    while (DWT->CYCCNT < next_mark)
+    // Wait for next interval cutoff
+    while (DWT->CYCCNT < next_cycle_start)
       ;
 
-    const uint32_t on_cycles = bit ? off[1] : off[2];
+    // Set next interval cutoff.
+    // It is important that this happens immediately after the previous wait.
+    next_cycle_start = DWT->CYCCNT + timings.interval;
 
-    next_mark = DWT->CYCCNT + off[0];
-    const uint32_t on_cutoff = next_mark - (off[0] - on_cycles);
-
+    // Keep bit on for relevant time.
+    const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
+    const uint32_t on_cutoff = next_cycle_start - (timings.interval - on_cycles);
     pin_hi();
-
     while (DWT->CYCCNT < on_cutoff)
       ;
 
+    // Pin will be kept low until next time send_byte is called.
     pin_lo();
 
+    // Shift mask to reach next bit.
     mask >>= 1;
   }
 }
-
-template <int WAIT> class CMinWait {
-  uint16_t mLastMicros;
-
-public:
-  CMinWait() { mLastMicros = 0; }
-
-  void wait() {
-    uint16_t diff;
-    do {
-      diff = (micros() & 0xFFFF) - mLastMicros;
-    } while (diff < WAIT);
-  }
-
-  void mark() { mLastMicros = micros() & 0xFFFF; }
-};
-
-#define WAIT_TIME 50
-
-CMinWait<WAIT_TIME> mWait;
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
-  /* const uint32_t last = DWT->CYCCNT; */
+  const auto timings = GET_TIMINGS();
 
-#define NS_PER_SEC                                                             \
-  (1000000000L) // Note that this has to be SIGNED since we want to be able to
-                // check for negative values of derivatives
-#define CYCLES_PER_SEC (SystemCoreClock)
-#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
-#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
-
-#define T1 300
-#define T2 600
-#define T3 300
-
-  uint32_t off[3];
-  off[0] = NS_TO_CYCLES(T1 + T2 + T3);
-  off[1] = NS_TO_CYCLES(T2 + T3);
-  off[2] = NS_TO_CYCLES(T3);
-
-#define INTERRUPT_THRESHOLD 1
-
-#define ALLOW_INTERRUPTS
-
+#ifdef ALLOW_INTERRUPTS
   const uint32_t wait_off =
       NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
-
-  pin_lo();
+#endif
 
   no_interrupts();
+  pin_lo();
 
   DWT->CYCCNT = 0;
-  uint32_t next_mark = DWT->CYCCNT + off[0];
+  uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
 
   while (pixel_ptr != end) {
 #ifdef ALLOW_INTERRUPTS
     no_interrupts();
 
-    if (DWT->CYCCNT > next_mark) {
-      if ((DWT->CYCCNT - next_mark) > wait_off) {
+    if (DWT->CYCCNT > next_cycle_start) {
+      if ((DWT->CYCCNT - next_cycle_start) > wait_off) {
         return false;
       }
     }
@@ -138,9 +129,9 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
     const Pixel pix = *(pixel_ptr++);
 
-    send_byte(pix.g, next_mark, off);
-    send_byte(pix.r, next_mark, off);
-    send_byte(pix.b, next_mark, off);
+    send_byte(pix.g, next_cycle_start, timings);
+    send_byte(pix.r, next_cycle_start, timings);
+    send_byte(pix.b, next_cycle_start, timings);
 
 #ifdef ALLOW_INTERRUPTS
     yes_interrupts();
@@ -148,25 +139,12 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   }
 
   pin_lo();
-
   return true;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
   show_pixels(pixels, pixel_count);
   yes_interrupts();
-
-  /*
-  mWait.wait();
-
-  if (!show_pixels(pixels, pixel_count)) {
-    yes_interrupts();
-    no_interrupts();
-    show_pixels(pixels, pixel_count);
-  }
-
-  mWait.mark();
-  */
 }
 
 } // namespace LEDs
