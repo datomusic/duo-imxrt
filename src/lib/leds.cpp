@@ -12,84 +12,8 @@
 #define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
 #define MAGIC_800_RST 4000      // 80 us reset time
 
-#define ARM_DWT_CYCCNT DWT->CYCCNT
-
-void pin_hi() { GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 1); }
-
-void pin_lo() { GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 0); }
-
-template <int BITS>
-__attribute__((always_inline)) inline void
-writeBits(const uint32_t *off, uint32_t &next_mark, uint8_t &b) {
-  for (uint32_t i = BITS - 1; i > 0; --i) {
-    while (ARM_DWT_CYCCNT < next_mark)
-      ;
-    next_mark = ARM_DWT_CYCCNT + off[0];
-    pin_hi();
-    if (b & 0x80) {
-      while ((next_mark - ARM_DWT_CYCCNT) > off[2])
-        ;
-      pin_lo();
-    } else {
-      while ((next_mark - ARM_DWT_CYCCNT) > off[1])
-        ;
-      pin_lo();
-    }
-    b <<= 1;
-  }
-
-  while (ARM_DWT_CYCCNT < next_mark)
-    ;
-  next_mark = ARM_DWT_CYCCNT + off[0];
-  pin_hi();
-
-  if (b & 0x80) {
-    while ((next_mark - ARM_DWT_CYCCNT) > off[2])
-      ;
-    pin_lo();
-  } else {
-    while ((next_mark - ARM_DWT_CYCCNT) > off[1])
-      ;
-    pin_lo();
-  }
-}
-
-#define _FASTLED_NS_TO_DWT(_NS)                                                \
-  (((SystemCoreClock >> 16) * (_NS)) / (1000000000UL >> 16))
-
-static uint32_t show_pixels(const LEDs::Pixel *const pixels,
-                            const int pixel_count) {
-  const uint8_t *const pixel_bytes = (uint8_t *)pixels;
-  uint32_t start = DWT->CYCCNT;
-
-/* #define FMUL (SystemCoreClock / 8000000) */
-#define C_NS(_NS) (((_NS * ((SystemCoreClock / 1000000L)) + 999)) / 1000)
-
-  const int T1 = C_NS(300);
-  const int T2 = C_NS(300);
-  const int T3 = C_NS(600);
-
-  uint32_t off[3];
-  off[0] = _FASTLED_NS_TO_DWT(T1 + T2 + T3);
-  off[1] = _FASTLED_NS_TO_DWT(T2 + T3);
-  off[2] = _FASTLED_NS_TO_DWT(T3);
-
-  __disable_irq();
-
-  uint32_t next_mark = ARM_DWT_CYCCNT + off[0];
-
-  for (int i = 0; i < pixel_count; ++i) {
-    uint8_t b = pixel_bytes[i * 3];
-    writeBits<8>(off, next_mark, b);
-    b = pixel_bytes[i * 3 + 1];
-    writeBits<8>(off, next_mark, b);
-    b = pixel_bytes[i * 3 + 2];
-    writeBits<8>(off, next_mark, b);
-  }
-
-  __enable_irq();
-  return ARM_DWT_CYCCNT - start;
-}
+static void pin_hi() { GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 1); }
+static void pin_lo() { GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 0); }
 
 namespace LEDs {
 
@@ -106,112 +30,64 @@ void init(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
-#define WAIT_TIME 50
-void _show(const Pixel *const pixels, const int pixel_count) {
-  /* if (!show_pixels(pixels, pixel_count)) { */
-  /*   __enable_irq(); */
-  /*   delayMicroseconds(WAIT_TIME); */
-  /*   __disable_irq(); */
-  show_pixels(pixels, pixel_count);
-  /* } */
+static inline void send_bit(uint8_t bit) {
+  const uint32_t interval = SystemCoreClock / MAGIC_800_INT;
+  const uint32_t t0 = SystemCoreClock / MAGIC_800_T0H;
+  const uint32_t t1 = SystemCoreClock / MAGIC_800_T1H;
+
+  const uint32_t cyc = bit ? t1 : t0;
+  const auto start = DWT->CYCCNT;
+
+  pin_hi();
+  while ((DWT->CYCCNT - start) < cyc)
+    ;
+
+  pin_lo();
+  while ((DWT->CYCCNT - start) < interval)
+    ;
 }
 
-uint32_t write_byte(uint8_t pix, uint32_t cyc) {
-  const uint32_t sys_freq = SystemCoreClock;
-  const uint32_t interval = sys_freq / MAGIC_800_INT;
-  const uint32_t t0 = sys_freq / MAGIC_800_T0H;
-  const uint32_t t1 = sys_freq / MAGIC_800_T1H;
+static inline void send_byte(uint8_t byte) {
+  uint32_t mask = 0x80;
 
-  uint8_t mask = 0x80;
-  uint32_t start = 0;
-
-  while (true) {
-    cyc = (pix & mask) ? t1 : t0;
-    start = DWT->CYCCNT;
-
-    pin_hi();
-    while ((DWT->CYCCNT - start) < cyc)
-      ;
-
-    pin_lo();
-    while ((DWT->CYCCNT - start) < interval)
-      ;
-
-    if (!(mask >>= 1)) {
-      return cyc;
-    }
+  while (mask) {
+    const uint8_t bit = byte & mask;
+    send_bit(bit);
+    mask >>= 1;
   }
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
-  const uint8_t *const pixel_bytes = (uint8_t *)pixels;
-  const uint32_t byte_count = pixel_count * 3;
 
   // assumes 800_000Hz frequency
   // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
   // 1250000->0.8us
   // TODO: try to get dynamic weighting working again
 
-  const uint8_t *p = pixel_bytes;
-  const uint8_t *const end = p + byte_count;
-  const uint32_t sys_freq = SystemCoreClock;
-  const uint32_t interval = sys_freq / MAGIC_800_INT;
-  const uint32_t t0 = sys_freq / MAGIC_800_T0H;
-  const uint32_t t1 = sys_freq / MAGIC_800_T1H;
-
-  uint8_t mask = 0x80;
-  uint32_t cyc = 0;
-  uint32_t start = 0;
-  uint8_t pix = *p++;
-  const int INTERRUPT_THRESHOLD = 1;
-
-  uint32_t wait_off =
-      _FASTLED_NS_TO_DWT((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
+  const uint8_t *const pixel_bytes = (uint8_t *)pixels;
+  const uint8_t *byte_ptr = pixel_bytes;
+  const uint32_t byte_count = pixel_count * 3;
+  const uint8_t *const end = pixel_bytes + byte_count;
 
   __disable_irq();
-
-  while (p != end) {
+  while (byte_ptr != end) {
     __disable_irq();
 
-    // if interrupts took longer than 45µs, punt on the current frame
-    /* if (DWT->CYCCNT > interval) { */
-    /*   if ((DWT->CYCCNT - interval) > wait_off) { */
-    /*     __enable_irq(); */
-    /*     /1* return DWT->CYCCNT - start; *1/ */
-    /*     return; */
-    /*   } */
-    /* } */
-
-    while (true) {
-      cyc = (pix & mask) ? t1 : t0;
-      start = DWT->CYCCNT;
-
-      pin_hi();
-      while ((DWT->CYCCNT - start) < cyc)
-        ;
-
-      pin_lo();
-      while ((DWT->CYCCNT - start) < interval)
-        ;
-
-      if (!(mask >>= 1)) {
-        mask = 0x80;
-        break;
-      }
-    }
+    send_byte(*byte_ptr);
+    byte_ptr++;
+    send_byte(*byte_ptr);
+    byte_ptr++;
+    send_byte(*byte_ptr);
+    byte_ptr++;
 
     __enable_irq();
-    pix = *p++;
   }
 
-  __disable_irq();
-
-  start = DWT->CYCCNT;
-  pin_lo();
-
-  const uint32_t rst = sys_freq / MAGIC_800_RST;
-
   __enable_irq();
+
+  const uint32_t start = DWT->CYCCNT;
+  const uint32_t rst = SystemCoreClock / MAGIC_800_RST;
+
   while ((DWT->CYCCNT - start) < rst)
     ;
 }
