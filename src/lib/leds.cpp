@@ -86,7 +86,7 @@ public:
   void mark() { mLastMicros = micros() & 0xFFFF; }
 };
 
-#define WAIT_TIME 20
+#define WAIT_TIME 50
 
 CMinWait<WAIT_TIME> mWait;
 
@@ -163,7 +163,6 @@ void show(const Pixel *const pixels, const int pixel_count) {
   /* mWait.wait(); */
   if (!show_pixels(pixels, pixel_count)) {
     yes_interrupts();
-    delayMicroseconds(WAIT_TIME);
     no_interrupts();
     show_pixels(pixels, pixel_count);
   }
