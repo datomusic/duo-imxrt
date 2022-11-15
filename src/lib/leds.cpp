@@ -25,55 +25,32 @@ void init(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
-#define NS_PER_SEC                                                             \
-  (1000000000L) // Note that this has to be SIGNED since we want to be able to
-                // check for negative values of derivatives
-#define CYCLES_PER_SEC (SystemCoreClock)
-#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
-#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
-
-#define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field
-#define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
-#define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
-#define MAGIC_800_RST 4000      // 80 us reset time
-
-#define interval (SystemCoreClock / MAGIC_800_INT)
-#define t0 (SystemCoreClock / MAGIC_800_T0H)
-#define t1 (SystemCoreClock / MAGIC_800_T1H)
-
-static inline void send_byte(uint8_t byte, uint32_t &next_mark) {
-#define BITS 8
-
-  uint32_t on_cycles;
-
-  for (register uint32_t i = BITS - 1; i > 0; --i) {
-    const uint8_t bit = byte & 0x80;
-
-    while (DWT->CYCCNT < next_mark)
-      ;
-    next_mark = DWT->CYCCNT + interval;
-    pin_hi();
-
-    on_cycles = bit ? t1 : t0;
-    const uint32_t on_cutoff = next_mark - (interval - on_cycles);
-
-    while (DWT->CYCCNT < on_cutoff)
-      ;
-    pin_lo();
-    byte <<= 1;
-  }
-
+static inline void send_bit(uint8_t bit, uint32_t &next_mark, uint32_t *off) {
   while (DWT->CYCCNT < next_mark)
     ;
-  next_mark = DWT->CYCCNT + interval;
-  pin_hi();
 
-  on_cycles = (byte & 0x80) ? t1 : t0;
-  const uint32_t on_cutoff = next_mark - (interval - on_cycles);
+  const uint32_t on_cycles = bit ? off[2] : off[1];
+
+  next_mark = DWT->CYCCNT + off[0];
+  const uint32_t on_cutoff = next_mark - (off[0] - on_cycles);
+
+  pin_hi();
 
   while (DWT->CYCCNT < on_cutoff)
     ;
+
   pin_lo();
+}
+
+static inline uint32_t send_byte(uint8_t byte, uint32_t &next_mark,
+                                 uint32_t *off) {
+  uint32_t mask = 0x80;
+
+  while (mask) {
+    const uint8_t bit = byte & mask;
+    send_bit(bit, next_mark, off);
+    mask >>= 1;
+  }
 }
 
 template <int WAIT> class CMinWait {
@@ -97,7 +74,7 @@ public:
 CMinWait<WAIT_TIME> mWait;
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
-  uint32_t start = DWT->CYCCNT;
+  const uint32_t start = DWT->CYCCNT;
 
   // assumes 800_000Hz frequency
   // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
@@ -112,48 +89,79 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   /* const uint32_t last = DWT->CYCCNT; */
 
   __disable_irq();
-  uint32_t next_mark = DWT->CYCCNT + interval;
+
+#define NS_PER_SEC                                                             \
+  (1000000000L) // Note that this has to be SIGNED since we want to be able to
+                // check for negative values of derivatives
+#define CYCLES_PER_SEC (SystemCoreClock)
+#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
+#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
+
+#define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field
+#define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
+#define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
+#define MAGIC_800_RST 4000      // 80 us reset time
+
+#define interval (SystemCoreClock / MAGIC_800_INT)
+#define t0 (SystemCoreClock / MAGIC_800_T0H)
+#define t1 (SystemCoreClock / MAGIC_800_T1H)
+
+  uint32_t off[3];
+  off[0] = interval;
+  off[1] = t0;
+  off[2] = t1;
 
 #define INTERRUPT_THRESHOLD 1
 
   const uint32_t wait_off =
       NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
 
+  __disable_irq();
+  pin_lo();
+
+  uint32_t next_mark = DWT->CYCCNT + off[0];
   while (byte_ptr != end) {
     __disable_irq();
 
-    if (next_mark > 0 && DWT->CYCCNT > next_mark) {
-      if ((DWT->CYCCNT - next_mark) > wait_off) {
-        __enable_irq();
-        return DWT->CYCCNT - start;
-      }
-    }
+    /* if (next_mark > 0 && DWT->CYCCNT > next_mark) { */
+    /*   if ((DWT->CYCCNT - next_mark) > wait_off) { */
+    /*     __enable_irq(); */
+    /*     return DWT->CYCCNT - start; */
+    /*   } */
+    /* } */
 
-    send_byte(*byte_ptr, next_mark);
+    send_byte(*byte_ptr, next_mark, off);
     byte_ptr++;
 
-    send_byte(*byte_ptr, next_mark);
+    send_byte(*byte_ptr, next_mark, off);
     byte_ptr++;
 
-    send_byte(*byte_ptr, next_mark);
+    send_byte(*byte_ptr, next_mark, off);
     byte_ptr++;
 
     __enable_irq();
   }
+
+  pin_lo();
+
+  const uint32_t rst = SystemCoreClock / MAGIC_800_RST;
+  while ((DWT->CYCCNT - start) < rst)
+    ;
 
   __enable_irq();
   return DWT->CYCCNT - start;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
-  mWait.wait();
-  if (!show_pixels(pixels, pixel_count)) {
-    __enable_irq();
-    delayMicroseconds(WAIT_TIME);
-    __disable_irq();
-    show_pixels(pixels, pixel_count);
-  }
-  mWait.mark();
+  show_pixels(pixels, pixel_count);
+  /* mWait.wait(); */
+  /* if (!show_pixels(pixels, pixel_count)) { */
+  /*   __enable_irq(); */
+  /*   delayMicroseconds(WAIT_TIME); */
+  /*   __disable_irq(); */
+  /*   show_pixels(pixels, pixel_count); */
+  /* } */
+  /* mWait.mark(); */
 }
 
 } // namespace LEDs
