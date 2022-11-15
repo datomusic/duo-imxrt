@@ -1,23 +1,27 @@
 #include "leds.h"
+#include "fsl_common_arm.h"
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
+#include "teensy_audio_config.h"
 #include <Arduino.h>
 #include <Audio.h>
-#include "teensy_audio_config.h"
 
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
 
-
-static void no_interrupts(){
-  AudioNoInterrupts();
+static uint32_t no_interrupts() {
+  DisableIRQ(DMA0_IRQn);
   __disable_irq();
+  return 0;
+  /* return DisableGlobalIRQ(); */
 }
 
-static void yes_interrupts(){
-  AudioInterrupts();
+/* static void yes_interrupts(const uint32_t primask) { */
+static void yes_interrupts() {
+  /* EnableGlobalIRQ(primask); */
   __enable_irq();
+  /* EnableIRQ(DMA0_IRQn); */
 }
 
 inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
@@ -38,22 +42,7 @@ void init(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
-static inline void send_bit(uint8_t bit, uint32_t &next_mark, uint32_t *off) {
-  while (DWT->CYCCNT < next_mark)
-    ;
-
-  const uint32_t on_cycles = bit ? off[2] : off[1];
-
-  next_mark = DWT->CYCCNT + off[0];
-  const uint32_t on_cutoff = next_mark - (off[0] - on_cycles);
-
-  pin_hi();
-
-  while (DWT->CYCCNT < on_cutoff)
-    ;
-
-  pin_lo();
-}
+static inline void send_bit(uint8_t bit, uint32_t &next_mark, uint32_t *off) {}
 
 static inline uint32_t send_byte(uint8_t byte, uint32_t &next_mark,
                                  uint32_t *off) {
@@ -61,7 +50,22 @@ static inline uint32_t send_byte(uint8_t byte, uint32_t &next_mark,
 
   while (mask) {
     const uint8_t bit = byte & mask;
-    send_bit(bit, next_mark, off);
+
+    while (DWT->CYCCNT < next_mark)
+      ;
+
+    const uint32_t on_cycles = bit ? off[2] : off[1];
+
+    next_mark = DWT->CYCCNT + off[0];
+    const uint32_t on_cutoff = next_mark - (off[0] - on_cycles);
+
+    pin_hi();
+
+    while (DWT->CYCCNT < on_cutoff)
+      ;
+
+    pin_lo();
+
     mask >>= 1;
   }
 }
@@ -82,13 +86,11 @@ public:
   void mark() { mLastMicros = micros() & 0xFFFF; }
 };
 
-#define WAIT_TIME 100
+#define WAIT_TIME 1
 
 CMinWait<WAIT_TIME> mWait;
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
-  const uint32_t start = DWT->CYCCNT;
-
   // assumes 800_000Hz frequency
   // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
   // 1250000->0.8us
@@ -124,22 +126,29 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
 #define INTERRUPT_THRESHOLD 1
 
+  /* #define ALLOW_INTERRUPTS */
+
   const uint32_t wait_off =
       NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
 
-  no_interrupts();
   pin_lo();
 
+  const auto primask = no_interrupts();
   uint32_t next_mark = DWT->CYCCNT + off[0];
   while (byte_ptr != end) {
-    /* no_interrupts(); */
 
-    /* if (next_mark > 0 && DWT->CYCCNT > next_mark) { */
-    /*   if ((DWT->CYCCNT - next_mark) > wait_off) { */
-    /*     yes_interrupts(); */
-    /*     return DWT->CYCCNT - start; */
-    /*   } */
-    /* } */
+#ifdef ALLOW_INTERRUPTS
+    no_interrupts();
+
+    if (next_mark > 0 && DWT->CYCCNT > next_mark) {
+      /* if ((DWT->CYCCNT - next_mark) > wait_off) { */
+      return 0;
+      /* } */
+    }
+#endif
+
+    send_byte(*byte_ptr, next_mark, off);
+    byte_ptr++;
 
     send_byte(*byte_ptr, next_mark, off);
     byte_ptr++;
@@ -147,26 +156,23 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
     send_byte(*byte_ptr, next_mark, off);
     byte_ptr++;
 
-    send_byte(*byte_ptr, next_mark, off);
-    byte_ptr++;
-
-    /* yes_interrupts(); */
+#ifdef ALLOW_INTERRUPTS
+    yes_interrupts();
+#endif
   }
 
   pin_lo();
-
   const uint32_t rst = SystemCoreClock / MAGIC_800_RST;
+  const uint32_t start = DWT->CYCCNT;
   while ((DWT->CYCCNT - start) < rst)
     ;
 
-  yes_interrupts();
   return DWT->CYCCNT - start;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
-  show_pixels(pixels, pixel_count);
-
   /* mWait.wait(); */
+  show_pixels(pixels, pixel_count);
   /* if (!show_pixels(pixels, pixel_count)) { */
   /*   yes_interrupts(); */
   /*   delayMicroseconds(WAIT_TIME); */
@@ -174,6 +180,8 @@ void show(const Pixel *const pixels, const int pixel_count) {
   /*   show_pixels(pixels, pixel_count); */
   /* } */
   /* mWait.mark(); */
+  /* delayMicroseconds(50); */
+  yes_interrupts();
 }
 
 } // namespace LEDs
