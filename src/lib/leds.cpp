@@ -33,16 +33,25 @@ void init(void) {
 #define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
 
 static inline uint32_t send_bit(uint8_t bit, uint32_t next_mark) {
-  const uint32_t t0 = NS_TO_CYCLES(300);
-  const uint32_t t1 = NS_TO_CYCLES(600);
-  const uint32_t interval = NS_TO_CYCLES(1000);
+#define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field
+#define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
+#define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
+#define MAGIC_800_RST 4000      // 80 us reset time
+  const uint32_t interval = SystemCoreClock / MAGIC_800_INT;
+  const uint32_t t0 = SystemCoreClock / MAGIC_800_T0H;
+  const uint32_t t1 = SystemCoreClock / MAGIC_800_T1H;
 
   const uint32_t on_cycles = bit ? t1 : t0;
+
+  if (next_mark == 0) {
+    next_mark = DWT->CYCCNT + interval;
+  }
 
   while (DWT->CYCCNT < next_mark)
     ;
 
   const uint32_t start = DWT->CYCCNT;
+
   next_mark = start + interval;
   const uint32_t on_cutoff = start + on_cycles;
 
@@ -86,9 +95,21 @@ void show(const Pixel *const pixels, const int pixel_count) {
 
   __disable_irq();
   uint32_t next_mark = 0;
+
+#define WAIT_TIME 50
+#define INTERRUPT_THRESHOLD 1
+
+  uint32_t wait_off = NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
+
   while (byte_ptr != end) {
-    next_mark = send_byte(*byte_ptr, next_mark);
-    byte_ptr++;
+    __disable_irq();
+
+    if (next_mark > 0 && DWT->CYCCNT > next_mark) {
+      if ((DWT->CYCCNT - next_mark) > wait_off) {
+        __enable_irq();
+        return;
+      }
+    }
 
     next_mark = send_byte(*byte_ptr, next_mark);
     byte_ptr++;
@@ -96,10 +117,10 @@ void show(const Pixel *const pixels, const int pixel_count) {
     next_mark = send_byte(*byte_ptr, next_mark);
     byte_ptr++;
 
-    /* if (DWT->CYCCNT - last > next_cyc) { */
-    /*   break; */
-    /* } */
-    /* __disable_irq(); */
+    next_mark = send_byte(*byte_ptr, next_mark);
+    byte_ptr++;
+
+    __enable_irq();
   }
 
   const uint32_t start = DWT->CYCCNT;
