@@ -95,48 +95,77 @@ bool power_check() { return true; }
 
 int main(void) {
   board_init();
-  /* DatoUSB::init(); */
-  /* Sync::init(); */
+  DatoUSB::init();
+  Sync::init();
   LEDs::init();
   pins_init();
 
-  /* Audio::amp_disable(); */
-  /* Audio::headphone_disable(); */
+  Audio::amp_disable();
+  Audio::headphone_disable();
   sequencer_init();
 
-  /* AudioOutputMQS dac1; // xy=988.1000061035156,100 */
-  /* AudioConnection patchCord16(pop_suppressor, 0, dac1, 0); */
-  /* AudioConnection patchCord17(pop_suppressor, 0, dac1, 1); */
+  AudioOutputMQS dac1; // xy=988.1000061035156,100
+  AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
+  AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
 
   led_init();
-  /* AudioNoInterrupts(); */
-  /* audio_init(); */
-  /* AudioInterrupts(); */
+  AudioNoInterrupts();
+  audio_init();
+  AudioInterrupts();
 
+  // Read the MIDI channel from EEPROM. Lowest four bits
+  const uint8_t stored_midi_channel =
+      eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
+  midi_set_channel(stored_midi_channel);
+
+  // The order sequencer_init, button_matrix_init, led_init and midi_init is
+  // important Hold a button of the keyboard at startup to select MIDI channel
+  button_matrix_init();
+  keys_scan();
+  midi_init();
+
+  if (midi_get_channel() != stored_midi_channel) {
+    eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
+  }
+
+  drum_init();
+  touch_init();
+
+  MIDI.setHandleStart(sequencer_restart);
+  MIDI.setHandleContinue(sequencer_restart);
+  MIDI.setHandleStop(sequencer_stop);
+
+  previous_note_on_time = millis();
+
+  Audio::headphone_enable();
+  Audio::amp_enable();
+  in_setup = false;
 
   while (true) {
-    /* DatoUSB::background_update(); */
+    DatoUSB::background_update();
 
     if (power_check()) {
-      /* midi_handle(); */
-      /* sequencer_update(); */
+      midi_handle();
+      sequencer_update();
 
-      /* // Crude hard coded task switching */
+      // Crude hard coded task switching
       keys_scan(); // 14 or 175us (depending on debounce)
-      /* keyboard_to_note(); */
-      /* pitch_update(); // ~30us */
-      /* pots_read();    // ~ 100us */
+      keyboard_to_note();
+      pitch_update(); // ~30us
+      pots_read();    // ~ 100us
 
-      /* synth_update(); // ~ 100us */
-      /* midi_send_cc(); */
+      synth_update(); // ~ 100us
+      midi_send_cc();
 
-      /* drum_read(); // ~ 700us */
+      drum_read(); // ~ 700us
 
-      /* midi_handle(); */
+      midi_handle();
       sequencer_update();
 
       if (!dfu_flag) {
         led_update(); // ~ 2ms
+        FastLED.show();
+        EnableIRQ(DMA0_IRQn);
       }
     }
   }

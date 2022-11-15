@@ -14,6 +14,8 @@ include(${COMMON_CMAKE}/config.cmake)
 include(${COMMON_CMAKE}/modules.cmake)
 include(${COMMON_CMAKE}/lib.cmake)
 
+add_definitions(-DENABLE_RAM_VECTOR_TABLE=1)
+
 if(WITH_USB)
   include(${COMMON_CMAKE}/usb.cmake)
 endif(WITH_USB)
