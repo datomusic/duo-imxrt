@@ -33,6 +33,8 @@ const int NUM_LEDS = 19 + 1;
 const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
                                  11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 
+#define GRB 1
+#define SK6812 1
 #include "duo-firmware/src/Leds.h"
 #include "duo-firmware/src/TouchSlider.h"
 #define TOUCH1 16

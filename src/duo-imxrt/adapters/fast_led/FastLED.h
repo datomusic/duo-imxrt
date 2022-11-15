@@ -1,6 +1,6 @@
 #ifndef FASTLED_H_ACDOEHJU
 #define FASTLED_H_ACDOEHJU
-#include "./color_types.h"
+#include "lib/pixeltypes.h"
 
 struct FastLED_ {
   void show();
@@ -27,5 +27,7 @@ private:
 };
 
 FastLED_ FastLED;
+
+CRGB blend(const CRGB &p1, const CRGB &p2, int amountOfP2) { return p1; }
 
 #endif /* end of include guard: FASTLED_H_ACDOEHJU */
