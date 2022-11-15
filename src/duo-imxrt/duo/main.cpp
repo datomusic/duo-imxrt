@@ -164,7 +164,6 @@ int main(void) {
 
       if (!dfu_flag) {
         led_update(); // ~ 2ms
-        FastLED.show();
         EnableIRQ(DMA0_IRQn);
       }
     }

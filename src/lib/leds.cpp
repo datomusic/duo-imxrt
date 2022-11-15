@@ -153,14 +153,13 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
     }
 #endif
 
-    send_byte(*byte_ptr, next_mark, off);
-    byte_ptr++;
+    uint32_t r = *(byte_ptr++);
+    uint32_t g = *(byte_ptr++);
+    uint32_t b = *(byte_ptr++);
 
-    send_byte(*byte_ptr, next_mark, off);
-    byte_ptr++;
-
-    send_byte(*byte_ptr, next_mark, off);
-    byte_ptr++;
+    send_byte(g, next_mark, off);
+    send_byte(r, next_mark, off);
+    send_byte(b, next_mark, off);
 
 #ifdef ALLOW_INTERRUPTS
     yes_interrupts();
@@ -177,7 +176,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
-  /* mWait.wait(); */
+  mWait.wait();
   if (!show_pixels(pixels, pixel_count)) {
     yes_interrupts();
     delayMicroseconds(WAIT_TIME);
@@ -186,7 +185,6 @@ void show(const Pixel *const pixels, const int pixel_count) {
   }
 
   mWait.mark();
-  delayMicroseconds(50);
 }
 
 } // namespace LEDs
