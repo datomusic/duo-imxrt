@@ -151,6 +151,8 @@ int main(void) {
   in_setup = false;
 
   while (true) {
+    DatoUSB::background_update();
+
     if (power_check()) {
       midi_handle();
       sequencer_update();
