@@ -54,7 +54,7 @@ static inline uint32_t send_byte(uint8_t byte, uint32_t &next_mark,
     while (DWT->CYCCNT < next_mark)
       ;
 
-    const uint32_t on_cycles = bit ? off[2] : off[1];
+    const uint32_t on_cycles = bit ? off[1] : off[2];
 
     next_mark = DWT->CYCCNT + off[0];
     const uint32_t on_cutoff = next_mark - (off[0] - on_cycles);
