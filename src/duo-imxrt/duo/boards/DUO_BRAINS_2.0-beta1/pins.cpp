@@ -39,9 +39,9 @@ int potRead(const Pot pot) {
     case FILTER_RES_POT:
       return muxAnalogRead(0);
     case TEMPO_POT:
-      return 1023 - analogRead(1);
+      return 1023 - analogRead(GPIO_AD_04);
     case GATE_POT:
-      return 1023 - analogRead(2);
+      return 1023 - analogRead(GPIO_AD_03);
     case AMP_POT:
       return muxAnalogRead(3);
     case FILTER_FREQ_POT:
