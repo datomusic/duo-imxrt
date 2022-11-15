@@ -172,6 +172,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   while ((DWT->CYCCNT - from) < rst)
     ;
 
+  yes_interrupts();
   return DWT->CYCCNT - start;
 }
 
