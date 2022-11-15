@@ -32,28 +32,23 @@ void init(void) {
 #define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
 #define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
 
-static inline uint32_t send_bit(uint8_t bit, uint32_t next_mark) {
 #define MAGIC_800_INT 900'000   // ~1.11 us -> 1.2  field
 #define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
 #define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
 #define MAGIC_800_RST 4000      // 80 us reset time
-  const uint32_t interval = SystemCoreClock / MAGIC_800_INT;
-  const uint32_t t0 = SystemCoreClock / MAGIC_800_T0H;
-  const uint32_t t1 = SystemCoreClock / MAGIC_800_T1H;
 
-  const uint32_t on_cycles = bit ? t1 : t0;
+#define interval (SystemCoreClock / MAGIC_800_INT)
+#define t0 (SystemCoreClock / MAGIC_800_T0H)
+#define t1 (SystemCoreClock / MAGIC_800_T1H)
 
-  if (next_mark == 0) {
-    next_mark = DWT->CYCCNT + interval;
-  }
-
+static inline uint32_t send_bit(uint8_t bit, uint32_t next_mark) {
   while (DWT->CYCCNT < next_mark)
     ;
 
-  const uint32_t start = DWT->CYCCNT;
+  const uint32_t on_cycles = bit ? t1 : t0;
 
-  next_mark = start + interval;
-  const uint32_t on_cutoff = start + on_cycles;
+  next_mark = DWT->CYCCNT + interval;
+  const uint32_t on_cutoff = next_mark - (interval - on_cycles);
 
   pin_hi();
 
@@ -77,9 +72,28 @@ static inline uint32_t send_byte(uint8_t byte, uint32_t next_mark) {
   return next_mark;
 }
 
-void show(const Pixel *const pixels, const int pixel_count) {
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+template <int WAIT> class CMinWait {
+  uint16_t mLastMicros;
+
+public:
+  CMinWait() { mLastMicros = 0; }
+
+  void wait() {
+    uint16_t diff;
+    do {
+      diff = (micros() & 0xFFFF) - mLastMicros;
+    } while (diff < WAIT);
+  }
+
+  void mark() { mLastMicros = micros() & 0xFFFF; }
+};
+
+#define WAIT_TIME 100
+
+CMinWait<WAIT_TIME> mWait;
+
+static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
+  uint32_t start = DWT->CYCCNT;
 
   // assumes 800_000Hz frequency
   // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
@@ -94,12 +108,11 @@ void show(const Pixel *const pixels, const int pixel_count) {
   /* const uint32_t last = DWT->CYCCNT; */
 
   __disable_irq();
-  uint32_t next_mark = 0;
+  uint32_t next_mark = DWT->CYCCNT + interval;
 
-#define WAIT_TIME 50
 #define INTERRUPT_THRESHOLD 1
 
-  uint32_t wait_off = NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
+  const uint32_t wait_off = NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
 
   while (byte_ptr != end) {
     __disable_irq();
@@ -107,7 +120,7 @@ void show(const Pixel *const pixels, const int pixel_count) {
     if (next_mark > 0 && DWT->CYCCNT > next_mark) {
       if ((DWT->CYCCNT - next_mark) > wait_off) {
         __enable_irq();
-        return;
+        return DWT->CYCCNT - start;
       }
     }
 
@@ -123,11 +136,19 @@ void show(const Pixel *const pixels, const int pixel_count) {
     __enable_irq();
   }
 
-  const uint32_t start = DWT->CYCCNT;
   __enable_irq();
-  const uint32_t rst = NS_TO_CYCLES(100000);
-
-  while ((DWT->CYCCNT - start) < rst)
-    ;
+  return DWT->CYCCNT - start;
 }
+
+void show(const Pixel *const pixels, const int pixel_count) {
+  mWait.wait();
+  if (!show_pixels(pixels, pixel_count)) {
+    __enable_irq();
+    delayMicroseconds(WAIT_TIME);
+    __disable_irq();
+    show_pixels(pixels, pixel_count);
+  }
+  mWait.mark();
+}
+
 } // namespace LEDs
