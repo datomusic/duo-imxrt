@@ -44,8 +44,7 @@ void init(void) {
 
 static inline void send_bit(uint8_t bit, uint32_t &next_mark, uint32_t *off) {}
 
-static inline uint32_t send_byte(uint8_t byte, uint32_t &next_mark,
-                                 uint32_t *off) {
+static inline void send_byte(uint8_t byte, uint32_t &next_mark, uint32_t *off) {
   uint32_t mask = 0x80;
 
   while (mask) {
@@ -91,12 +90,6 @@ public:
 CMinWait<WAIT_TIME> mWait;
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
-  const uint32_t start = DWT->CYCCNT;
-  // assumes 800_000Hz frequency
-  // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
-  // 1250000->0.8us
-  // TODO: try to get dynamic weighting working again
-
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
@@ -109,9 +102,10 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 #define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
 #define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
 
-#define T1 250
-#define T2 625
-#define T3 375
+#define T1 300
+#define T2 600
+#define T3 300
+
   uint32_t off[3];
   off[0] = NS_TO_CYCLES(T1 + T2 + T3);
   off[1] = NS_TO_CYCLES(T2 + T3);
@@ -128,6 +122,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
   no_interrupts();
 
+  DWT->CYCCNT = 0;
   uint32_t next_mark = DWT->CYCCNT + off[0];
 
   while (pixel_ptr != end) {
@@ -136,12 +131,11 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
     if (DWT->CYCCNT > next_mark) {
       if ((DWT->CYCCNT - next_mark) > wait_off) {
-        yes_interrupts();
         return false;
       }
     }
 #endif
-      
+
     const Pixel pix = *(pixel_ptr++);
 
     send_byte(pix.g, next_mark, off);
@@ -155,19 +149,24 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
   pin_lo();
 
-  yes_interrupts();
   return true;
 }
 
 void show(const Pixel *const pixels, const int pixel_count) {
-  /* mWait.wait(); */
+  show_pixels(pixels, pixel_count);
+  yes_interrupts();
+
+  /*
+  mWait.wait();
+
   if (!show_pixels(pixels, pixel_count)) {
     yes_interrupts();
     no_interrupts();
     show_pixels(pixels, pixel_count);
   }
 
-  /* mWait.mark(); */
+  mWait.mark();
+  */
 }
 
 } // namespace LEDs
