@@ -104,7 +104,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
-  const uint32_t freq = SystemCoreClock;
+  const auto freq = SystemCoreClock;
   const auto timings = GET_TIMINGS(freq);
 
 #ifdef ALLOW_INTERRUPTS
@@ -112,13 +112,10 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
       NS_TO_CYCLES(freq, (WAIT_MICROSECONDS - INTERRUPT_THRESHOLD) * 1000);
 #endif
 
-  pin_lo();
   DWT->CYCCNT = 0;
 
   no_interrupts();
   pin_lo();
-  while (DWT->CYCCNT < timings.interval)
-    ;
 
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
 
@@ -152,7 +149,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 }
 
 template <int WAIT_MICROS> class CMinWait {
-  uint16_t mLastMicros;
+  uint32_t mLastMicros;
 
 public:
   CMinWait() { mLastMicros = 0; }

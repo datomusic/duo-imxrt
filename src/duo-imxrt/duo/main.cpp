@@ -120,14 +120,14 @@ int main(void) {
   Audio::headphone_disable();
   sequencer_init();
 
-  /* BoardAudioOutput dac1; // xy=988.1000061035156,100 */
-  /* AudioConnection patchCord16(pop_suppressor, 0, dac1, 0); */
-  /* AudioConnection patchCord17(pop_suppressor, 0, dac1, 1); */
+  BoardAudioOutput dac1; // xy=988.1000061035156,100
+  AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
+  AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
 
   led_init();
-  /* AudioNoInterrupts(); */
-  /* audio_init(); */
-  /* AudioInterrupts(); */
+  AudioNoInterrupts();
+  audio_init();
+  AudioInterrupts();
 
   // Read the MIDI channel from EEPROM. Lowest four bits
   const uint8_t stored_midi_channel =
