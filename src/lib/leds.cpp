@@ -9,7 +9,7 @@
 #define ALLOW_INTERRUPTS
 
 #define INTERRUPT_THRESHOLD 1
-#define WAIT_MICROSECONDS 80
+#define WAIT_MICROSECONDS 70
 
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
@@ -20,9 +20,9 @@
 #define NS_TO_CYCLES(CYCLES_PER_SEC, n) ((n) / NS_PER_CYCLE(CYCLES_PER_SEC))
 
 struct Timings {
-  const uint32_t interval;
-  const uint32_t bit_on;
-  const uint32_t bit_off;
+  uint32_t interval;
+  uint32_t bit_on;
+  uint32_t bit_off;
 };
 
 // Specific timings for WS2812
@@ -43,16 +43,21 @@ static void no_interrupts() {
 }
 
 static void yes_interrupts() {
-  __enable_irq();
   EnableIRQ(DMA0_IRQn);
+  __enable_irq();
 }
 
-inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
-inline static void pin_lo() { NEOPIXEL_PORT->DR &= ~(1UL << NEOPIXEL_PIN); }
+#define pin_hi() (NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN))
+#define pin_lo() (NEOPIXEL_PORT->DR &= ~(1UL << NEOPIXEL_PIN))
 
 namespace LEDs {
 
 void init(void) {
+  // Enable DWT in debug core. Useable when interrupts disabled, as opposed to
+  // Systick->VAL
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
   IOMUXC_SetPinMux(NEOPIXEL_PINMUX, 0U);
   IOMUXC_SetPinConfig(NEOPIXEL_PINMUX, 0x10B0U);
 
@@ -95,56 +100,63 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
   }
 }
 
+static Timings timings{0, 0, 0};
+static uint32_t wait_off;
+
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
-  // Enable DWT in debug core. Useable when interrupts disabled, as opposed to
-  // Systick->VAL
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
-  const auto freq = SystemCoreClock;
-  const auto timings = GET_TIMINGS(freq);
-
+  if (timings.interval == 0) {
+    const auto freq = SystemCoreClock;
+    timings = GET_TIMINGS(freq);
 #ifdef ALLOW_INTERRUPTS
-  const uint32_t wait_off =
-      NS_TO_CYCLES(freq, (WAIT_MICROSECONDS - INTERRUPT_THRESHOLD) * 1000);
+    wait_off =
+        NS_TO_CYCLES(freq, (WAIT_MICROSECONDS - INTERRUPT_THRESHOLD) * 1000);
 #endif
-
-  DWT->CYCCNT = 0;
+  }
 
   no_interrupts();
+
+  DWT->CYCCNT = 0;
   pin_lo();
 
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
 
+  uint8_t r = 0;
+  uint8_t g = 0;
+  uint8_t b = 0;
   while (pixel_ptr != end) {
+    r = pixel_ptr->r;
+    g = pixel_ptr->g;
+    b = pixel_ptr->b;
+
 #ifdef ALLOW_INTERRUPTS
     no_interrupts();
 
     if (DWT->CYCCNT > next_cycle_start) {
       if ((DWT->CYCCNT - next_cycle_start) > wait_off) {
+        yes_interrupts();
         return false;
       }
     }
 #endif
-
-    const Pixel pix = *(pixel_ptr++);
-
-    send_byte(pix.g, next_cycle_start, timings);
-    send_byte(pix.r, next_cycle_start, timings);
-    send_byte(pix.b, next_cycle_start, timings);
+    send_byte(g, next_cycle_start, timings);
+    send_byte(r, next_cycle_start, timings);
+    send_byte(b, next_cycle_start, timings);
 
 #ifdef ALLOW_INTERRUPTS
     yes_interrupts();
 #endif
+    pixel_ptr++;
   }
 
   pin_lo();
 #ifndef ALLOW_INTERRUPTS
   yes_interrupts();
 #endif
+
   return true;
 }
 
@@ -154,11 +166,9 @@ template <int WAIT_MICROS> class CMinWait {
 public:
   CMinWait() { mLastMicros = 0; }
 
-  void wait() {
-    uint16_t diff;
-    do {
-      diff = (micros() & 0xFFFF) - mLastMicros;
-    } while (diff < WAIT_MICROS);
+  bool wait() {
+    const auto diff = (micros() & 0xFFFF) - mLastMicros;
+    return diff > WAIT_MICROS;
   }
 
   void mark() { mLastMicros = micros() & 0xFFFF; }
@@ -167,15 +177,13 @@ public:
 CMinWait<WAIT_MICROSECONDS> mWait;
 
 void show(const Pixel *const pixels, const int pixel_count) {
-  pin_lo();
-  mWait.wait();
-  if (!show_pixels(pixels, pixel_count)) {
-    yes_interrupts();
-    delayMicroseconds(WAIT_MICROSECONDS);
-    no_interrupts();
-    show_pixels(pixels, pixel_count);
+  if (mWait.wait()) {
+    if (!show_pixels(pixels, pixel_count)) {
+      delayMicroseconds(WAIT_MICROSECONDS);
+      show_pixels(pixels, pixel_count);
+    }
+    mWait.mark();
   }
-  mWait.mark();
 }
 
 } // namespace LEDs
