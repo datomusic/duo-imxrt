@@ -1,7 +1,8 @@
 #define FASTLED_INTERNAL
 #include <stdint.h>
 
-#include "FastLED.h"
+#include "./pixeltypes.h"
+#include "./hsv2rgb.h"
 
 // FASTLED_NAMESPACE_BEGIN
 
