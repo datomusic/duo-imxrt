@@ -100,22 +100,17 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
   }
 }
 
-static Timings timings{0, 0, 0};
-static uint32_t wait_off;
-
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
-  if (timings.interval == 0) {
-    const auto freq = SystemCoreClock;
-    timings = GET_TIMINGS(freq);
+  const auto freq = SystemCoreClock;
+  const Timings timings = GET_TIMINGS(freq);
 #ifdef ALLOW_INTERRUPTS
-    wait_off =
-        NS_TO_CYCLES(freq, (WAIT_MICROSECONDS - INTERRUPT_THRESHOLD) * 1000);
+  const auto wait_off =
+      NS_TO_CYCLES(freq, (WAIT_MICROSECONDS - INTERRUPT_THRESHOLD) * 1000);
 #endif
-  }
 
   no_interrupts();
 
