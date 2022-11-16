@@ -10,7 +10,7 @@
 #include <Audio.h>
 #include <USB-MIDI.h>
 
-typedef int elapsedMillis;
+// typedef int elapsedMillis;
 #include "globals.h"
 
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
