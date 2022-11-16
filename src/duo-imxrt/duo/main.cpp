@@ -14,8 +14,6 @@ typedef int elapsedMillis;
 #include "globals.h"
 
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
-#include "stubs/midi_stub.h"
-MidiStub MIDI;
 
 #include "stubs/MidiFunctions_stubs.h"
 #include "duo-firmware/src/MidiFunctions.h"
@@ -108,6 +106,9 @@ int main(void) {
   Sync::init();
   LEDs::init();
   pins_init();
+
+  //This is needed to configure the UART peripheral correctly (used for MIDI).
+  Serial.begin(31250U);
 
   Audio::amp_disable();
   Audio::headphone_disable();
