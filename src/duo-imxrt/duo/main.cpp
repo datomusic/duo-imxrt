@@ -1,5 +1,9 @@
 #include "Arduino.h"
 
+#define ENV_LED GPIO_06
+#define OSC_LED GPIO_08
+#define FILTER_LED GPIO_07
+
 #include "lib/board_init.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
