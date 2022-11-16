@@ -9,7 +9,7 @@
 #define ALLOW_INTERRUPTS
 
 #define INTERRUPT_THRESHOLD 1
-#define WAIT_MICROSECONDS 30
+#define WAIT_MICROSECONDS 80
 
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
@@ -38,13 +38,13 @@ struct Timings {
           .bit_off = NS_TO_CYCLES(CYCLES_PER_SEC, T3)};
 
 static void no_interrupts() {
-  DisableIRQ(DMA0_IRQn);
   __disable_irq();
+  DisableIRQ(DMA0_IRQn);
 }
 
 static void yes_interrupts() {
-  EnableIRQ(DMA0_IRQn);
   __enable_irq();
+  EnableIRQ(DMA0_IRQn);
 }
 
 inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
@@ -116,6 +116,9 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   DWT->CYCCNT = 0;
 
   no_interrupts();
+  pin_lo();
+  while (DWT->CYCCNT < timings.interval)
+    ;
 
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
 
