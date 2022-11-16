@@ -7,17 +7,17 @@
 #include <Audio.h>
 
 #define ALLOW_INTERRUPTS
+
 #define INTERRUPT_THRESHOLD 1
-#define WAIT_TIME 50
+#define WAIT_MICROSECONDS 30
 
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
 
 #define NS_PER_SEC (1000000000L)
-#define CYCLES_PER_SEC (SystemCoreClock)
-#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
-#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
+#define NS_PER_CYCLE(CYCLES_PER_SEC) (NS_PER_SEC / CYCLES_PER_SEC)
+#define NS_TO_CYCLES(CYCLES_PER_SEC, n) ((n) / NS_PER_CYCLE(CYCLES_PER_SEC))
 
 struct Timings {
   const uint32_t interval;
@@ -32,10 +32,10 @@ struct Timings {
 
 // We need a macro to invoke every frame, since timings
 // depend on SystemCoreClock, which is variable.
-#define GET_TIMINGS()                                                          \
-  Timings{.interval = NS_TO_CYCLES(T1 + T2 + T3),                              \
-          .bit_on = NS_TO_CYCLES(T2 + T3),                                     \
-          .bit_off = NS_TO_CYCLES(T3)};
+#define GET_TIMINGS(CYCLES_PER_SEC)                                            \
+  Timings{.interval = NS_TO_CYCLES(CYCLES_PER_SEC, T1 + T2 + T3),              \
+          .bit_on = NS_TO_CYCLES(CYCLES_PER_SEC, T2 + T3),                     \
+          .bit_off = NS_TO_CYCLES(CYCLES_PER_SEC, T3)};
 
 static void no_interrupts() {
   DisableIRQ(DMA0_IRQn);
@@ -58,11 +58,6 @@ void init(void) {
 
   gpio_pin_config_t neopixel_config = {kGPIO_DigitalOutput, 0, kGPIO_NoIntmode};
   GPIO_PinInit(NEOPIXEL_PORT, NEOPIXEL_PIN, &neopixel_config);
-
-  // Enable DWT in debug core. Useable when interrupts disabled, as opposed to
-  // Systick->VAL
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
 static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
@@ -86,7 +81,8 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
 
     // Keep bit on for relevant time.
     const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
-    const uint32_t on_cutoff = next_cycle_start - (timings.interval - on_cycles);
+    const uint32_t on_cutoff =
+        next_cycle_start - (timings.interval - on_cycles);
     pin_hi();
     while (DWT->CYCCNT < on_cutoff)
       ;
@@ -100,20 +96,27 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
 }
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
+  // Enable DWT in debug core. Useable when interrupts disabled, as opposed to
+  // Systick->VAL
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
-  const auto timings = GET_TIMINGS();
+  const uint32_t freq = SystemCoreClock;
+  const auto timings = GET_TIMINGS(freq);
 
 #ifdef ALLOW_INTERRUPTS
   const uint32_t wait_off =
-      NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
+      NS_TO_CYCLES(freq, (WAIT_MICROSECONDS - INTERRUPT_THRESHOLD) * 1000);
 #endif
 
-  no_interrupts();
   pin_lo();
-
   DWT->CYCCNT = 0;
+
+  no_interrupts();
+
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
 
   while (pixel_ptr != end) {
@@ -139,12 +142,40 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   }
 
   pin_lo();
+#ifndef ALLOW_INTERRUPTS
+  yes_interrupts();
+#endif
   return true;
 }
 
+template <int WAIT_MICROS> class CMinWait {
+  uint16_t mLastMicros;
+
+public:
+  CMinWait() { mLastMicros = 0; }
+
+  void wait() {
+    uint16_t diff;
+    do {
+      diff = (micros() & 0xFFFF) - mLastMicros;
+    } while (diff < WAIT_MICROS);
+  }
+
+  void mark() { mLastMicros = micros() & 0xFFFF; }
+};
+
+CMinWait<WAIT_MICROSECONDS> mWait;
+
 void show(const Pixel *const pixels, const int pixel_count) {
-  show_pixels(pixels, pixel_count);
-  yes_interrupts();
+  pin_lo();
+  mWait.wait();
+  if (!show_pixels(pixels, pixel_count)) {
+    yes_interrupts();
+    delayMicroseconds(WAIT_MICROSECONDS);
+    no_interrupts();
+    show_pixels(pixels, pixel_count);
+  }
+  mWait.mark();
 }
 
 } // namespace LEDs
