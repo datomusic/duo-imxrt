@@ -13,8 +13,7 @@
 typedef int elapsedMillis;
 #include "globals.h"
 
-USBMIDI_CREATE_INSTANCE(0, usbMIDI);
-MIDI_CREATE_DEFAULT_INSTANCE();
+USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
 #include "stubs/MidiFunctions_stubs.h"
 #include "duo-firmware/src/MidiFunctions.h"
