@@ -1,12 +1,45 @@
-#ifndef COLOR_TYPES_H_IZVWTQH9
-#define COLOR_TYPES_H_IZVWTQH9
-
+#ifndef PIXELTYPES_H_NQBK6RF4
+#define PIXELTYPES_H_NQBK6RF4
+#include <stdint.h>
 #include "lib8tion.h"
 #include "color.h"
 
-#define GRB 1
-#define SK6812 1
 
+/*
+The MIT License (MIT)
+
+Copyright (c) 2013 FastLED
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+
+struct CRGB;
+struct CHSV;
+
+///@defgroup Pixeltypes CHSV and CRGB type definitions
+///@{
+
+/// Forward declaration of hsv2rgb_rainbow here,
+/// to avoid circular dependencies.
+extern void hsv2rgb_rainbow( const CHSV& hsv, CRGB& rgb);
+
+/// Representation of an HSV pixel (hue, saturation, value (aka brightness)).
 struct CHSV {
     union {
 		struct {
@@ -60,6 +93,19 @@ struct CHSV {
     }
 };
 
+/// Pre-defined hue values for HSV objects
+typedef enum {
+    HUE_RED = 0,
+    HUE_ORANGE = 32,
+    HUE_YELLOW = 64,
+    HUE_GREEN = 96,
+    HUE_AQUA = 128,
+    HUE_BLUE = 160,
+    HUE_PURPLE = 192,
+    HUE_PINK = 224
+} HSVHue;
+
+/// Representation of an RGB pixel (Red, Green, Blue)
 struct CRGB {
 	union {
 		struct {
@@ -720,8 +766,118 @@ struct CRGB {
 };
 
 
+inline __attribute__((always_inline)) bool operator== (const CRGB& lhs, const CRGB& rhs)
+{
+    return (lhs.r == rhs.r) && (lhs.g == rhs.g) && (lhs.b == rhs.b);
+}
 
-CRGB blend(const CRGB &p1, const CRGB &p2, int amountOfP2) { return p1; }
+inline __attribute__((always_inline)) bool operator!= (const CRGB& lhs, const CRGB& rhs)
+{
+    return !(lhs == rhs);
+}
+
+inline __attribute__((always_inline)) bool operator< (const CRGB& lhs, const CRGB& rhs)
+{
+    uint16_t sl, sr;
+    sl = lhs.r + lhs.g + lhs.b;
+    sr = rhs.r + rhs.g + rhs.b;
+    return sl < sr;
+}
+
+inline __attribute__((always_inline)) bool operator> (const CRGB& lhs, const CRGB& rhs)
+{
+    uint16_t sl, sr;
+    sl = lhs.r + lhs.g + lhs.b;
+    sr = rhs.r + rhs.g + rhs.b;
+    return sl > sr;
+}
+
+inline __attribute__((always_inline)) bool operator>= (const CRGB& lhs, const CRGB& rhs)
+{
+    uint16_t sl, sr;
+    sl = lhs.r + lhs.g + lhs.b;
+    sr = rhs.r + rhs.g + rhs.b;
+    return sl >= sr;
+}
+
+inline __attribute__((always_inline)) bool operator<= (const CRGB& lhs, const CRGB& rhs)
+{
+    uint16_t sl, sr;
+    sl = lhs.r + lhs.g + lhs.b;
+    sr = rhs.r + rhs.g + rhs.b;
+    return sl <= sr;
+}
 
 
-#endif /* end of include guard: COLOR_TYPES_H_IZVWTQH9 */
+__attribute__((always_inline))
+inline CRGB operator+( const CRGB& p1, const CRGB& p2)
+{
+    return CRGB( qadd8( p1.r, p2.r),
+                 qadd8( p1.g, p2.g),
+                 qadd8( p1.b, p2.b));
+}
+
+__attribute__((always_inline))
+inline CRGB operator-( const CRGB& p1, const CRGB& p2)
+{
+    return CRGB( qsub8( p1.r, p2.r),
+                 qsub8( p1.g, p2.g),
+                 qsub8( p1.b, p2.b));
+}
+
+__attribute__((always_inline))
+inline CRGB operator*( const CRGB& p1, uint8_t d)
+{
+    return CRGB( qmul8( p1.r, d),
+                 qmul8( p1.g, d),
+                 qmul8( p1.b, d));
+}
+
+__attribute__((always_inline))
+inline CRGB operator/( const CRGB& p1, uint8_t d)
+{
+    return CRGB( p1.r/d, p1.g/d, p1.b/d);
+}
+
+
+__attribute__((always_inline))
+inline CRGB operator&( const CRGB& p1, const CRGB& p2)
+{
+    return CRGB( p1.r < p2.r ? p1.r : p2.r,
+                 p1.g < p2.g ? p1.g : p2.g,
+                 p1.b < p2.b ? p1.b : p2.b);
+}
+
+__attribute__((always_inline))
+inline CRGB operator|( const CRGB& p1, const CRGB& p2)
+{
+    return CRGB( p1.r > p2.r ? p1.r : p2.r,
+                 p1.g > p2.g ? p1.g : p2.g,
+                 p1.b > p2.b ? p1.b : p2.b);
+}
+
+__attribute__((always_inline))
+inline CRGB operator%( const CRGB& p1, uint8_t d)
+{
+    CRGB retval( p1);
+    retval.nscale8_video( d);
+    return retval;
+}
+
+
+
+/// RGB orderings, used when instantiating controllers to determine what
+/// order the controller should send RGB data out in, RGB being the default
+/// ordering.
+enum EOrder {
+	RGB=0012,
+	RBG=0021,
+	GRB=0102,
+	GBR=0120,
+	BRG=0201,
+	BGR=0210
+};
+
+///@}
+
+#endif /* end of include guard: PIXELTYPES_H_NQBK6RF4 */

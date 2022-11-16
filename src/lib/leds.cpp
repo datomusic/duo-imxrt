@@ -1,74 +1,56 @@
 #include "leds.h"
+#include "fsl_common_arm.h"
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
+#include "teensy_audio_config.h"
+#include <Arduino.h>
+#include <Audio.h>
+
+#define ALLOW_INTERRUPTS
+#define INTERRUPT_THRESHOLD 1
+#define WAIT_TIME 50
 
 #define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_GPIO2_IO05
 #define NEOPIXEL_PORT GPIO2
 #define NEOPIXEL_PIN 5
 
-#define MAGIC_800_INT 900'000  // ~1.11 us -> 1.2  field
-#define MAGIC_800_T0H 2'800'000 // ~0.36 us -> 0.44 field
-#define MAGIC_800_T1H 1'350'000 // ~0.74 us -> 0.84 field
-#define MAGIC_800_RST 4000 // 80 us reset time
+#define NS_PER_SEC (1000000000L)
+#define CYCLES_PER_SEC (SystemCoreClock)
+#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
+#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
 
-namespace LEDs {
+struct Timings {
+  const uint32_t interval;
+  const uint32_t bit_on;
+  const uint32_t bit_off;
+};
 
-void show(const Pixel *const pixels, const int pixel_count) {
-  const uint8_t *const pixel_bytes = (uint8_t *)pixels;
-  const uint32_t byte_count = pixel_count * 3;
+// Specific timings for WS2812
+#define T1 300
+#define T2 600
+#define T3 300
 
-  // assumes 800_000Hz frequency
-  // Theoretical values here are 800_000 -> 1.25us, 2500000->0.4us,
-  // 1250000->0.8us
-  // TODO: try to get dynamic weighting working again
-  const uint32_t sys_freq = SystemCoreClock;
-  const uint32_t interval = sys_freq / MAGIC_800_INT;
-  const uint32_t t0 = sys_freq / MAGIC_800_T0H;
-  const uint32_t t1 = sys_freq / MAGIC_800_T1H;
-  const uint32_t rst = sys_freq / MAGIC_800_RST;
+// We need a macro to invoke every frame, since timings
+// depend on SystemCoreClock, which is variable.
+#define GET_TIMINGS()                                                          \
+  Timings{.interval = NS_TO_CYCLES(T1 + T2 + T3),                              \
+          .bit_on = NS_TO_CYCLES(T2 + T3),                                     \
+          .bit_off = NS_TO_CYCLES(T3)};
 
-  const uint8_t *p = pixel_bytes;
-  const uint8_t *const end = p + byte_count;
-  uint8_t pix = *p++;
-  uint8_t mask = 0x80;
-  uint32_t start = 0;
-  uint32_t cyc = 0;
-
+static void no_interrupts() {
+  DisableIRQ(DMA0_IRQn);
   __disable_irq();
+}
 
-  // Enable DWT in debug core. Useable when interrupts disabled, as opposed to
-  // Systick->VAL
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-  DWT->CYCCNT = 0;
-
-  for (;;) {
-    cyc = (pix & mask) ? t1 : t0;
-    start = DWT->CYCCNT;
-
-    GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 1);
-    while ((DWT->CYCCNT - start) < cyc)
-      ;
-
-    GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 0);
-    while ((DWT->CYCCNT - start) < interval)
-      ;
-
-    if (!(mask >>= 1)) {
-      if (p >= end) {
-        break;
-      }
-
-      pix = *p++;
-      mask = 0x80;
-    }
-  }
-  start = DWT->CYCCNT;
-  GPIO_PinWrite(NEOPIXEL_PORT, NEOPIXEL_PIN, 0);
-  while ((DWT->CYCCNT - start) < rst)
-    ;
+static void yes_interrupts() {
+  EnableIRQ(DMA0_IRQn);
   __enable_irq();
 }
+
+inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
+inline static void pin_lo() { NEOPIXEL_PORT->DR &= ~(1UL << NEOPIXEL_PIN); }
+
+namespace LEDs {
 
 void init(void) {
   IOMUXC_SetPinMux(NEOPIXEL_PINMUX, 0U);
@@ -76,5 +58,93 @@ void init(void) {
 
   gpio_pin_config_t neopixel_config = {kGPIO_DigitalOutput, 0, kGPIO_NoIntmode};
   GPIO_PinInit(NEOPIXEL_PORT, NEOPIXEL_PIN, &neopixel_config);
+
+  // Enable DWT in debug core. Useable when interrupts disabled, as opposed to
+  // Systick->VAL
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
+
+static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
+                             const Timings &timings) {
+
+  // Read bits from highest to lowest by using a bitmask
+  // which we shift for each bit.
+  // Starting at 0x80 will give us 8 bits and when it is 0 we are done.
+
+  uint32_t mask = 0x80;
+  while (mask) {
+    const uint8_t bit = byte & mask;
+
+    // Wait for next interval cutoff
+    while (DWT->CYCCNT < next_cycle_start)
+      ;
+
+    // Set next interval cutoff.
+    // It is important that this happens immediately after the previous wait.
+    next_cycle_start = DWT->CYCCNT + timings.interval;
+
+    // Keep bit on for relevant time.
+    const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
+    const uint32_t on_cutoff = next_cycle_start - (timings.interval - on_cycles);
+    pin_hi();
+    while (DWT->CYCCNT < on_cutoff)
+      ;
+
+    // Pin will be kept low until next time send_byte is called.
+    pin_lo();
+
+    // Shift mask to reach next bit.
+    mask >>= 1;
+  }
+}
+
+static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
+  const Pixel *const end = pixels + pixel_count;
+  const Pixel *pixel_ptr = pixels;
+
+  const auto timings = GET_TIMINGS();
+
+#ifdef ALLOW_INTERRUPTS
+  const uint32_t wait_off =
+      NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
+#endif
+
+  no_interrupts();
+  pin_lo();
+
+  DWT->CYCCNT = 0;
+  uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
+
+  while (pixel_ptr != end) {
+#ifdef ALLOW_INTERRUPTS
+    no_interrupts();
+
+    if (DWT->CYCCNT > next_cycle_start) {
+      if ((DWT->CYCCNT - next_cycle_start) > wait_off) {
+        return false;
+      }
+    }
+#endif
+
+    const Pixel pix = *(pixel_ptr++);
+
+    send_byte(pix.g, next_cycle_start, timings);
+    send_byte(pix.r, next_cycle_start, timings);
+    send_byte(pix.b, next_cycle_start, timings);
+
+#ifdef ALLOW_INTERRUPTS
+    yes_interrupts();
+#endif
+  }
+
+  pin_lo();
+  return true;
+}
+
+void show(const Pixel *const pixels, const int pixel_count) {
+  show_pixels(pixels, pixel_count);
+  yes_interrupts();
+}
+
 } // namespace LEDs
