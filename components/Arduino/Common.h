@@ -106,6 +106,10 @@ void pinMode(pin_size_t pinNumber, PinMode pinMode);
 void digitalWrite(pin_size_t pinNumber, uint8_t status);
 PinStatus digitalRead(pin_size_t pinNumber);
 
+uint32_t digitalPinToBitMask(pin_size_t pinNumber);
+uint32_t digitalPinToPort(pin_size_t pinNumber);
+uint32_t portOutputRegister(pin_size_t pinNumber);
+uint32_t portInputRegister(pin_size_t pinNumber);
 
 unsigned long millis(void);
 unsigned long micros(void);

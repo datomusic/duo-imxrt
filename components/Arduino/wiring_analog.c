@@ -155,29 +155,25 @@ void analogWrite(uint32_t pin, uint32_t value)
 
     if(!(g_pinDes->PWM->MCTRL & (PWM_MCTRL_RUN((1U << g_pinDes->pwm_submodule))))){ // if first use pin as pwm
 
-    pwm_signal_param_t pwmSignal[1];
-    pwm_config_t pwmConfig;
-   
-  
+        pwm_signal_param_t pwmSignal[1];
+        pwm_config_t pwmConfig;
+    
+        PWM_GetDefaultConfig(&pwmConfig);                    
+        pwmConfig.reloadLogic = kPWM_ReloadPwmFullCycle; 
+        pwmConfig.pairOperation = kPWM_Independent;      
+        PWM_Init(g_pinDes->PWM, g_pinDes->pwm_submodule, &pwmConfig);
 
-    PWM_GetDefaultConfig(&pwmConfig);                    
-    pwmConfig.reloadLogic = kPWM_ReloadPwmFullCycle; 
-    pwmConfig.pairOperation = kPWM_Independent;      
-    PWM_Init(g_pinDes->PWM, g_pinDes->pwm_submodule, &pwmConfig);
+        pwmSignal[0].pwmChannel = g_pinDes->pwm_channel;             
+        pwmSignal[0].level = kPWM_HighTrue;              
+        pwmSignal[0].dutyCyclePercent = 50;             
 
-    pwmSignal[0].pwmChannel = g_pinDes->pwm_channel;             
-    pwmSignal[0].level = kPWM_HighTrue;              
-    pwmSignal[0].dutyCyclePercent = 50;             
-        
+        PWM_SetupPwm(g_pinDes->PWM, g_pinDes->pwm_submodule, pwmSignal, 1, kPWM_SignedCenterAligned, 1000, CLOCK_GetFreq(kCLOCK_IpgClk));        
 
-    PWM_SetupPwm(g_pinDes->PWM, g_pinDes->pwm_submodule, pwmSignal, 1, kPWM_SignedCenterAligned, 1000, CLOCK_GetFreq(kCLOCK_IpgClk));        
+        PWM_SetPwmLdok(g_pinDes->PWM, (1U << g_pinDes->pwm_submodule) , true);    
+        PWM_StartTimer(g_pinDes->PWM, (1U << g_pinDes->pwm_submodule));        
 
-
-    PWM_SetPwmLdok(g_pinDes->PWM, (1U << g_pinDes->pwm_submodule) , true);    
-    PWM_StartTimer(g_pinDes->PWM, (1U << g_pinDes->pwm_submodule));        
-
-    //turn off falut detection
-    g_pinDes->PWM->SM[g_pinDes->pwm_submodule].DISMAP[0]=0;       
+        //turn off falut detection
+        g_pinDes->PWM->SM[g_pinDes->pwm_submodule].DISMAP[0]=0;       
                            
     }
 
@@ -205,8 +201,8 @@ void analogWrite(uint32_t pin, uint32_t value)
                                                  Pull / Keep Select Field: Keeper */
 
     // update the dutyCyclePercent
-    PWM_UpdatePwmDutycycleHighAccuracy(g_pinDes->PWM,g_pinDes->pwm_submodule, g_pinDes->pwm_channel, kPWM_SignedCenterAligned, pwmValHighAccuracy);
-    PWM_SetPwmLdok(g_pinDes->PWM, (1U << g_pinDes->pwm_submodule), true);   
+    PWM_UpdatePwmDutycycleHighAccuracy(g_pinDes->PWM ,g_pinDes->pwm_submodule, g_pinDes->pwm_channel, kPWM_SignedCenterAligned, pwmValHighAccuracy);
+    PWM_SetPwmLdok(g_pinDes->PWM, (1U << g_pinDes->pwm_submodule), true);   // Should not be necessary as kPWM_ReloadPwmFullCycle is used
 
 }
 

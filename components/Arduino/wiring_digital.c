@@ -104,6 +104,21 @@ uint8_t digitalRead(pin_size_t pinNumber) {
     return GPIO_PinRead(g_APinDescription[pinNumber].GROUP, g_APinDescription[pinNumber].PIN);
 }
 
+uint32_t digitalPinToBitMask(pin_size_t pinNumber) {
+    return (1 << g_APinDescription[pinNumber].PIN);
+}
+
+uint32_t digitalPinToPort(pin_size_t pinNumber) {
+    return (uint32_t)(g_APinDescription[pinNumber].GROUP);
+}
+
+uint32_t portOutputRegister(pin_size_t pinNumber) {
+    return (uint32_t)g_APinDescription[pinNumber].GROUP->DR;
+}
+uint32_t portInputRegister(pin_size_t pinNumber) {
+    return (uint32_t)g_APinDescription[pinNumber].GROUP->DR;
+}
+
 #ifdef __cplusplus
 }
 #endif
