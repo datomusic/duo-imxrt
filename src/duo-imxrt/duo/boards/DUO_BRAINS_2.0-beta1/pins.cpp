@@ -57,7 +57,7 @@ int potRead(const Pot pot) {
   }
 }
 
-bool pinRead(const Pin pin) {
+bool pinRead(const DuoPin pin) {
   switch (pin) {
     case ACCENT_PIN:
       return !digitalRead(PIN_SW_ACCENT);

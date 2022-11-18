@@ -176,7 +176,7 @@ const PinDescription g_APinDescription[] =
       .adcChannel = 2,
       .FUN_GPIO = {
           IOMUXC_GPIO_AD_02_GPIOMUX_IO16
-      }
+      },
   },
     {  
       .GROUP = GPIO1,

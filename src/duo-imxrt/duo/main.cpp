@@ -5,7 +5,6 @@
 #define FILTER_LED GPIO_07
 
 #include "lib/board_init.h"
-#include "lib/leds.h"
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
 #include "lib/usb/usb.h"
@@ -20,6 +19,7 @@
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
 #include "stubs/MidiFunctions_stubs.h"
+#include "FastLED/src/FastLED.h"
 #include "duo-firmware/src/MidiFunctions.h"
 
 #include "lib/sync.h"
@@ -35,8 +35,6 @@ const int NUM_LEDS = 19 + 1;
 const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
                                  11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 
-#define GRB 1
-#define SK6812 1
 #include "duo-firmware/src/Leds.h"
 #include "duo-firmware/src/TouchSlider.h"
 #define TOUCH1 16
@@ -48,7 +46,14 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "stubs/power_stubs.h"
 #include "synth_sine.h"
 #include "board_audio_output.h"
+void amp_enable(void) {
+   pinMode(24U, OUTPUT);
+   digitalWrite(24, LOW);
+}
 
+void amp_disable(void) {
+   pinMode(24U, INPUT);
+}
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
   if (pinRead(ACCENT_PIN)) {
@@ -103,14 +108,38 @@ void pots_read() {
   synth.pulseWidth = potRead(OSC_PW_POT);
   synth.resonance = potRead(FILTER_RES_POT);
 }
+bool amp_enabled = 0;
 
+elapsedMillis peak_update_time;
+const unsigned int peak_interval = 50;
 bool power_check() { return true; }
+void amp_update() {
+  if(peak_update_time > peak_interval) {
 
+    audio_peak_values <<= 1;
+    
+    if(peak2.available()) {
+      if(peak2.read() > 0.01f) {
+        audio_peak_values |= 1UL;
+      } else {
+        audio_peak_values &= ~1UL;
+      }
+    } else {
+      audio_peak_values &= ~1UL;
+    }
+
+    if((audio_peak_values == 0UL)) {
+      amp_disable();
+    } else {
+      amp_enable();
+    }
+  }
+}
 int main(void) {
   board_init();
   DatoUSB::init();
   Sync::init();
-  LEDs::init();
+  // LEDs::init();
   pins_init();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
@@ -181,6 +210,7 @@ int main(void) {
       if (!dfu_flag) {
         led_update(); // ~ 2ms
       }
+      amp_update();
     }
   }
 }

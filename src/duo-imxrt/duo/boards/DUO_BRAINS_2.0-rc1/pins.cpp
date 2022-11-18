@@ -1,12 +1,13 @@
 #include "../../pins.h"
 #include <Arduino.h>
 
-#define PIN_SW_ACCENT        GPIO_00
-#define PIN_SW_CRUSH         GPIO_02
-#define PIN_HP_JACK_DETECT   GPIO_01
-#define PIN_HP_ENABLE	     GPIO_AD_11
+#define PIN_SW_ACCENT        GPIO_00 // Should go to mux
+#define PIN_SW_CRUSH         GPIO_02 // Should go to mux
+#define PIN_HP_JACK_DETECT   GPIO_01 // Should go to mux 
+#define PIN_HP_ENABLE	     GPIO_AD_11 // Should go to mux
 
 #define PIN_SYN_MUX_IO       GPIO_AD_14
+#define PIN_BRN_MUX_IO       GPIO_AD_02
 #define PIN_SYN_ADDR0        GPIO_SD_00
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
@@ -57,7 +58,7 @@ int potRead(const Pot pot) {
   }
 }
 
-bool pinRead(const Pin pin) {
+bool pinRead(const DuoPin pin) {
   switch (pin) {
     case ACCENT_PIN:
       return !digitalRead(PIN_SW_ACCENT);

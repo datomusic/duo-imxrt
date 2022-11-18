@@ -38,8 +38,8 @@ MEMORY
   m_interrupts          (RX)  : ORIGIN = 0x60002000, LENGTH = 0x00000400
   m_text                (RX)  : ORIGIN = 0x60002400, LENGTH = 0x00FFDC00
   m_qacode              (RX)  : ORIGIN = 0x00000000, LENGTH = 0x00008000
-  m_data                (RW)  : ORIGIN = 0x20000000, LENGTH = 0x00008000
-  m_data2               (RW)  : ORIGIN = 0x20200000, LENGTH = 0x00010000
+  m_data                (RW)  : ORIGIN = 0x20000000, LENGTH = 0x0000C000
+  m_data2               (RW)  : ORIGIN = 0x20200000, LENGTH = 0x0000C000
 }
 
 /* Define output sections */
