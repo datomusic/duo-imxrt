@@ -18,7 +18,7 @@ int eeprom_write_byte(int _a, int _b) {
 
 // These go in avr/pgmspace.h
 #ifndef DMAMEM
-#define DMAMEM __attribute__ ((section(".m_data2"), used))
+#define DMAMEM __attribute__ ((section(".dmabuffers"), used))
 #endif
 #ifndef FASTRUN
 #define FASTRUN __attribute__ ((section(".m_qacode") ))

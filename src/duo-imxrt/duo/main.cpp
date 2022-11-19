@@ -19,7 +19,7 @@
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
 #include "stubs/MidiFunctions_stubs.h"
-#include "FastLED/src/FastLED.h"
+#include <FastLED.h>
 #include "duo-firmware/src/MidiFunctions.h"
 
 #include "lib/sync.h"
