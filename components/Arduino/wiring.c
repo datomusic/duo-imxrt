@@ -144,7 +144,7 @@ void SysTick_Handler(void)
   systick_millis_count++;
 }
 
-void init( void )
+void seeeduino_init( void )
 {
     BOARD_BootClockRUN();
     /* Update the core clock */
@@ -159,6 +159,20 @@ void init( void )
         while (1)
         {
         }
+    }
+
+    if (CoreDebug_DEMCR_TRCENA_Msk != (CoreDebug_DEMCR_TRCENA_Msk & CoreDebug->DEMCR))
+    {
+        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    }
+
+    /* CYCCNT not supported on this device. */
+    assert(DWT_CTRL_NOCYCCNT_Msk != (DWT->CTRL & DWT_CTRL_NOCYCCNT_Msk));
+
+    /* Read CYCCNT directly if CYCCENT has already been enabled, otherwise enable CYCCENT first. */
+    if (DWT_CTRL_CYCCNTENA_Msk != (DWT_CTRL_CYCCNTENA_Msk & DWT->CTRL))
+    {
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     }
 
     // Initialize Analog Controller
