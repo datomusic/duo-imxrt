@@ -38,7 +38,9 @@
 #include <string.h> // for memcpy
 
 #include "fsl_iomuxc.h"
+#ifndef F_CPU_ACTUAL
 #define F_CPU_ACTUAL SystemCoreClock
+#endif
 
 #endif
 
