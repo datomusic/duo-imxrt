@@ -7,10 +7,12 @@ set(EXECUTABLE_NAME led_demo-rt1011.elf)
 
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/led_demo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FastLED.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/../../../libraries/FastLED/src/
 )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/build_app.cmake)
