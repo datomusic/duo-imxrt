@@ -100,7 +100,7 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
   }
 }
 
-static uint32_t last_cycle = 0;
+static uint64_t last_cycle = 0;
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   const Pixel *const end = pixels + pixel_count;
@@ -117,10 +117,10 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   no_interrupts();
   pin_lo();
 
-  const uint32_t cyc = DWT->CYCCNT;
-  const uint32_t next_full_frame = cyc + timings.interval * 3;
+  const uint64_t cyc = DWT->CYCCNT;
+  const uint64_t next_full_frame = cyc + timings.interval * 4;
 
-  if (cyc < last_cycle || next_full_frame < last_cycle) {
+  if (cyc <= last_cycle || next_full_frame <= last_cycle) {
     last_cycle = cyc;
     return false;
   }
