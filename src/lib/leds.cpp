@@ -65,6 +65,11 @@ void init(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
+static inline void wait_until(const uint32_t end) {
+  while (DWT->CYCCNT < end)
+    ;
+}
+
 static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
                              const Timings &timings) {
 
@@ -77,8 +82,7 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
     const uint8_t bit = byte & mask;
 
     // Wait for next interval cutoff
-    while (DWT->CYCCNT < next_cycle_start)
-      ;
+    wait_until(next_cycle_start);
 
     // Set next interval cutoff.
     // It is important that this happens immediately after the previous wait.
@@ -88,9 +92,9 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
     const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
     const uint32_t on_cutoff =
         next_cycle_start - (timings.interval - on_cycles);
+
     pin_hi();
-    while (DWT->CYCCNT < on_cutoff)
-      ;
+    wait_until(on_cutoff);
 
     // Pin will be kept low until next time send_byte is called.
     pin_lo();
@@ -103,6 +107,7 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
 static uint64_t last_cycle = 0;
 
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
+
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
@@ -117,23 +122,26 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   no_interrupts();
   pin_lo();
 
-  const uint64_t cyc = DWT->CYCCNT;
-  const uint64_t next_full_frame = cyc + timings.interval * 4;
-
-  if (cyc <= last_cycle || next_full_frame <= last_cycle) {
-    last_cycle = cyc;
-    return false;
-  }
-
-  last_cycle = cyc;
-
-  uint32_t next_cycle_start = cyc + timings.interval;
+  uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
   while (pixel_ptr != end) {
 #ifdef ALLOW_INTERRUPTS
     no_interrupts();
+    const uint64_t cyc = DWT->CYCCNT;
+    if (cyc < last_cycle) {
+      last_cycle = DWT->CYCCNT;
+      return false;
+      /* const int64_t diff = UINT32_MAX - last_cycle; */
+      /* const int64_t next_diff = next_cycle_start - last_cycle; */
+      /* if (diff > next_cycle_start) { */
+      /* } */
+    } else if (cyc + timings.interval * 4 > (uint64_t)UINT32_MAX) {
+      last_cycle = DWT->CYCCNT;
+      return false;
+    }
 
-    if (DWT->CYCCNT > next_cycle_start) {
-      if ((DWT->CYCCNT - next_cycle_start) > wait_off) {
+    if (cyc > next_cycle_start) {
+      if ((cyc - next_cycle_start) > wait_off) {
+        last_cycle = DWT->CYCCNT;
         return false;
       }
     }
@@ -146,6 +154,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
     send_byte(pix.b, next_cycle_start, timings);
 
 #ifdef ALLOW_INTERRUPTS
+    // last_cycle = DWT->CYCCNT;
     yes_interrupts();
 #endif
   }
