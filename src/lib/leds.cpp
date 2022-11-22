@@ -16,8 +16,8 @@
 
 #define NS_PER_SEC (1000000000L)
 #define CYCLES_PER_SEC (SystemCoreClock)
-#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
-#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
+#define NS_PER_CYCLE(freq) (NS_PER_SEC / freq)
+#define NS_TO_CYCLES(freq, n) ((n) / NS_PER_CYCLE(freq))
 
 struct Timings {
   const uint32_t interval;
@@ -32,10 +32,10 @@ struct Timings {
 
 // We need a macro to invoke every frame, since timings
 // depend on SystemCoreClock, which is variable.
-#define GET_TIMINGS()                                                          \
-  Timings{.interval = NS_TO_CYCLES(T1 + T2 + T3),                              \
-          .bit_on = NS_TO_CYCLES(T2 + T3),                                     \
-          .bit_off = NS_TO_CYCLES(T3)};
+#define GET_TIMINGS(freq)                                                      \
+  Timings{.interval = NS_TO_CYCLES(freq, T1 + T2 + T3),                        \
+          .bit_on = NS_TO_CYCLES(freq, T2 + T3),                               \
+          .bit_off = NS_TO_CYCLES(freq, T3)};
 
 static void no_interrupts() {
   DisableIRQ(DMA0_IRQn);
@@ -86,7 +86,8 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
 
     // Keep bit on for relevant time.
     const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
-    const uint32_t on_cutoff = next_cycle_start - (timings.interval - on_cycles);
+    const uint32_t on_cutoff =
+        next_cycle_start - (timings.interval - on_cycles);
     pin_hi();
     while (DWT->CYCCNT < on_cutoff)
       ;
@@ -99,23 +100,34 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
   }
 }
 
+static uint32_t last_cycle = 0;
+
 static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
-  const auto timings = GET_TIMINGS();
+  const auto freq = SystemCoreClock;
+  const auto timings = GET_TIMINGS(freq);
 
 #ifdef ALLOW_INTERRUPTS
   const uint32_t wait_off =
-      NS_TO_CYCLES((WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
+      NS_TO_CYCLES(freq, (WAIT_TIME - INTERRUPT_THRESHOLD) * 1000);
 #endif
 
   no_interrupts();
   pin_lo();
 
-  DWT->CYCCNT = 0;
-  uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
+  const uint32_t cyc = DWT->CYCCNT;
+  const uint32_t next_full_frame = cyc + timings.interval * 3;
 
+  if (cyc < last_cycle || next_full_frame < last_cycle) {
+    last_cycle = cyc;
+    return false;
+  }
+
+  last_cycle = cyc;
+
+  uint32_t next_cycle_start = cyc + timings.interval;
   while (pixel_ptr != end) {
 #ifdef ALLOW_INTERRUPTS
     no_interrupts();
