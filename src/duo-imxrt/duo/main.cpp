@@ -8,7 +8,6 @@
 #include "lib/leds.h"
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
-#include "lib/usb/usb.h"
 #include "pins.h"
 #include "stubs/arduino_stubs.h"
 #include <Audio.h>
@@ -108,7 +107,6 @@ bool power_check() { return true; }
 
 int main(void) {
   board_init();
-  DatoUSB::init();
   Sync::init();
   LEDs::init();
   pins_init();
@@ -158,7 +156,6 @@ int main(void) {
   in_setup = false;
 
   while (true) {
-    DatoUSB::background_update();
 
     if (power_check()) {
       midi_handle();

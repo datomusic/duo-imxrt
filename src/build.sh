@@ -11,7 +11,7 @@ CMAKE_ARGS=$*
 if [[ -e "$APP_PATH" ]]; then
   TOOLCHAIN_FILE="$(pwd)/../armgcc/arm-none-eabi-gcc.cmake"
   pushd "$APP_PATH"
-  cmake -DTOOLCHAIN_DIR="$TOOLCHAIN_DIR" -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=flexspi_nor_debug  $CMAKE_ARGS -S . -B build
+  cmake -DTOOLCHAIN_DIR="$TOOLCHAIN_DIR" -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=flexspi_nor_release  $CMAKE_ARGS -S . -B build
   pushd build
   make -j
   popd

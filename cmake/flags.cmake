@@ -56,7 +56,7 @@ SET(CMAKE_C_FLAGS_DEBUG " \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
     -g \
-    -O0 \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
@@ -79,7 +79,7 @@ SET(CMAKE_C_FLAGS_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
-    -Os \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
@@ -105,7 +105,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_DEBUG " \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
     -g \
-    -O0 \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
@@ -130,7 +130,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
-    -Os \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
@@ -154,7 +154,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG " \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
     -g \
-    -O0 \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
@@ -178,7 +178,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
-    -Os \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
@@ -205,7 +205,7 @@ SET(CMAKE_CXX_FLAGS_FLEXSPI_NOR_DEBUG " \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
     -g \
-    -O0 \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
@@ -231,7 +231,7 @@ SET(CMAKE_CXX_FLAGS_FLEXSPI_NOR_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
-    -Os \
+    -O3 \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
