@@ -1,8 +1,8 @@
 #include "FastLED.h"
 #include "lib/leds.h"
 
-void FastLED_::show() {
-  LEDs::show(raw_pixels, pixel_count);
+bool FastLED_::show() {
+  return LEDs::show(raw_pixels, pixel_count);
 }
 
 void FastLED_::clear() {

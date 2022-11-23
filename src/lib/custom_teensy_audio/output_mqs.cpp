@@ -42,6 +42,7 @@ audio_block_t *AudioOutputMQS::block_left_2nd = NULL;
 audio_block_t *AudioOutputMQS::block_right_2nd = NULL;
 uint16_t AudioOutputMQS::block_left_offset = 0;
 uint16_t AudioOutputMQS::block_right_offset = 0;
+bool AudioOutputMQS::isr_triggered = false;
 
 bool AudioOutputMQS::update_responsibility = false;
 DMAMEM __attribute__((aligned(32)))
@@ -221,6 +222,7 @@ void AudioOutputMQS::isr(I2S_Type *base, sai_edma_handle_t *handle,
 
   xfer.data = (uint8_t *)dest;
   SAI_TransferSendEDMA(SAI, &tx_handle, &xfer);
+  isr_triggered = true;
 }
 
 void AudioOutputMQS::update(void) {

@@ -2,6 +2,7 @@
 #include "fsl_common_arm.h"
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
+#include "output_mqs.h"
 #include "teensy_audio_config.h"
 #include <Arduino.h>
 #include <Audio.h>
@@ -26,13 +27,13 @@ struct Timings {
 };
 
 // Specific timings for WS2812
-#define T1 300
-#define T2 600
-#define T3 300
+/* #define T1 300 */
+/* #define T2 600 */
+/* #define T3 300 */
 
-/* #define T1 250 */
-/* #define T2 625 */
-/* #define T3 375 */
+#define T1 250
+#define T2 625
+#define T3 375
 
 // We need a macro to invoke every frame, since timings
 // depend on SystemCoreClock, which is variable.
@@ -122,8 +123,8 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   pin_lo();
 
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
-    while (DWT->CYCCNT < next_cycle_start)
-      ;
+  while (DWT->CYCCNT < next_cycle_start)
+    ;
   next_cycle_start = DWT->CYCCNT + timings.interval;
 
   uint8_t r = 0;
@@ -178,14 +179,18 @@ public:
 
 CMinWait<WAIT_MICROSECONDS> mWait;
 
-void show(const Pixel *const pixels, const int pixel_count) {
-  if (mWait.wait()) {
+bool show(const Pixel *const pixels, const int pixel_count) {
+  if (mWait.wait() && AudioOutputMQS::isr_triggered) {
+    AudioOutputMQS::isr_triggered = false;
+
     if (!show_pixels(pixels, pixel_count)) {
       delayMicroseconds(WAIT_MICROSECONDS);
-      show_pixels(pixels, pixel_count);
+      return show_pixels(pixels, pixel_count);
     }
     mWait.mark();
   }
+
+  return false;
 }
 
 } // namespace LEDs

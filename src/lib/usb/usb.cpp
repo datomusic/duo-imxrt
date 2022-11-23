@@ -7,17 +7,6 @@
 #define USB_DEVICE_INSTANCE 0
 #endif
 
-bool DatoUSB::background_update(void) {
-  if (tusb_inited()) {
-#if CFG_TUSB_OS == OPT_OS_NONE
-    tud_task();
-#endif
-    return true;
-  } else {
-    return false;
-  }
-}
-
 bool DatoUSB::midi_read(uint8_t packet[4]) {
   bool ret = false;
   if (tud_midi_available()) {

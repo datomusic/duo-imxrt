@@ -39,6 +39,7 @@
 class AudioOutputMQS : public AudioStream
 {
 public:
+	static bool isr_triggered;
 	AudioOutputMQS(void) : AudioStream(2, inputQueueArray) { begin(); }
 	virtual void update(void);
 	void begin(void);

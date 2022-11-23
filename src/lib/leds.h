@@ -11,7 +11,7 @@ namespace LEDs {
 typedef CRGB Pixel;
 
 void init();
-void show(const Pixel *const pixels, int count);
+bool show(const Pixel *const pixels, int count);
 
 } // namespace LEDs
 

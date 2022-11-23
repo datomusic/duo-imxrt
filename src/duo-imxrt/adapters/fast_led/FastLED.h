@@ -3,7 +3,7 @@
 #include "lib/pixeltypes.h"
 
 struct FastLED_ {
-  void show();
+  bool show();
   void clear();
   void setBrightness(int);
   void setCorrection(int);
