@@ -89,7 +89,7 @@ typedef bool      boolean;
 typedef uint8_t   byte;
 typedef uint16_t  word;
 
-void init(void);
+void seeeduino_init(void);
 void initVariant(void);
 
 int atexit(void (*func)()) __attribute__((weak));
