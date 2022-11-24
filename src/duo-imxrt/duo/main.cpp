@@ -178,9 +178,8 @@ int main(void) {
       sequencer_update();
 
       if (!dfu_flag) {
-        if(led_update()){
-          DatoUSB::background_update();
-        }
+        led_update();
+        DatoUSB::background_update();
       }
     }
   }
