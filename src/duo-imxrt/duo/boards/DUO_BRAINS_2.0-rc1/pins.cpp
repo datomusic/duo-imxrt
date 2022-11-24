@@ -11,6 +11,12 @@
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
 
+
+#define PIN_LED_1            GPIO_08
+#define PIN_LED_2            GPIO_07
+#define PIN_LED_3            GPIO_06
+
+
 static int muxAnalogRead(const uint8_t channel) {
   // Any call to pinMode sets the port mux to GPIO mode.
   // We want to force it back to analog mode
