@@ -325,6 +325,25 @@ void SystemInitHook(void)
 }
 #endif
 
+typedef struct {
+  const uint32_t version;
+  const char *copyright;
+  void (*runBootloader)(void *arg);
+  const uint32_t *reserved0;
+  const uint32_t *reserved1; 
+ } bootloader_api_entry_t;
+#define g_bootloaderTree (*(bootloader_api_entry_t**)(0x0020001c))
+
+void runBootloader(void* arg)
+{
+   g_bootloaderTree-> runBootloader(arg);
+}
+
+void BOARD_EnterROMBootloader(void)
+{
+    uint32_t arg = 0xEB100000; // EB = Enter Bootloader. 1 = Serial Downloader
+    runBootloader(&arg);
+}
 
 void BOARD_RelocateVectorTableToRam(void)
 {

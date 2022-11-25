@@ -8,4 +8,5 @@
 #define SIM_UIDML 1
 #define SIM_UIDH 1
 
+#define setHandleSysEx setHandleSystemExclusive
 #endif /* end of include guard: MIDIFUNCTIONS_STUBS_H_PCKIUSTQ */

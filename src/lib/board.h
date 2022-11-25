@@ -149,6 +149,8 @@ status_t BOARD_Codec_I2C_Receive(
 
 void BOARD_RelocateVectorTableToRam(void);
 
+void BOARD_EnterROMBootloader(void);
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */

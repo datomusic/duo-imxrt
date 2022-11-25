@@ -1,5 +1,5 @@
 #include "Arduino.h"
-
+#define DEV_MODE 1
 #define ENV_LED GPIO_06
 #define OSC_LED GPIO_08
 #define FILTER_LED GPIO_07
@@ -13,7 +13,7 @@
 #include "stubs/arduino_stubs.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
-
+#include "fsl_romapi.h"
 // typedef int elapsedMillis;
 #include "globals.h"
 
@@ -46,7 +46,6 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
-#include "synth_sine.h"
 #include "board_audio_output.h"
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
@@ -105,6 +104,9 @@ void pots_read() {
 }
 
 bool power_check() { return true; }
+
+
+
 
 int main(void) {
   board_init();
@@ -235,18 +237,16 @@ void process_key(const char k, const char state) {
 #ifdef DEV_MODE
         sequencer_stop();
         FastLED.clear();
+        FastLED.show();
+        delay(1);
         physical_leds[0] = CRGB::Blue;
         FastLED.show();
         dfu_flag = 1;
+        BOARD_EnterROMBootloader();
 #else
         power_off();
 #endif
       }
-#ifdef DEV_MODE
-      if (k == BTN_UP) {
-        print_log();
-      }
-#endif
       break;
     case RELEASED:
       if (k <= KEYB_9 && k >= KEYB_0) {
@@ -310,4 +310,18 @@ void keys_scan() {
       }
     }
   }
+}
+
+void enter_dfu() {
+  // Blank all leds and turn the power button blue before rebooting
+  FastLED.clear();
+  for(int i = 0; i < NUM_LEDS; i++) {
+    physical_leds[i] = CRGB::Black;
+  }
+  physical_leds[0] = CRGB::Blue;
+  FastLED.show();
+  delay(100);
+  FastLED.show();
+  delay(100);
+  BOARD_EnterROMBootloader();
 }
