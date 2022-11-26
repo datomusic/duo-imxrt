@@ -13,7 +13,6 @@
 #include "stubs/arduino_stubs.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
-#include "fsl_romapi.h"
 // typedef int elapsedMillis;
 #include "globals.h"
 
