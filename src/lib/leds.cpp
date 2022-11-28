@@ -7,11 +7,6 @@
 #include <Arduino.h>
 #include <Audio.h>
 
-
-#define LED2_PINMUX IOMUXC_GPIO_07_GPIOMUX_IO07
-#define LED2_PORT GPIO1
-#define LED2_PIN 7U
-
 #define ALLOW_INTERRUPTS
 
 #define INTERRUPT_THRESHOLD 1
@@ -30,11 +25,6 @@ struct Timings {
   uint32_t bit_on;
   uint32_t bit_off;
 };
-
-// Specific timings for WS2812
-/* #define T1 300 */
-/* #define T2 600 */
-/* #define T3 300 */
 
 #define T1 250
 #define T2 625
@@ -73,13 +63,10 @@ void init(void) {
 
   gpio_pin_config_t neopixel_config = {kGPIO_DigitalOutput, 0, kGPIO_NoIntmode};
   GPIO_PinInit(NEOPIXEL_PORT, NEOPIXEL_PIN, &neopixel_config);
-
-    gpio_pin_config_t led2_config = { kGPIO_DigitalOutput, 0};
-  GPIO_PinInit(LED2_PORT, LED2_PIN, &led2_config);
 }
 
-static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
-                             const Timings &timings) {
+RAMFUNCTION_SECTION_CODE(static inline void send_byte(
+    uint8_t byte, uint32_t &next_cycle_start, const Timings &timings)) {
 
   // Read bits from highest to lowest by using a bitmask
   // which we shift for each bit.
@@ -113,13 +100,12 @@ static inline void send_byte(uint8_t byte, uint32_t &next_cycle_start,
   }
 }
 
-static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
-
+RAMFUNCTION_SECTION_CODE(static uint32_t show_pixels(const Pixel *const pixels,
+                                                     const int pixel_count)) {
   const Pixel *const end = pixels + pixel_count;
   const Pixel *pixel_ptr = pixels;
 
   const auto freq = SystemCoreClock;
-/* #define freq 500 * 1000 * 1000 */
   const Timings timings = GET_TIMINGS(freq);
 #ifdef ALLOW_INTERRUPTS
   const auto wait_off =
@@ -128,17 +114,6 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
   no_interrupts();
   DWT->CYCCNT = 0;
-
-  GPIO_PinWrite(LED2_PORT, LED2_PIN, 1);
-
-  pin_hi();
-  while (DWT->CYCCNT < (timings.interval))
-    ;
-  pin_lo();
-
-  while (DWT->CYCCNT < (NS_TO_CYCLES(freq, 80 * 1000)))
-    ;
-
 
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
   while (DWT->CYCCNT < next_cycle_start)
@@ -197,7 +172,8 @@ public:
 
 CMinWait<WAIT_MICROSECONDS> mWait;
 
-bool show(const Pixel *const pixels, const int pixel_count) {
+RAMFUNCTION_SECTION_CODE(bool show(const Pixel *const pixels,
+                                   const int pixel_count)) {
   if (mWait.wait() && AudioOutputMQS::isr_triggered) {
     AudioOutputMQS::isr_triggered = false;
 
