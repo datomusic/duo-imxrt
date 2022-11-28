@@ -117,6 +117,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
 
   while (pixel_ptr != end) {
+
 #ifdef ALLOW_INTERRUPTS
     no_interrupts();
 
@@ -129,9 +130,9 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
     const Pixel pix = *(pixel_ptr++);
 
-    send_byte(pix.g, next_cycle_start, timings);
-    send_byte(pix.r, next_cycle_start, timings);
-    send_byte(pix.b, next_cycle_start, timings);
+    send_byte(((pix.g * correction.g * brightness)/65536), next_cycle_start, timings);
+    send_byte(((pix.r * correction.r * brightness)/65536), next_cycle_start, timings);
+    send_byte(((pix.b * correction.b * brightness)/65536), next_cycle_start, timings);
 
 #ifdef ALLOW_INTERRUPTS
     yes_interrupts();
