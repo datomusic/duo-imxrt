@@ -11,7 +11,7 @@ import spsdk.mboot.interfaces.usb as mboot_usb
 from spsdk.mboot import McuBoot
 
 
-def send_sysex_file(filename, midiout, portname, delay=50):
+def send_sysex_file(filename, midiout, delay=50):
     """Send contents of sysex file to given MIDI output.
     Reads file given by filename and sends all consecutive sysex messages found
     in it to given midiout after prompt.
@@ -55,7 +55,7 @@ def enter_bootloader():
     midiout, portname = open_midioutput(
         portname, interactive=False, use_virtual=True)
 
-    send_sysex_file("./data/DUO-bootloader.syx", midiout, "Duo MIDI 1")
+    send_sysex_file("./data/DUO-bootloader.syx", midiout)
 
 
 def find_sdp_interface():
