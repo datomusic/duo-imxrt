@@ -53,7 +53,7 @@ def enter_bootloader():
     midiout, portname = open_midioutput(
         portname, interactive=False, use_virtual=True)
 
-    send_sysex_file("./DUO-bootloader.syx", midiout, "Duo MIDI 1")
+    send_sysex_file("./data/DUO-bootloader.syx", midiout, "Duo MIDI 1")
 
 
 def find_sdp_interface():
@@ -86,7 +86,7 @@ def update_firmware(firmware_path):
 
     print("Sending flashloader")
     with SDP(interface) as s:
-        flashloader_bytes = open("./ivt_flashloader.bin", "rb").read()
+        flashloader_bytes = open("./data/ivt_flashloader.bin", "rb").read()
         flashloader_addr = 0x20205800
         s.write_file(flashloader_addr, flashloader_bytes)
         s.jump_and_run(flashloader_addr)
@@ -106,8 +106,7 @@ def update_firmware(firmware_path):
         binary_start_addr = 0x60000400
 
         print("Erasing flash")
-        print(len(firmware_bytes))
-        mboot.flash_erase_region(binary_start_addr, 128000)
+        mboot.flash_erase_region(binary_start_addr, len(firmware_bytes))
         print("Done")
 
         print("Writing binary")
