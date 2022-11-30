@@ -50,15 +50,14 @@ def send_sysex_file(filename, midiout, delay=50):
                     sox = eox + 1
 
 
-def find_duo_midi_port(available_ports):
-    for (index, name) in enumerate(available_ports):
+def find_duo_midi_port():
+    for (index, name) in enumerate(rtmidi.MidiOut().get_ports()):
         if "duo" in name.lower():
             return index
 
 
 def enter_bootloader():
-    available_ports = rtmidi.MidiOut().get_ports()
-    duo_port = find_duo_midi_port(available_ports)
+    duo_port = find_duo_midi_port()
 
     if not duo_port:
         print("Could not detect DUO midi port")
