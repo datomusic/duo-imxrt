@@ -1,0 +1,2 @@
+python-rtmidi==1.4.9
+spsdk==1.8.0
