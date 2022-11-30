@@ -60,7 +60,7 @@ def enter_bootloader():
     duo_port = find_duo_midi_port()
 
     if not duo_port:
-        print("Could not detect DUO midi port")
+        print("Could not detect DUO midi port.")
         print("Please make sure it's connected and select the correct port.")
     midiout, portname = open_midioutput(duo_port, use_virtual=False)
     send_sysex_file("./data/DUO-bootloader.syx", midiout)
