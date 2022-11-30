@@ -51,11 +51,22 @@ def send_sysex_file(filename, midiout, delay=50):
 
 
 def enter_bootloader():
-    portname = "Duo MIDI 1"
-    midiout, portname = open_midioutput(
-        portname, interactive=False, use_virtual=True)
+    midiout = rtmidi.MidiOut()
+    available_ports = midiout.get_ports()
 
-    send_sysex_file("./data/DUO-bootloader.syx", midiout)
+    
+    if(len(available_ports) == 0):
+        print("No MIDI ports found. Is the DUO connected?")
+    elif(len(available_ports) > 1):
+        print("Multiple MIDI ports found. Select one of:")
+        print(available_ports)
+    else:
+        portname = available_ports[0]
+    
+        midiout, portname = open_midioutput(
+            portname, interactive=True, use_virtual=True)
+
+        send_sysex_file("./data/DUO-bootloader.syx", midiout)
 
 
 def find_sdp_interface():
