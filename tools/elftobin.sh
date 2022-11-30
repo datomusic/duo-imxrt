@@ -21,4 +21,4 @@ arm-none-eabi-objcopy -vv -O binary \
     -j.heap\
     -j.stack\
     -j.ARM.attributes\
-    *.elf ./duo-firmware.bin
+    *.elf ./duo_firmware.bin
