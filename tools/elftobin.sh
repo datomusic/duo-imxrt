@@ -1,5 +1,6 @@
 #!/bin/bash
 arm-none-eabi-objcopy -vv -O binary \
+    -j.flash_config \
     -j.ivt \
     -j.interrupts \
     -j.text \
