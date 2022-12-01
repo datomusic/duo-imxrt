@@ -11,45 +11,6 @@ import spsdk.mboot.interfaces.usb as mboot_usb
 from spsdk.mboot import McuBoot
 
 
-def send_sysex_file(filename, midiout, delay=50):
-    """Send contents of sysex file to given MIDI output.
-    Reads file given by filename and sends all consecutive sysex messages found
-    in it to given midiout after prompt.
-    """
-
-    SYSTEM_EXCLUSIVE = b'\xF0'
-    END_OF_EXCLUSIVE = b'\xF7'
-    bn = basename(filename)
-
-    with open(filename, 'rb') as sysex_file:
-        data = sysex_file.read()
-
-        if data.startswith(SYSTEM_EXCLUSIVE):
-            sox = 0
-            i = 0
-
-            while sox >= 0:
-                sox = data.find(SYSTEM_EXCLUSIVE, sox)
-
-                if sox >= 0:
-                    eox = data.find(END_OF_EXCLUSIVE, sox)
-
-                    if eox >= 0:
-                        sysex_msg = data[sox:eox + 1]
-                        # Python 2: convert data into list of integers
-                        if isinstance(sysex_msg, str):
-                            sysex_msg = [ord(c) for c in sysex_msg]
-
-                        midiout.send_message(sysex_msg)
-                        time.sleep(0.001 * delay)
-
-                        i += 1
-                    else:
-                        break
-
-                    sox = eox + 1
-
-
 def find_duo_midi_port():
     for (index, name) in enumerate(rtmidi.MidiOut().get_ports()):
         if "duo" in name.lower():
@@ -62,8 +23,10 @@ def enter_bootloader():
     if not duo_port:
         print("Could not detect DUO midi port.")
         print("Please make sure it's connected and select the correct port.")
+
     midiout, portname = open_midioutput(duo_port, use_virtual=False)
-    send_sysex_file("./data/DUO-bootloader.syx", midiout)
+    reset_syx = [0xF0, 0x7d, 0x64, 0x0b, 0xF7]
+    midiout.send_message(reset_syx)
 
 
 def find_sdp_interface():
