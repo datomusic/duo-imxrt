@@ -159,6 +159,8 @@ int main(void) {
   in_setup = false;
 
   while (true) {
+    delay(1);
+    
     DatoUSB::background_update();
 
     if (power_check()) {
