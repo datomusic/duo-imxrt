@@ -17,8 +17,6 @@
 
 static int muxAnalogRead(const uint8_t channel) {
   // Any call to pinMode sets the port mux to GPIO mode.
-  // We want to force it back to analog mode
-  pinMode(PIN_SYN_MUX_IO, INPUT);
 
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
