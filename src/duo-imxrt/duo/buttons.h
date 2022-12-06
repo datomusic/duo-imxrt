@@ -4,18 +4,31 @@
 */
 #include "keypad.h"
 
-#define PIN_ROW_1            GPIO_13
-#define PIN_ROW_2            GPIO_12
-#define PIN_ROW_3            GPIO_SD_04
-#define PIN_ROW_4            GPIO_11
+#if 1
+  #define PIN_ROW_1            GPIO_13
+  #define PIN_ROW_2            GPIO_12
+  #define PIN_ROW_3            GPIO_SD_04
+  #define PIN_ROW_4            GPIO_11
 
-#define PIN_COL_1           GPIO_AD_09
-#define PIN_COL_2           GPIO_AD_08
-#define PIN_COL_3           GPIO_AD_07
-#define PIN_COL_4           GPIO_AD_06
-#define PIN_COL_5           GPIO_SD_13
-#define PIN_COL_6           GPIO_AD_05
+  #define PIN_COL_1           GPIO_AD_09
+  #define PIN_COL_2           GPIO_AD_08
+  #define PIN_COL_3           GPIO_AD_07
+  #define PIN_COL_4           GPIO_AD_06
+  #define PIN_COL_5           GPIO_AD_05
+  #define PIN_COL_6           GPIO_AD_04
+#else
+  #define PIN_ROW_1            GPIO_13
+  #define PIN_ROW_2            GPIO_12
+  #define PIN_ROW_3            GPIO_SD_04
+  #define PIN_ROW_4            GPIO_11
 
+  #define PIN_COL_1           GPIO_AD_09
+  #define PIN_COL_2           GPIO_AD_08
+  #define PIN_COL_3           GPIO_AD_07
+  #define PIN_COL_4           GPIO_AD_06
+  #define PIN_COL_5           GPIO_SD_13
+  #define PIN_COL_6           GPIO_AD_05
+#endif
 
 enum BUTTONS {
   DUMMY_KEY,

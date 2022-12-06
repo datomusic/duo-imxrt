@@ -1,9 +1,11 @@
 #include "../../pins.h"
 #include <Arduino.h>
+#include "fsl_gpio.h"
+#include "fsl_iomuxc.h"
 
 #define PIN_SW_ACCENT        GPIO_00
 #define PIN_SW_CRUSH         GPIO_02
-#define PIN_HP_JACK_DETECT   GPIO_01
+// #define PIN_HP_JACK_DETECT   GPIO_01
 #define PIN_HP_ENABLE	     GPIO_AD_11
 
 #define PIN_SYN_MUX_IO       GPIO_AD_14
@@ -11,17 +13,22 @@
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
 
-
 #define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_07
-#define PIN_LED_3            GPIO_06
+#define PIN_LED_2            GPIO_05
+#define PIN_LED_3            GPIO_01
 
+#define ENV_LED              PIN_LED_3
+#define OSC_LED              PIN_LED_1
+#define FILTER_LED           PIN_LED_2
+
+#define HP_ENABLE_PINMUX IOMUXC_GPIO_AD_11_GPIOMUX_IO25
+#define HP_ENABLE_PORT GPIO1
+#define HP_ENABLE_PIN 25U
+#define AMP_MUTE_PINMUX IOMUXC_GPIO_AD_10_GPIOMUX_IO24
+#define AMP_MUTE_PORT GPIO1
+#define AMP_MUTE_PIN 24U
 
 static int muxAnalogRead(const uint8_t channel) {
-  // Any call to pinMode sets the port mux to GPIO mode.
-  // We want to force it back to analog mode
-  pinMode(PIN_SYN_MUX_IO, INPUT);
-
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
@@ -79,16 +86,19 @@ bool pinRead(const Pin pin) {
 }
 
 void pins_init() {
-  pinMode(PIN_SW_ACCENT, INPUT_PULLUP);
-  pinMode(PIN_SW_CRUSH, INPUT_PULLUP);
+  // pinMode(PIN_SW_ACCENT, INPUT_PULLUP);
+  // pinMode(PIN_SW_CRUSH, INPUT_PULLUP);
 
   pinMode(PIN_HP_ENABLE, OUTPUT);
 
-  pinMode(PIN_HP_JACK_DETECT, INPUT);
+  // pinMode(PIN_HP_JACK_DETECT, INPUT);
 
   pinMode(PIN_SYN_ADDR0, OUTPUT);
   pinMode(PIN_SYN_ADDR1, OUTPUT);
   pinMode(PIN_SYN_ADDR2, OUTPUT);
 
-  //   randomSeed(analogRead(UNCONNECTED_ANALOG));
+  pinMode(PIN_LED_1, OUTPUT);
+  pinMode(PIN_LED_2, OUTPUT);
+  pinMode(PIN_LED_3, OUTPUT);
+
 }

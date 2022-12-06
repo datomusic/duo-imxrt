@@ -1,5 +1,7 @@
 #include "../../pins.h"
 #include <Arduino.h>
+#include "fsl_gpio.h"
+#include "fsl_iomuxc.h"
 
 #define PIN_SW_ACCENT        GPIO_00
 #define PIN_SW_CRUSH         GPIO_02
@@ -14,6 +16,22 @@
 #define PIN_LED_1            GPIO_08
 #define PIN_LED_2            GPIO_07
 #define PIN_LED_3            GPIO_06
+
+#define ENV_LED GPIO_06
+#define OSC_LED GPIO_08
+#define FILTER_LED GPIO_07
+
+#define PIN_ROW_1            GPIO_13
+#define PIN_ROW_2            GPIO_12
+#define PIN_ROW_3            GPIO_SD_04
+#define PIN_ROW_4            GPIO_11
+
+#define PIN_COL_1           GPIO_AD_09
+#define PIN_COL_2           GPIO_AD_08
+#define PIN_COL_3           GPIO_AD_07
+#define PIN_COL_4           GPIO_AD_06
+#define PIN_COL_5           GPIO_SD_13
+#define PIN_COL_6           GPIO_AD_05
 
 static int muxAnalogRead(const uint8_t channel) {
   // Any call to pinMode sets the port mux to GPIO mode.
