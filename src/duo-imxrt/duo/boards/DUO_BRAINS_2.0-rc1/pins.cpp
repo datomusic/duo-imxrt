@@ -9,6 +9,7 @@
 #define PIN_HP_ENABLE	     GPIO_AD_11
 
 #define PIN_SYN_MUX_IO       GPIO_AD_14
+#define PIN_BRN_MUX_IO       GPIO_AD_02
 #define PIN_SYN_ADDR0        GPIO_SD_00
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
@@ -28,43 +29,43 @@
 #define AMP_MUTE_PORT GPIO1
 #define AMP_MUTE_PIN 24U
 
-static int muxAnalogRead(const uint8_t channel) {
+static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   delayMicroseconds(50);
 
-  return analogRead(PIN_SYN_MUX_IO);
+  return analogRead(mux_pin);
 }
 
-static uint8_t muxDigitalRead(const uint8_t channel) {
+static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin) {
   pinMode(PIN_SYN_MUX_IO, INPUT_PULLUP);
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   delayMicroseconds(50);
   // Wait a few microseconds for the selection to propagate.
-  return digitalRead(PIN_SYN_MUX_IO);
+  return digitalRead(mux_pin);
 }
 
 int potRead(const Pot pot) {
   switch (pot) {
     case FILTER_RES_POT:
-      return muxAnalogRead(0);
+      return muxAnalogRead(0, PIN_SYN_MUX_IO);
     case TEMPO_POT:
-      return 1023 - analogRead(GPIO_AD_04);
+      return (1023 - muxAnalogRead(4, PIN_BRN_MUX_IO));
     case GATE_POT:
-      return 1023 - analogRead(GPIO_AD_03);
+      return (1023 - muxAnalogRead(6, PIN_BRN_MUX_IO));
     case AMP_POT:
-      return muxAnalogRead(3);
+      return muxAnalogRead(3, PIN_SYN_MUX_IO);
     case FILTER_FREQ_POT:
-      return muxAnalogRead(5);
+      return muxAnalogRead(5, PIN_SYN_MUX_IO);
     case OSC_PW_POT:
-      return muxAnalogRead(7);
+      return muxAnalogRead(7, PIN_SYN_MUX_IO);
     case OSC_DETUNE_POT:
-      return muxAnalogRead(6);
+      return muxAnalogRead(6, PIN_SYN_MUX_IO);
     case AMP_ENV_POT:
-      return muxAnalogRead(9);
+      return muxAnalogRead(9, PIN_SYN_MUX_IO);
     default:
       return 500;
   }
@@ -73,13 +74,13 @@ int potRead(const Pot pot) {
 bool pinRead(const Pin pin) {
   switch (pin) {
     case ACCENT_PIN:
-      return !digitalRead(PIN_SW_ACCENT);
+      return !(muxDigitalRead(5, PIN_BRN_MUX_IO));
     case GLIDE_PIN:
-      return muxDigitalRead(4) == 0;
+      return muxDigitalRead(4, PIN_SYN_MUX_IO) == 0;
     case DELAY_PIN:
-      return muxDigitalRead(2) != 0;
+      return muxDigitalRead(2, PIN_SYN_MUX_IO) != 0;
     case BITC_PIN:
-      return !digitalRead(PIN_SW_CRUSH);
+      return !(muxDigitalRead(7, PIN_BRN_MUX_IO));
     default:
       return false;
   }
