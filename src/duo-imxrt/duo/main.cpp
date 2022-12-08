@@ -9,6 +9,7 @@
 #include "lib/usb/usb.h"
 #include "pins.h"
 #include "stubs/arduino_stubs.h"
+#include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
 // typedef int elapsedMillis;
@@ -43,7 +44,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
-#include "board_audio_output.h"
+
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
@@ -123,13 +124,9 @@ int main(void) {
   AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
   AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
 
-
-
   led_init();
   AudioNoInterrupts();
   audio_init();
-  // Output gain is board/DAC dependent
-  mixer_output.gain(0, BOARD_MAIN_GAIN);
   AudioInterrupts();
 
   // Read the MIDI channel from EEPROM. Lowest four bits
@@ -292,12 +289,12 @@ void process_key(const char k, const char state) {
 void keys_scan() {
   if (pinRead(DELAY_PIN)) {
     synth.delay = false;
-    mixer_delay.gain(0, 0.0); // Delay input
-    mixer_delay.gain(3, 0.0);
+    mixer_delay.gain(0, 0.0f); // Delay input
+    mixer_delay.gain(3, 0.0f);
   } else {
     synth.delay = true;
-    mixer_delay.gain(0, 0.5); // Delay input
-    mixer_delay.gain(3, 0.4); // Hat delay input
+    mixer_delay.gain(0, 0.5f); // Delay input
+    mixer_delay.gain(3, 0.4f); // Hat delay input
   }
 
   synth.glide = pinRead(GLIDE_PIN);

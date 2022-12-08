@@ -87,12 +87,7 @@ bool pinRead(const Pin pin) {
 }
 
 void pins_init() {
-  // pinMode(PIN_SW_ACCENT, INPUT_PULLUP);
-  // pinMode(PIN_SW_CRUSH, INPUT_PULLUP);
-
   pinMode(PIN_HP_ENABLE, OUTPUT);
-
-  // pinMode(PIN_HP_JACK_DETECT, INPUT);
 
   pinMode(PIN_SYN_ADDR0, OUTPUT);
   pinMode(PIN_SYN_ADDR1, OUTPUT);
@@ -101,5 +96,4 @@ void pins_init() {
   pinMode(PIN_LED_1, OUTPUT);
   pinMode(PIN_LED_2, OUTPUT);
   pinMode(PIN_LED_3, OUTPUT);
-
 }
