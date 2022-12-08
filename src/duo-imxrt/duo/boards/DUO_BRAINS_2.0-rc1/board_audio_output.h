@@ -5,6 +5,6 @@
 
 typedef AudioOutputPT8211 BoardAudioOutput;
 
-#define BOARD_MAIN_GAIN 2.4
+#define BOARD_MAIN_GAIN 3.0
 
 #endif /* end of include guard: AUDIO_OUTPUT_H_VS0HQTKT */
