@@ -59,6 +59,7 @@ SET(CMAKE_C_FLAGS_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
@@ -82,6 +83,7 @@ SET(CMAKE_C_FLAGS_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
@@ -108,6 +110,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
@@ -133,6 +136,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
@@ -157,6 +161,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
@@ -181,6 +186,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
@@ -208,6 +214,7 @@ SET(CMAKE_CXX_FLAGS_FLEXSPI_NOR_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
@@ -234,6 +241,7 @@ SET(CMAKE_CXX_FLAGS_FLEXSPI_NOR_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Wdouble-promotion \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     -mthumb \
