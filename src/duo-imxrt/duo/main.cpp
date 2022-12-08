@@ -123,9 +123,13 @@ int main(void) {
   AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
   AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
 
+
+
   led_init();
   AudioNoInterrupts();
   audio_init();
+  // Output gain is board/DAC dependent
+  mixer_output.gain(0, BOARD_MAIN_GAIN);
   AudioInterrupts();
 
   // Read the MIDI channel from EEPROM. Lowest four bits
