@@ -121,6 +121,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_DEBUG " \
     -fdata-sections \
     -ffreestanding \
     -fno-builtin \
+    -fsingle-precision-constant \
     -mapcs \
     -std=gnu99 \
 ")
@@ -147,6 +148,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_RELEASE " \
     -fdata-sections \
     -ffreestanding \
     -fno-builtin \
+    -fsingle-precision-constant \
     -mapcs \
     -std=gnu99 \
 ")
