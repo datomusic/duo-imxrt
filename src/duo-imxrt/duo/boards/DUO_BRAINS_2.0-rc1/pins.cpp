@@ -3,10 +3,7 @@
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
 
-#define PIN_SW_ACCENT        GPIO_00
-#define PIN_SW_CRUSH         GPIO_02
-// #define PIN_HP_JACK_DETECT   GPIO_01
-#define PIN_HP_ENABLE	     GPIO_AD_11
+#define PIN_HP_ENABLE	       GPIO_AD_11
 
 #define PIN_SYN_MUX_IO       GPIO_AD_14
 #define PIN_BRN_MUX_IO       GPIO_AD_02
