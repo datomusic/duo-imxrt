@@ -6,7 +6,7 @@
 #define PIN_SW_ACCENT        GPIO_00
 #define PIN_SW_CRUSH         GPIO_02
 #define PIN_HP_JACK_DETECT   GPIO_01
-#define PIN_HP_ENABLE	     GPIO_AD_11
+#define PIN_HP_ENABLE	       GPIO_AD_11
 
 #define PIN_SYN_MUX_IO       GPIO_AD_14
 #define PIN_SYN_ADDR0        GPIO_SD_00
@@ -17,9 +17,9 @@
 #define PIN_LED_2            GPIO_07
 #define PIN_LED_3            GPIO_06
 
-#define ENV_LED GPIO_06
-#define OSC_LED GPIO_08
-#define FILTER_LED GPIO_07
+#define ENV_LED              GPIO_06
+#define OSC_LED              GPIO_08
+#define FILTER_LED           GPIO_07
 
 #define PIN_ROW_1            GPIO_13
 #define PIN_ROW_2            GPIO_12
@@ -34,8 +34,6 @@
 #define PIN_COL_6           GPIO_AD_05
 
 static int muxAnalogRead(const uint8_t channel) {
-  // Any call to pinMode sets the port mux to GPIO mode.
-
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));

@@ -6,7 +6,7 @@
 #define LED_CLK 25
 #define SYNC_IN 14
 
-enum Pin { GLIDE_PIN, DELAY_PIN, ACCENT_PIN, BITC_PIN };
+enum Pin { GLIDE_PIN, DELAY_PIN, ACCENT_PIN, BITC_PIN, HP_DETECT_PIN };
 
 enum Pot {
   FILTER_RES_POT,
@@ -22,3 +22,5 @@ enum Pot {
 int potRead(const Pot pot);
 bool pinRead(const Pin pin);
 void pins_init();
+
+bool headphone_jack_detected();

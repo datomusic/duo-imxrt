@@ -45,6 +45,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
 
+void headphone_jack_check();
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
@@ -179,6 +180,8 @@ int main(void) {
 
       midi_handle();
       sequencer_update();
+      
+      headphone_jack_check();
 
       if (!dfu_flag) {
         led_update(); // ~ 2ms
@@ -324,4 +327,15 @@ void enter_dfu() {
   FastLED.show();
   delay(100);
   BOARD_EnterROMBootloader();
+}
+
+
+void headphone_jack_check() {
+  if(headphone_jack_detected()) {
+    Audio::headphone_enable();
+    Audio::amp_disable();
+  } else {
+    Audio::headphone_disable();
+    Audio::amp_enable();
+  }
 }

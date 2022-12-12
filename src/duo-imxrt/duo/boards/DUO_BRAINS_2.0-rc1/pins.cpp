@@ -3,6 +3,7 @@
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
 
+#define PIN_AMP_MUTE	       GPIO_AD_11
 #define PIN_HP_ENABLE	       GPIO_AD_11
 
 #define PIN_SYN_MUX_IO       GPIO_AD_14
@@ -19,12 +20,6 @@
 #define OSC_LED              PIN_LED_1
 #define FILTER_LED           PIN_LED_2
 
-#define HP_ENABLE_PINMUX IOMUXC_GPIO_AD_11_GPIOMUX_IO25
-#define HP_ENABLE_PORT GPIO1
-#define HP_ENABLE_PIN 25U
-#define AMP_MUTE_PINMUX IOMUXC_GPIO_AD_10_GPIOMUX_IO24
-#define AMP_MUTE_PORT GPIO1
-#define AMP_MUTE_PIN 24U
 
 static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
@@ -78,6 +73,8 @@ bool pinRead(const Pin pin) {
       return muxDigitalRead(2, PIN_SYN_MUX_IO) != 0;
     case BITC_PIN:
       return !(muxDigitalRead(7, PIN_BRN_MUX_IO));
+    case HP_DETECT_PIN:
+      return (muxDigitalRead(3, PIN_BRN_MUX_IO));
     default:
       return false;
   }
@@ -85,6 +82,8 @@ bool pinRead(const Pin pin) {
 
 void pins_init() {
   pinMode(PIN_HP_ENABLE, OUTPUT);
+  pinMode(PIN_AMP_MUTE, OUTPUT);
+
 
   pinMode(PIN_SYN_ADDR0, OUTPUT);
   pinMode(PIN_SYN_ADDR1, OUTPUT);
@@ -93,4 +92,8 @@ void pins_init() {
   pinMode(PIN_LED_1, OUTPUT);
   pinMode(PIN_LED_2, OUTPUT);
   pinMode(PIN_LED_3, OUTPUT);
+}
+
+bool headphone_jack_detected() {
+  return pinRead(HP_DETECT_PIN);
 }
