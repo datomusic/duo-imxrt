@@ -1,7 +1,6 @@
 #include "Arduino.h"
 #define DEV_MODE 1
 
-
 #include "lib/board_init.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
@@ -12,7 +11,10 @@
 #include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
-// typedef int elapsedMillis;
+
+unsigned long next_frame_time;
+unsigned int frame_interval = 10;
+
 #include "globals.h"
 
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
@@ -156,11 +158,12 @@ int main(void) {
 
   Audio::headphone_enable();
   Audio::amp_enable();
+
+  next_frame_time = millis() + frame_interval;
+
   in_setup = false;
 
   while (true) {
-    delay(1);
-    
     DatoUSB::background_update();
 
     if (power_check()) {
@@ -184,7 +187,10 @@ int main(void) {
       headphone_jack_check();
 
       if (!dfu_flag) {
-        led_update(); // ~ 2ms
+        if (millis() > next_frame_time) {
+          next_frame_time = millis() + frame_interval;
+          led_update(); // ~ 2ms
+        }
       }
     }
   }
@@ -321,7 +327,7 @@ void enter_dfu() {
   for(int i = 0; i < NUM_LEDS; i++) {
     physical_leds[i] = CRGB::Black;
   }
-  physical_leds[0] = CRGB::Blue;
+  physical_leds[0] = CRGB::Teal;
   FastLED.show();
   delay(100);
   FastLED.show();
