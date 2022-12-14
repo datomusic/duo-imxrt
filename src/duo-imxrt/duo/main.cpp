@@ -111,25 +111,31 @@ void pots_read() {
 bool power_check() { return true; }
 
 
+static TouchState touches;
+static TouchState previousTouches;
+
 void drum_read(){
-  TouchState value = BS814A_readRaw();
+  if(!BS814A_readRaw(touches)){
+    return;
+  }
 
-  static TouchState previousValue;
+#define KEY_PRESSED(key) (touches.key && !previousTouches.key)
 
-  if (value.key3 && !previousValue.key3) {
+  if (KEY_PRESSED(key3)) {
     kick_noteon(50);
   }
-  if (value.key4 && !previousValue.key4 ) {
+  if (KEY_PRESSED(key4)) {
     kick_noteon(127);
   }
-  if (value.key2 && !previousValue.key2 ) {
+  if (KEY_PRESSED(key2)) {
     hat_noteon(30);
   }
-  if (value.key1 && !previousValue.key1) {
+  if (KEY_PRESSED(key1)) {
     hat_noteon(127);
   }
+#undef KEY_PRESSED
 
-  previousValue = value;
+  previousTouches = touches;
 }
 
 

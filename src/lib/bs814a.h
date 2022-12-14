@@ -7,14 +7,11 @@
 #define PIN_BS814A_DATA 2U
 
 struct TouchState {
-  bool key1;
-  bool key2;
-  bool key3;
-  bool key4;
+  bool key1 = false;
+  bool key2 = false;
+  bool key3 = false;
+  bool key4 = false;
 };
-
-void BS814A_begin(void);
-TouchState BS814A_readRaw(void);
 
 void BS814A_begin() {
   pinMode(PIN_BS814A_CLOCK, OUTPUT);
@@ -29,19 +26,14 @@ void BS814A_begin() {
   The BS814A pulls the data pin low to signal that a touch is detected
 */
 
-TouchState BS814A_readRaw() {
-  TouchState s;
-  s.key1 = false;
-  s.key2 = false;
-  s.key3 = false;
-  s.key4 = false;
-
+bool BS814A_readRaw(TouchState &s) {
   if (digitalRead(PIN_BS814A_DATA) == 1) {
-    return s;
+    return false;
   }
 
   uint8_t value = 0;
   uint8_t mask;
+  __disable_irq();
   for (mask = 0x01; mask; mask <<= 1) // LSBFIRST
   {
     digitalWrite(PIN_BS814A_CLOCK, LOW);
@@ -55,11 +47,12 @@ TouchState BS814A_readRaw() {
 
     delayMicroseconds(BS814A_CLOCK_PERIOD_US);
   }
+  __enable_irq();
 
   s.key1 = ((value & 0x01) == 0);
-  s.key2 = ((value & (0x01 << 1)) == 0);
-  s.key3 = ((value & (0x01 << 2)) == 0);
-  s.key4 = ((value & (0x01 << 3)) == 0);
+  s.key2 = ((value & 2) == 0);
+  s.key3 = ((value & 4) == 0);
+  s.key4 = ((value & 8) == 0);
 
-  return s;
+  return true;
 }
