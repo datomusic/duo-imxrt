@@ -2,26 +2,21 @@
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
 
-// TODO: Switch to Arduino pin mappings once those are available
 #define BS814A_CLOCK_PERIOD_US 20
 #define PIN_BS814A_CLOCK 3U
-// #define BS814A_DATA_GPIO GPIO1
-// #define BS814A_DATA_PIN 4U
-// #define BS814A_DATA_MUX IOMUXC_GPIO_04_GPIOMUX_IO04
 #define PIN_BS814A_DATA 2U
 
 struct TouchState {
-  bool k1;
-  bool k2;
-  bool k3;
-  bool k4;
+  bool key1;
+  bool key2;
+  bool key3;
+  bool key4;
 };
 
 void BS814A_begin(void);
 TouchState BS814A_readRaw(void);
 
 void BS814A_begin() {
-  // Clock pin configuration
   pinMode(PIN_BS814A_CLOCK, OUTPUT);
   pinMode(PIN_BS814A_DATA, INPUT);
 }
@@ -36,10 +31,10 @@ void BS814A_begin() {
 
 TouchState BS814A_readRaw() {
   TouchState s;
-  s.k1 = false;
-  s.k2 = false;
-  s.k3 = false;
-  s.k4 = false;
+  s.key1 = false;
+  s.key2 = false;
+  s.key3 = false;
+  s.key4 = false;
 
   if (digitalRead(PIN_BS814A_DATA) == 1) {
     return s;
@@ -61,10 +56,10 @@ TouchState BS814A_readRaw() {
     delayMicroseconds(BS814A_CLOCK_PERIOD_US);
   }
 
-  s.k1 = ((value & 0x01) == 0);
-  s.k2 = ((value & (0x01 << 1)) == 0);
-  s.k3 = ((value & (0x01 << 2)) == 0);
-  s.k4 = ((value & (0x01 << 3)) == 0);
+  s.key1 = ((value & 0x01) == 0);
+  s.key2 = ((value & (0x01 << 1)) == 0);
+  s.key3 = ((value & (0x01 << 2)) == 0);
+  s.key4 = ((value & (0x01 << 3)) == 0);
 
   return s;
 }
