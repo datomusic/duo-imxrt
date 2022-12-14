@@ -1,6 +1,7 @@
 #include "Arduino.h"
 
 #include "lib/board_init.h"
+#include "lib/bs814a.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
@@ -110,6 +111,41 @@ void pots_read() {
 bool power_check() { return true; }
 
 
+/* bool hat_is_on = false; */
+/* int last_time = 0; */
+
+void drum_read(){
+  /*
+  const auto curtime = micros();
+  if (curtime - last_time > 100000) {
+    if (hat_is_on) {
+      hat_is_on = false;
+      hat_noteoff();
+      //kick_noteoff();
+    }else{
+      hat_is_on = true;
+      hat_noteon(30);
+      //kick_noteon(66);
+    }
+    last_time = curtime;
+  }
+  */
+
+  TouchState value = BS814A_readRaw();
+  if (value.k1 ) {
+    kick_noteon(50);
+  }
+  if (value.k2 ) {
+    kick_noteon(127);
+  }
+  if (value.k3 ) {
+    hat_noteon(60);
+  }
+  if (value.k4 ) {
+    hat_noteon(127);
+  }
+}
+
 
 
 int main(void) {
@@ -118,6 +154,7 @@ int main(void) {
   Sync::init();
   LEDs::init();
   pins_init();
+  BS814A_begin();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
   Serial.begin(31250U);
