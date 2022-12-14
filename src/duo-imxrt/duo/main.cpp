@@ -93,15 +93,18 @@ void midi_handle_clock() {
 }
 
 void pots_read() {
-  gate_length_msec = map(potRead(GATE_POT),0,1023,10,200);
-  
-  synth.detune = potRead(OSC_DETUNE_POT);
-  synth.release = potRead(AMP_ENV_POT);
-  synth.filter = potRead(FILTER_FREQ_POT);
-  synth.amplitude = potRead(AMP_POT);
-  synth.pulseWidth = potRead(OSC_PW_POT);
-  synth.resonance = potRead(FILTER_RES_POT);
+  synth.gateLength = potRead(GATE_POT);
   synth.speed = potRead(TEMPO_POT);
+  
+  synth.resonance = potRead(FILTER_RES_POT);
+  synth.release = potRead(AMP_ENV_POT);
+  synth.amplitude = potRead(AMP_POT);
+  synth.filter = potRead(FILTER_FREQ_POT);
+  synth.detune = potRead(OSC_DETUNE_POT);
+  synth.pulseWidth = potRead(OSC_PW_POT);
+
+  synth.glide = pinRead(GLIDE_PIN);
+  synth.crush = pinRead(BITC_PIN);
 }
 
 bool power_check() { return true; }
@@ -124,11 +127,17 @@ int main(void) {
   sequencer_init();
 
   BoardAudioOutput dac1; // xy=988.1000061035156,100
-  AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
-  AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
+  AudioAmplifier headphone_preamp;
+  AudioAmplifier speaker_preamp;
+  AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
+  AudioConnection patchCord17(pop_suppressor, 0, speaker_preamp, 0);
+  AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
+  AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
   led_init();
   AudioNoInterrupts();
+  headphone_preamp.gain(1.0f);
+  speaker_preamp.gain(1.0f);
   audio_init();
   AudioInterrupts();
 
@@ -175,7 +184,6 @@ int main(void) {
       keyboard_to_note();
       pitch_update(); // ~30us
 
-
       synth_update(); // ~ 100us
       midi_send_cc();
 
@@ -189,8 +197,10 @@ int main(void) {
       if (!dfu_flag) {
         if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
-          led_update(); // ~ 2ms
+          led_update(); // ~ 
+          digitalWrite(GPIO_AD_03, HIGH);
           pots_read();    // ~ 100us
+          digitalWrite(GPIO_AD_03, LOW);
         }
       }
     }
@@ -307,8 +317,6 @@ void keys_scan() {
     mixer_delay.gain(3, 0.4f); // Hat delay input
   }
 
-  synth.glide = pinRead(GLIDE_PIN);
-  synth.crush = pinRead(BITC_PIN);
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {

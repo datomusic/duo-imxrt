@@ -8,6 +8,7 @@
 
 #define PIN_SYN_MUX_IO       GPIO_AD_14
 #define PIN_BRN_MUX_IO       GPIO_AD_02
+
 #define PIN_SYN_ADDR0        GPIO_SD_00
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
@@ -22,22 +23,31 @@
 
 
 static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
+  digitalWrite(GPIO_SD_13, LOW);
+  pinMode(mux_pin, INPUT_DISABLE);
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  delayMicroseconds(50);
-
+  
+  delayMicroseconds(40);
+  digitalWrite(GPIO_SD_13, HIGH);
   return analogRead(mux_pin);
 }
 
-static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin) {
-  pinMode(PIN_SYN_MUX_IO, INPUT_PULLUP);
+static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinMode mode) {
+  digitalWrite(GPIO_SD_13, LOW);
+  pinMode(mux_pin, mode);
+  uint8_t value = 0;
+
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   delayMicroseconds(50);
-  // Wait a few microseconds for the selection to propagate.
-  return digitalRead(mux_pin);
+  
+  value = digitalRead(mux_pin);
+  pinMode(mux_pin, INPUT_DISABLE);
+  digitalWrite(GPIO_SD_13, HIGH);
+  return value;
 }
 
 int potRead(const Pot pot) {
@@ -57,7 +67,7 @@ int potRead(const Pot pot) {
     case OSC_DETUNE_POT:
       return muxAnalogRead(6, PIN_SYN_MUX_IO);
     case AMP_ENV_POT:
-      return muxAnalogRead(9, PIN_SYN_MUX_IO);
+      return muxAnalogRead(1, PIN_SYN_MUX_IO);
     default:
       return 500;
   }
@@ -66,15 +76,15 @@ int potRead(const Pot pot) {
 bool pinRead(const Pin pin) {
   switch (pin) {
     case ACCENT_PIN:
-      return !(muxDigitalRead(5, PIN_BRN_MUX_IO));
+      return !(muxDigitalRead(5, PIN_BRN_MUX_IO, INPUT));
     case GLIDE_PIN:
-      return muxDigitalRead(4, PIN_SYN_MUX_IO) == 0;
+      return muxDigitalRead(4, PIN_SYN_MUX_IO, INPUT_PULLUP) == 0;
     case DELAY_PIN:
-      return muxDigitalRead(2, PIN_SYN_MUX_IO) != 0;
+      return muxDigitalRead(2, PIN_SYN_MUX_IO, INPUT_PULLUP) != 0;
     case BITC_PIN:
-      return !(muxDigitalRead(7, PIN_BRN_MUX_IO));
+      return !(muxDigitalRead(7, PIN_BRN_MUX_IO, INPUT));
     case HP_DETECT_PIN:
-      return (muxDigitalRead(3, PIN_BRN_MUX_IO));
+      return (muxDigitalRead(3, PIN_BRN_MUX_IO, INPUT));
     default:
       return false;
   }
@@ -92,6 +102,9 @@ void pins_init() {
   pinMode(PIN_LED_1, OUTPUT);
   pinMode(PIN_LED_2, OUTPUT);
   pinMode(PIN_LED_3, OUTPUT);
+
+  pinMode(GPIO_AD_03, OUTPUT);
+  pinMode(GPIO_SD_13, OUTPUT);
 }
 
 bool headphone_jack_detected() {

@@ -71,6 +71,7 @@ typedef struct {
   bool accent;
   bool delay;
   bool crush;
+  int gateLength;
 } synth_parameters;
 
 synth_parameters synth;
