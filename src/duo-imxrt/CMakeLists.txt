@@ -8,13 +8,14 @@ ENABLE_LANGUAGE(ASM)
 set(EXECUTABLE_NAME duo-imxrt.elf)
 
 if(NOT DEFINED BOARD)
-    set(BOARD "DUO_BRAINS_2.0-beta1")
+    set(BOARD "DUO_BRAINS_2.0-rc1")
 endif(NOT DEFINED BOARD)
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/duo/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/adapters/fast_led/FastLED.cpp
     ${CMAKE_CURRENT_LIST_DIR}/../../libraries/duo-firmware/src/effect_custom_envelope.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/duo/boards/${BOARD}/pins.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/duo/boards/${BOARD}/audio.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE

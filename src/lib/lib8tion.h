@@ -439,7 +439,7 @@ typedef union {
 ///                  IEEE754 32-bit float.
 LIB8STATIC float sfract15ToFloat( sfract15 y)
 {
-    return y / 32768.0;
+    return y / 32768.0f;
 }
 
 /// conversion from IEEE754 float in the range (-1,1)
@@ -448,7 +448,7 @@ LIB8STATIC float sfract15ToFloat( sfract15 y)
 ///                  representable range is basically
 LIB8STATIC sfract15 floatToSfract15( float f)
 {
-    return f * 32768.0;
+    return f * 32768.0f;
 }
 
 

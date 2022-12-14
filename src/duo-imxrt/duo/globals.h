@@ -9,8 +9,8 @@ int MIDI_CHANNEL = 1;
 const uint8_t SCALE[] = { 49,51,54,56,58,61,63,66,68,70 };
 const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 
-#define HIGH_SAMPLE_RATE 44100
-#define LOW_SAMPLE_RATE 2489
+#define HIGH_SAMPLE_RATE 44100.0f
+#define LOW_SAMPLE_RATE 2489.0f
 
 #define INITIAL_VELOCITY 100
 
@@ -66,10 +66,12 @@ typedef struct {
   int resonance;
   int release;
   int amplitude;
+  int speed;
   bool glide;
   bool accent;
   bool delay;
   bool crush;
+  int gateLength;
 } synth_parameters;
 
 synth_parameters synth;

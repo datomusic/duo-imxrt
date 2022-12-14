@@ -42,36 +42,43 @@ extern "C" {
 void pinMode(pin_size_t pinNumber, uint8_t pinMode) {
     //IO MUX
 
-    gpio_pin_config_t  led_config = {kGPIO_DigitalInput, 0, kGPIO_NoIntmode};  
+    gpio_pin_config_t  pin_config= {kGPIO_DigitalInput, 0, kGPIO_NoIntmode};  
     uint32_t _pinConfig;
     switch (pinMode)
     {
     case OUTPUT:
-        led_config.direction = kGPIO_DigitalOutput;
-        led_config.outputLogic = 0;
+        pin_config.direction = kGPIO_DigitalOutput;
+        pin_config.outputLogic = 0;
         _pinConfig =0x10B0U; 
         break;
     case INPUT:
-        led_config.direction = kGPIO_DigitalInput;
-        led_config.outputLogic = 0;
+        pin_config.outputLogic = 0;
         _pinConfig =0x10B0U; 
         break;
     case INPUT_PULLUP:
-        led_config.outputLogic = 1;
+        pin_config.outputLogic = 1;
         _pinConfig =0xF0B0U; 
         break;
     case INPUT_PULLDOWN:
-        led_config.outputLogic = 0;
+        pin_config.direction = kGPIO_DigitalInput;
+        pin_config.outputLogic = 0;
         _pinConfig =0x10B0U; 
         break;
-    default:
-        led_config.direction = kGPIO_DigitalInput;
+    case INPUT_DISABLE:
+        pin_config.direction = kGPIO_DigitalInput;
+        pin_config.outputLogic = 0;
+        _pinConfig = 0x0U; 
+        break;
+    default: // INPUT_DISABLE
+        pin_config.direction = kGPIO_DigitalInput;
+        pin_config.outputLogic = 0;
+        _pinConfig = 0x10B0U; 
         break;
     }
 
     pinPeripheral(pinNumber, 0U, FUN_GPIO, _pinConfig);
 
-    GPIO_PinInit(g_APinDescription[pinNumber].GROUP, g_APinDescription[pinNumber].PIN, &led_config);
+    GPIO_PinInit(g_APinDescription[pinNumber].GROUP, g_APinDescription[pinNumber].PIN, &pin_config);
 }
 
 /**

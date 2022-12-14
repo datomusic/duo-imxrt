@@ -1,19 +1,20 @@
 #include "Arduino.h"
-#define DEV_MODE 1
-#define ENV_LED GPIO_06
-#define OSC_LED GPIO_08
-#define FILTER_LED GPIO_07
 
 #include "lib/board_init.h"
+#include "lib/bs814a.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
 #include "lib/usb/usb.h"
 #include "pins.h"
 #include "stubs/arduino_stubs.h"
+#include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
-// typedef int elapsedMillis;
+
+unsigned long next_frame_time;
+unsigned int frame_interval = 10;
+
 #include "globals.h"
 
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
@@ -45,7 +46,8 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
-#include "board_audio_output.h"
+
+void headphone_jack_check();
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
@@ -92,18 +94,43 @@ void midi_handle_clock() {
 }
 
 void pots_read() {
-  gate_length_msec = map(potRead(GATE_POT),0,1023,10,200);
+  synth.gateLength = potRead(GATE_POT);
+  synth.speed = potRead(TEMPO_POT);
   
-  synth.detune = potRead(OSC_DETUNE_POT);
-  synth.release = potRead(AMP_ENV_POT);
-  synth.filter = potRead(FILTER_FREQ_POT);
-  synth.amplitude = potRead(AMP_POT);
-  synth.pulseWidth = potRead(OSC_PW_POT);
   synth.resonance = potRead(FILTER_RES_POT);
+  synth.release = potRead(AMP_ENV_POT);
+  synth.amplitude = potRead(AMP_POT);
+  synth.filter = potRead(FILTER_FREQ_POT);
+  synth.detune = potRead(OSC_DETUNE_POT);
+  synth.pulseWidth = potRead(OSC_PW_POT);
+
+  synth.glide = pinRead(GLIDE_PIN);
+  synth.crush = pinRead(BITC_PIN);
 }
 
 bool power_check() { return true; }
 
+
+void drum_read(){
+  TouchState value = BS814A_readRaw();
+
+  static TouchState previousValue;
+
+  if (value.key3 && !previousValue.key3) {
+    kick_noteon(50);
+  }
+  if (value.key4 && !previousValue.key4 ) {
+    kick_noteon(127);
+  }
+  if (value.key2 && !previousValue.key2 ) {
+    hat_noteon(30);
+  }
+  if (value.key1 && !previousValue.key1) {
+    hat_noteon(127);
+  }
+
+  previousValue = value;
+}
 
 
 
@@ -113,6 +140,7 @@ int main(void) {
   Sync::init();
   LEDs::init();
   pins_init();
+  BS814A_begin();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
   Serial.begin(31250U);
@@ -122,11 +150,17 @@ int main(void) {
   sequencer_init();
 
   BoardAudioOutput dac1; // xy=988.1000061035156,100
-  AudioConnection patchCord16(pop_suppressor, 0, dac1, 0);
-  AudioConnection patchCord17(pop_suppressor, 0, dac1, 1);
+  AudioAmplifier headphone_preamp;
+  AudioAmplifier speaker_preamp;
+  AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
+  AudioConnection patchCord17(pop_suppressor, 0, speaker_preamp, 0);
+  AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
+  AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
   led_init();
   AudioNoInterrupts();
+  headphone_preamp.gain(HEADPHONE_GAIN);
+  speaker_preamp.gain(SPEAKER_GAIN);
   audio_init();
   AudioInterrupts();
 
@@ -146,7 +180,6 @@ int main(void) {
   }
 
   drum_init();
-  touch_init();
 
   MIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
@@ -156,11 +189,12 @@ int main(void) {
 
   Audio::headphone_enable();
   Audio::amp_enable();
+
+  next_frame_time = millis() + frame_interval;
+
   in_setup = false;
 
   while (true) {
-    delay(1);
-    
     DatoUSB::background_update();
 
     if (power_check()) {
@@ -171,7 +205,6 @@ int main(void) {
       keys_scan(); // 14 or 175us (depending on debounce)
       keyboard_to_note();
       pitch_update(); // ~30us
-      pots_read();    // ~ 100us
 
       synth_update(); // ~ 100us
       midi_send_cc();
@@ -180,9 +213,17 @@ int main(void) {
 
       midi_handle();
       sequencer_update();
+      
+      headphone_jack_check();
 
       if (!dfu_flag) {
-        led_update(); // ~ 2ms
+        if (millis() > next_frame_time) {
+          next_frame_time = millis() + frame_interval;
+          led_update(); // ~ 
+          digitalWrite(GPIO_AD_03, HIGH);
+          pots_read();    // ~ 100us
+          digitalWrite(GPIO_AD_03, LOW);
+        }
       }
     }
   }
@@ -290,16 +331,14 @@ void process_key(const char k, const char state) {
 void keys_scan() {
   if (pinRead(DELAY_PIN)) {
     synth.delay = false;
-    mixer_delay.gain(0, 0.0); // Delay input
-    mixer_delay.gain(3, 0.0);
+    mixer_delay.gain(0, 0.0f); // Delay input
+    mixer_delay.gain(3, 0.0f);
   } else {
     synth.delay = true;
-    mixer_delay.gain(0, 0.5); // Delay input
-    mixer_delay.gain(3, 0.4); // Hat delay input
+    mixer_delay.gain(0, 0.5f); // Delay input
+    mixer_delay.gain(3, 0.4f); // Hat delay input
   }
 
-  synth.glide = pinRead(GLIDE_PIN);
-  synth.crush = pinRead(BITC_PIN);
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {
@@ -319,10 +358,21 @@ void enter_dfu() {
   for(int i = 0; i < NUM_LEDS; i++) {
     physical_leds[i] = CRGB::Black;
   }
-  physical_leds[0] = CRGB::Blue;
+  physical_leds[0] = CRGB::Teal;
   FastLED.show();
   delay(100);
   FastLED.show();
   delay(100);
   BOARD_EnterROMBootloader();
+}
+
+
+void headphone_jack_check() {
+  if(headphone_jack_detected()) {
+    Audio::headphone_enable();
+    Audio::amp_disable();
+  } else {
+    Audio::headphone_disable();
+    Audio::amp_enable();
+  }
 }
