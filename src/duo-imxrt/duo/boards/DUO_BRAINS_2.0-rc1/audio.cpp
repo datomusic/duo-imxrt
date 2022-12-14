@@ -35,6 +35,8 @@ void amp_disable(void) {
   gpio_pin_config_t amp_mute_config = {kGPIO_DigitalOutput, 0};
   GPIO_PinInit(AMP_MUTE_PORT, AMP_MUTE_PIN, &amp_mute_config);
   GPIO_PinWrite(AMP_MUTE_PORT, AMP_MUTE_PIN, 1);
+  amp_mute_config = {kGPIO_DigitalInput, 0};
+  GPIO_PinInit(AMP_MUTE_PORT, AMP_MUTE_PIN, &amp_mute_config);
 }
 
 } // namespace Audio
