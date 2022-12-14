@@ -66,6 +66,7 @@ typedef struct {
   int resonance;
   int release;
   int amplitude;
+  int speed;
   bool glide;
   bool accent;
   bool delay;

@@ -1,5 +1,4 @@
 #include "Arduino.h"
-#define DEV_MODE 1
 
 #include "lib/board_init.h"
 #include "lib/leds.h"
@@ -102,6 +101,7 @@ void pots_read() {
   synth.amplitude = potRead(AMP_POT);
   synth.pulseWidth = potRead(OSC_PW_POT);
   synth.resonance = potRead(FILTER_RES_POT);
+  synth.speed = potRead(TEMPO_POT);
 }
 
 bool power_check() { return true; }
@@ -174,7 +174,7 @@ int main(void) {
       keys_scan(); // 14 or 175us (depending on debounce)
       keyboard_to_note();
       pitch_update(); // ~30us
-      pots_read();    // ~ 100us
+
 
       synth_update(); // ~ 100us
       midi_send_cc();
@@ -190,6 +190,7 @@ int main(void) {
         if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
           led_update(); // ~ 2ms
+          pots_read();    // ~ 100us
         }
       }
     }
