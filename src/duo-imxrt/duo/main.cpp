@@ -159,8 +159,8 @@ int main(void) {
 
   led_init();
   AudioNoInterrupts();
-  headphone_preamp.gain(1.0f);
-  speaker_preamp.gain(1.0f);
+  headphone_preamp.gain(HEADPHONE_GAIN);
+  speaker_preamp.gain(SPEAKER_GAIN);
   audio_init();
   AudioInterrupts();
 
