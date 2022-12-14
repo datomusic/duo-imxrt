@@ -111,39 +111,25 @@ void pots_read() {
 bool power_check() { return true; }
 
 
-/* bool hat_is_on = false; */
-/* int last_time = 0; */
-
 void drum_read(){
-  /*
-  const auto curtime = micros();
-  if (curtime - last_time > 100000) {
-    if (hat_is_on) {
-      hat_is_on = false;
-      hat_noteoff();
-      //kick_noteoff();
-    }else{
-      hat_is_on = true;
-      hat_noteon(30);
-      //kick_noteon(66);
-    }
-    last_time = curtime;
-  }
-  */
-
   TouchState value = BS814A_readRaw();
-  if (value.k1 ) {
+
+  static TouchState previousValue;
+
+  if (value.key3 && !previousValue.key3) {
     kick_noteon(50);
   }
-  if (value.k2 ) {
+  if (value.key4 && !previousValue.key4 ) {
     kick_noteon(127);
   }
-  if (value.k3 ) {
-    hat_noteon(60);
+  if (value.key2 && !previousValue.key2 ) {
+    hat_noteon(30);
   }
-  if (value.k4 ) {
+  if (value.key1 && !previousValue.key1) {
     hat_noteon(127);
   }
+
+  previousValue = value;
 }
 
 
@@ -194,7 +180,6 @@ int main(void) {
   }
 
   drum_init();
-  touch_init();
 
   MIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
