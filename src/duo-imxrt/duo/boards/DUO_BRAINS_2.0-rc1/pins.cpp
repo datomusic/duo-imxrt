@@ -85,6 +85,11 @@ bool pinRead(const Pin pin) {
       return !(muxDigitalRead(7, PIN_BRN_MUX_IO, INPUT));
     case HP_DETECT_PIN:
       return (muxDigitalRead(3, PIN_BRN_MUX_IO, INPUT));
+    case SYNC_DETECT_PIN:
+      // The pulldown on the SYNC_DETECT pin is too weak
+      // So let's do an analogRead and compare it to 70%
+      // of fullscale
+      return !(muxAnalogRead(2, PIN_BRN_MUX_IO) < 700); 
     default:
       return false;
   }
