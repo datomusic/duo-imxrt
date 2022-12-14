@@ -20,6 +20,7 @@ typedef enum {
   OUTPUT          = 0x1,
   INPUT_PULLUP    = 0x2,
   INPUT_PULLDOWN  = 0x3,
+  INPUT_DISABLE   = 0x4
 } PinMode;
 
 typedef enum {

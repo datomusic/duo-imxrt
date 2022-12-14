@@ -85,55 +85,55 @@ void delayMicroseconds(unsigned int us)
   }
 }
 
-// // Interrupt-compatible version of micros
-// // Theory: repeatedly take readings of SysTick counter, millis counter and SysTick interrupt pending flag.
-// // When it appears that millis counter and pending is stable and SysTick hasn't rolled over, use these
-// // values to calculate micros. If there is a pending SysTick, add one to the millis counter in the calculation.
-// unsigned long micros( void )
-// {
-//   uint32_t ticks, ticks2;
-//   uint32_t pend, pend2;
-//   uint32_t count, count2;
-
-//   ticks2  = SysTick->VAL;
-//   pend2   = !!(SCB->ICSR & SCB_ICSR_PENDSTSET_Msk)  ;
-//   count2  = systick_millis_count;
-
-//   do
-//   {
-//     ticks=ticks2;
-//     pend=pend2;
-//     count=count2;
-//     ticks2  = SysTick->VAL;
-//     pend2   = !!(SCB->ICSR & SCB_ICSR_PENDSTSET_Msk)  ;
-//     count2  = systick_millis_count;
-//   } while ((pend != pend2) || (count != count2) || (ticks < ticks2));
-
-//   return ((count+pend) * 1000) + (((SysTick->LOAD  - ticks)*(1048576/(SystemCoreClock/1000000)))>>20) ;
-//   // this is an optimization to turn a runtime division into two compile-time divisions and
-//   // a runtime multiplication and shift, saving a few cycles
-// }
-
-// Returns the number of microseconds since your program started running.
-// This 32 bit number will roll back to zero after about 71 minutes and
-// 35 seconds.  For a simpler way to build delays or timeouts, consider
-// using elapsedMicros.
-uint32_t micros(void)
+// Interrupt-compatible version of micros
+// Theory: repeatedly take readings of SysTick counter, millis counter and SysTick interrupt pending flag.
+// When it appears that millis counter and pending is stable and SysTick hasn't rolled over, use these
+// values to calculate micros. If there is a pending SysTick, add one to the millis counter in the calculation.
+unsigned long micros( void )
 {
-	uint32_t smc, scc;
-	do {
-		__LDREXW(&systick_safe_read);
-		smc = systick_millis_count;
-		scc = systick_cycle_count;
-	} while ( __STREXW(1, &systick_safe_read));
-	uint32_t cyccnt = DWT->CYCCNT;
-	asm volatile("" : : : "memory");
-	uint32_t ccdelta = cyccnt - scc;
-	uint32_t frac = ((uint64_t)ccdelta * scale_cpu_cycles_to_microseconds) >> 32;
-	if (frac > 1000) frac = 1000;
-	uint32_t usec = 1000*smc + frac;
-	return usec;
+  uint32_t ticks, ticks2;
+  uint32_t pend, pend2;
+  uint32_t count, count2;
+
+  ticks2  = SysTick->VAL;
+  pend2   = !!(SCB->ICSR & SCB_ICSR_PENDSTSET_Msk)  ;
+  count2  = systick_millis_count;
+
+  do
+  {
+    ticks=ticks2;
+    pend=pend2;
+    count=count2;
+    ticks2  = SysTick->VAL;
+    pend2   = !!(SCB->ICSR & SCB_ICSR_PENDSTSET_Msk)  ;
+    count2  = systick_millis_count;
+  } while ((pend != pend2) || (count != count2) || (ticks < ticks2));
+
+  return ((count+pend) * 1000) + (((SysTick->LOAD  - ticks)*(1048576/(SystemCoreClock/1000000)))>>20) ;
+  // this is an optimization to turn a runtime division into two compile-time divisions and
+  // a runtime multiplication and shift, saving a few cycles
 }
+
+// // Returns the number of microseconds since your program started running.
+// // This 32 bit number will roll back to zero after about 71 minutes and
+// // 35 seconds.  For a simpler way to build delays or timeouts, consider
+// // using elapsedMicros.
+// uint32_t micros(void)
+// {
+// 	uint32_t smc, scc;
+// 	do {
+// 		__LDREXW(&systick_safe_read);
+// 		smc = systick_millis_count;
+// 		scc = systick_cycle_count;
+// 	} while ( __STREXW(1, &systick_safe_read));
+// 	uint32_t cyccnt = DWT->CYCCNT;
+// 	asm volatile("" : : : "memory");
+// 	uint32_t ccdelta = cyccnt - scc;
+// 	uint32_t frac = ((uint64_t)ccdelta * scale_cpu_cycles_to_microseconds) >> 32;
+// 	if (frac > 1000) frac = 1000;
+// 	uint32_t usec = 1000*smc + frac;
+// 	return usec;
+// }
 
 uint32_t millis(void)
 {

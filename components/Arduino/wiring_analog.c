@@ -96,7 +96,7 @@ uint32_t analogRead(uint32_t pin)
     }
 
     //IO MUX
-    pinPeripheral(pin, 0U, FUN_GPIO, 0xB0u);
+    pinPeripheral(pin, 0U, FUN_GPIO, 0x0u);
 
 
     adc_channel_config_t adcChannelConfigStruct;
