@@ -37,17 +37,14 @@ static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
 static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinMode mode) {
   digitalWrite(GPIO_SD_13, LOW);
   pinMode(mux_pin, mode);
-  uint8_t value = 0;
 
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  delayMicroseconds(50);
+  delayMicroseconds(40);
   
-  value = digitalRead(mux_pin);
-  pinMode(mux_pin, INPUT_DISABLE);
   digitalWrite(GPIO_SD_13, HIGH);
-  return value;
+  return digitalRead(mux_pin);
 }
 
 int potRead(const Pot pot) {
