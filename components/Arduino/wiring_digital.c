@@ -60,19 +60,12 @@ void pinMode(pin_size_t pinNumber, uint8_t pinMode) {
         _pinConfig =0xF0B0U; 
         break;
     case INPUT_PULLDOWN:
-        pin_config.direction = kGPIO_DigitalInput;
         pin_config.outputLogic = 0;
         _pinConfig =0x10B0U; 
         break;
-    case INPUT_DISABLE:
-        pin_config.direction = kGPIO_DigitalInput;
-        pin_config.outputLogic = 0;
-        _pinConfig = 0x0U; 
-        break;
     default: // INPUT_DISABLE
-        pin_config.direction = kGPIO_DigitalInput;
         pin_config.outputLogic = 0;
-        _pinConfig = 0x10B0U; 
+        _pinConfig = 0x100B0U; 
         break;
     }
 

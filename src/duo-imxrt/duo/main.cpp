@@ -94,8 +94,8 @@ void midi_handle_clock() {
 }
 
 void pots_read() {
-  synth.gateLength = potRead(GATE_POT);
   synth.speed = potRead(TEMPO_POT);
+  synth.gateLength = potRead(GATE_POT);
   
   synth.resonance = potRead(FILTER_RES_POT);
   synth.release = potRead(AMP_ENV_POT);
@@ -136,7 +136,7 @@ void drum_read(){
 
 int main(void) {
   board_init();
-  DatoUSB::init();
+
   Sync::init();
   LEDs::init();
   pins_init();
@@ -167,6 +167,7 @@ int main(void) {
   midi_set_channel(stored_midi_channel);
 
   led_init();
+  DatoUSB::init();
   AudioNoInterrupts();
   headphone_preamp.gain(HEADPHONE_GAIN);
   speaker_preamp.gain(SPEAKER_GAIN);
