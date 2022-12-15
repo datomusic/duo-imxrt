@@ -145,7 +145,9 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
 void show(const Pixel *const pixels, const int pixel_count) {
   show_pixels(pixels, pixel_count);
-  yes_interrupts();
+#ifdef ALLOW_INTERRUPTS
+    yes_interrupts();
+#endif
 }
 
 } // namespace LEDs

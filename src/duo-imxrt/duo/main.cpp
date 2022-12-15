@@ -157,6 +157,15 @@ int main(void) {
   AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
+  // Read the MIDI channel from EEPROM. Lowest four bits
+  // const uint8_t stored_midi_channel =
+  //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
+  const uint8_t stored_midi_channel = 1;
+  // if (midi_get_channel() != stored_midi_channel) {
+  //   eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
+  // }
+  midi_set_channel(stored_midi_channel);
+
   led_init();
   AudioNoInterrupts();
   headphone_preamp.gain(HEADPHONE_GAIN);
@@ -164,20 +173,11 @@ int main(void) {
   audio_init();
   AudioInterrupts();
 
-  // Read the MIDI channel from EEPROM. Lowest four bits
-  const uint8_t stored_midi_channel =
-      eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
-  midi_set_channel(stored_midi_channel);
-
   // The order sequencer_init, button_matrix_init, led_init and midi_init is
   // important Hold a button of the keyboard at startup to select MIDI channel
   button_matrix_init();
   keys_scan();
   midi_init();
-
-  if (midi_get_channel() != stored_midi_channel) {
-    eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
-  }
 
   drum_init();
 
@@ -363,6 +363,9 @@ void enter_dfu() {
   delay(100);
   FastLED.show();
   delay(100);
+  FastLED.show();
+  delay(100);
+  FastLED.show();
   BOARD_EnterROMBootloader();
 }
 
