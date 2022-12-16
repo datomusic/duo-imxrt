@@ -160,9 +160,12 @@ int main(void) {
 
   MIDI.setHandleStart(sequencer_restart);
   usbMIDI.setHandleStart(sequencer_restart);
+  usbMIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
   usbMIDI.setHandleContinue(sequencer_restart);
+  usbMIDI.setHandleContinue(sequencer_restart);
   MIDI.setHandleStop(sequencer_stop);
+  usbMIDI.setHandleStop(sequencer_stop);
   usbMIDI.setHandleStop(sequencer_stop);
 
   previous_note_on_time = millis();
@@ -195,14 +198,12 @@ int main(void) {
       sequencer_update();
       
       headphone_jack_check();
-
       if (!dfu_flag) {
         if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
-          led_update(); // ~ 
-          digitalWrite(GPIO_AD_03, HIGH);
-          pots_read();    // ~ 100us
-          digitalWrite(GPIO_AD_03, LOW);
+          led_update();
+          sequencer_update();
+          pots_read();   
         }
       }
     }
