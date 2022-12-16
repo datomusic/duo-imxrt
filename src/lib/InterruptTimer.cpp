@@ -19,11 +19,11 @@ namespace InterruptTimer {
 
     PIT_Init(PIT, &pitConfig);
 
-    PIT_SetTimerPeriod(PIT, PIT_CHANNEL, USEC_TO_COUNT(100'000U, CLOCK_GetFreq(kCLOCK_OscClk)));
+    PIT_SetTimerPeriod(PIT, PIT_CHANNEL, USEC_TO_COUNT(50'000U, CLOCK_GetFreq(kCLOCK_OscClk)));
 
     PIT_EnableInterrupts(PIT, PIT_CHANNEL, kPIT_TimerInterruptEnable);
 
-    NVIC_SetVector(PIT_IRQn, (uint32_t)&InterruptTimer::isr);
+    NVIC_SetVector(PIT_IRQn, (uint32_t)&isr);
     NVIC_SetPriority(PIT_IRQn, 32);
     EnableIRQ(PIT_IRQn);
 
@@ -38,7 +38,7 @@ namespace InterruptTimer {
     /* Clear interrupt flag.*/
     if(PIT_GetStatusFlags(PIT, PIT_CHANNEL)) {
       digitalWrite(GPIO_AD_03, HIGH);
-
+      delayMicroseconds(1);
       internal_clock++;
       /* Added for, and affects, all PIT handlers. For CPU clock which is much larger than the IP bus clock,
       * CPU can run out of the interrupt handler before the interrupt flag being cleared, resulting in the
