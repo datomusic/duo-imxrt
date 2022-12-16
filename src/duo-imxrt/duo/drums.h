@@ -1,15 +1,14 @@
 #ifndef DRUMS_H_D3BUGV50
 #define DRUMS_H_D3BUGV50
 
-#include "lib/bs814a.h"
 #include "duo-firmware/src/DrumSynth.h"
+#include "lib/bs814a.h"
 
 namespace Drums {
 void init() {
   BS814A::init();
   drum_init();
 }
-
 
 void update() {
   static BS814A::TouchState previousTouches;
@@ -19,21 +18,21 @@ void update() {
     return;
   }
 
-#define KEY_PRESSED(index) (BS814A::key_down(touches, index) && !BS814A::key_down(previousTouches, index))
-
-  if (KEY_PRESSED(2)) {
-    kick_noteon(50);
-  }
-  if (KEY_PRESSED(3)) {
-    kick_noteon(127);
-  }
-  if (KEY_PRESSED(1)) {
-    hat_noteon(30);
-  }
-  if (KEY_PRESSED(0)) {
+  if (BS814A::pressed(touches, previousTouches, 0)) {
     hat_noteon(127);
   }
-#undef KEY_PRESSED
+
+  if (BS814A::pressed(touches, previousTouches, 1)) {
+    hat_noteon(30);
+  }
+
+  if (BS814A::pressed(touches, previousTouches, 2)) {
+    kick_noteon(50);
+  }
+
+  if (BS814A::pressed(touches, previousTouches, 3)) {
+    kick_noteon(127);
+  }
 
   previousTouches = touches;
 }
