@@ -21,8 +21,7 @@
 
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
-
-volatile unsigned long internal_clock = 0;
+unsigned long internal_clock = 0;
 
 #include "globals.h"
 
@@ -222,7 +221,7 @@ int main(void) {
 
       pitch_update(); // ~30us
 
-      // InterruptTimer::setTimerPeriod(map(synth.speed,0,1023,2500,150000));
+      InterruptTimer::setTimerPeriod(map(synth.speed,0,1023,30000,5000));
 
       synth_update(); // ~ 100us
       midi_send_cc();
@@ -237,7 +236,6 @@ int main(void) {
         if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
           led_update();
-          sequencer_update();
           pots_read();   
         }
       }
