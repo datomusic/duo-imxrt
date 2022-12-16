@@ -15,22 +15,22 @@ void update() {
   static BS814A::TouchState previousTouches;
   static BS814A::TouchState touches;
 
-  if (!BS814A::readRaw(touches)) {
+  if (!BS814A::readRaw(&touches)) {
     return;
   }
 
-#define KEY_PRESSED(key) (touches.key && !previousTouches.key)
+#define KEY_PRESSED(index) (BS814A::key_down(touches, index) && !BS814A::key_down(previousTouches, index))
 
-  if (KEY_PRESSED(key3)) {
+  if (KEY_PRESSED(2)) {
     kick_noteon(50);
   }
-  if (KEY_PRESSED(key4)) {
+  if (KEY_PRESSED(3)) {
     kick_noteon(127);
   }
-  if (KEY_PRESSED(key2)) {
+  if (KEY_PRESSED(1)) {
     hat_noteon(30);
   }
-  if (KEY_PRESSED(key1)) {
+  if (KEY_PRESSED(0)) {
     hat_noteon(127);
   }
 #undef KEY_PRESSED

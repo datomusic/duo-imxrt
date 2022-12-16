@@ -31,28 +31,30 @@ void init() {
   digitalWrite(PIN_BS814A_CLOCK, HIGH);                                        \
   delayMicroseconds(BS814A_CLOCK_PERIOD_US);
 
-bool readRaw(TouchState &s) {
+bool readRaw(TouchState *state) {
   if (digitalRead(PIN_BS814A_DATA) == 1) {
     return false;
   }
 
   int active_keys = 0;
-  uint8_t *keys = (uint8_t *)(&s);
+  uint8_t mask = 0x01;
+
+  (*state) = 0;
 
   for (int key = 0; key < KEY_COUNT; ++key) {
     clock_low();
-    const bool active = !digitalRead(PIN_BS814A_DATA);
-    keys[key] = active;
 
-    if (active) {
+    if (!digitalRead(PIN_BS814A_DATA)) {
+      (*state) |= mask;
       ++active_keys;
     }
 
     clock_hi();
+    mask <<= 1;
   }
 
   uint8_t checksum_key_count = 0;
-  uint8_t mask = 0x01;
+  mask = 0x01;
 
   for (int i = 0; i < 3; ++i) {
     clock_low();
