@@ -26,7 +26,7 @@ namespace InterruptTimer {
     _interruptCount = 0;
 
     NVIC_SetVector(PIT_IRQn, (uint32_t)&isr);
-    NVIC_SetPriority(PIT_IRQn, 64);
+    NVIC_SetPriority(PIT_IRQn, 156);
     EnableIRQ(PIT_IRQn);
 
     PIT_StartTimer(PIT, PIT_CHANNEL);

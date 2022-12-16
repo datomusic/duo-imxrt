@@ -6,6 +6,7 @@ set(CMAKE_MODULE_PATH
     ${ROOT_DIR}/components/serial_manager
     ${ROOT_DIR}/components/lists
     ${ROOT_DIR}/components/osa
+    ${ROOT_DIR}/components/timer
     ${ROOT_DIR}/devices/MIMXRT1011/xip
     ${ROOT_DIR}/CMSIS/Core/Include
     ${ROOT_DIR}/CMSIS/DSP
@@ -41,3 +42,4 @@ include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
 include(component_Arduino_MIMXRT1011)
 include(component_Teensy_Audio_MIMXRT1011)
+include(component_pit_adapter_MIMXRT1011)

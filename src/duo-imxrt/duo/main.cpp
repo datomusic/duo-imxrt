@@ -5,6 +5,7 @@
 #include "clock_config.h"
 #include "fsl_common.h"
 
+#define BPM_TO_PERIOD(beatsPerMinute) (uint64_t)(2500000U / beatsPerMinute)
 
 #include "lib/board_init.h"
 #include "lib/bs814a.h"
@@ -220,8 +221,8 @@ int main(void) {
       keyboard_to_note();
 
       pitch_update(); // ~30us
+      
 
-      InterruptTimer::setTimerPeriod(map(synth.speed,0,1023,30000,5000));
 
       synth_update(); // ~ 100us
       midi_send_cc();
@@ -236,7 +237,17 @@ int main(void) {
         if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
           led_update();
+        } else {
           pots_read();   
+          int potvalue = synth.speed;
+          long tbpm = 240; // 2 x beats per minute
+      
+          if(potvalue < 895) {
+            tbpm = map(potvalue, 0, 895, BPM_TO_PERIOD(30), BPM_TO_PERIOD(200));
+          } else {
+            tbpm = map(potvalue, 895, 1023, BPM_TO_PERIOD(200), BPM_TO_PERIOD(600));
+          }
+          InterruptTimer::setTimerPeriod((unsigned long)tbpm);
         }
       }
     }
