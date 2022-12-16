@@ -8,11 +8,11 @@ const auto KEY_COUNT = 4;
 
 typedef uint8_t TouchState;
 
-inline bool down(TouchState state, uint8_t index){
+inline bool down(TouchState &state, uint8_t index){
   return (state & (1 << index));
 };
 
-inline bool pressed(TouchState state, TouchState previous, uint8_t index){
+inline bool pressed(TouchState &state, TouchState &previous, uint8_t index){
   const int mask = (1 << index);
   return (state & mask) && !(previous & mask) ;
 };
