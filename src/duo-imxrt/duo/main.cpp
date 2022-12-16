@@ -6,6 +6,7 @@
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
 #include "lib/usb/usb.h"
+#include "drums.h"
 #include "pins.h"
 #include "stubs/arduino_stubs.h"
 #include "board_audio_output.h"
@@ -43,7 +44,6 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define TOUCH2 17
 #define TOUCH3 19
 #define TOUCH4 18
-#include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
 
@@ -111,35 +111,6 @@ void pots_read() {
 bool power_check() { return true; }
 
 
-static TouchState touches;
-static TouchState previousTouches;
-
-void drum_read(){
-  if(!BS814A_readRaw(touches)){
-    return;
-  }
-
-#define KEY_PRESSED(key) (touches.key && !previousTouches.key)
-
-  if (KEY_PRESSED(key3)) {
-    kick_noteon(50);
-  }
-  if (KEY_PRESSED(key4)) {
-    kick_noteon(127);
-  }
-  if (KEY_PRESSED(key2)) {
-    hat_noteon(30);
-  }
-  if (KEY_PRESSED(key1)) {
-    hat_noteon(127);
-  }
-#undef KEY_PRESSED
-
-  previousTouches = touches;
-}
-
-
-
 int main(void) {
   board_init();
 
@@ -186,7 +157,7 @@ int main(void) {
   keys_scan();
   midi_init();
 
-  drum_init();
+  Drums::init();
 
   MIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
@@ -216,7 +187,7 @@ int main(void) {
       synth_update(); // ~ 100us
       midi_send_cc();
 
-      drum_read(); // ~ 700us
+      Drums::update(); // ~ 700us
 
       midi_handle();
       sequencer_update();
