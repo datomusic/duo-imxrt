@@ -1,5 +1,11 @@
 #include "Arduino.h"
 
+#include "fsl_pit.h"
+#include "fsl_clock.h"
+#include "clock_config.h"
+#include "fsl_common.h"
+
+
 #include "lib/board_init.h"
 #include "lib/bs814a.h"
 #include "lib/leds.h"
@@ -11,9 +17,12 @@
 #include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
+#include "lib/InterruptTimer.h"
 
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
+#define PIT_CHANNEL  kPIT_Chnl_0
+volatile unsigned long internal_clock = 0;
 
 #include "globals.h"
 
@@ -24,6 +33,7 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
 #include "lib/sync.h"
 #include "duo-firmware/src/TempoHandler.h"
+
 TempoHandler tempo_handler;
 
 #include "buttons.h"
@@ -46,6 +56,25 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
+
+
+ void handleTimerInterrupt(void) {
+    __disable_irq();
+    /* Clear interrupt flag.*/
+    if(PIT_GetStatusFlags(PIT, PIT_CHANNEL)) {
+      digitalWrite(GPIO_AD_03, HIGH);
+
+      internal_clock++;
+      /* Added for, and affects, all PIT handlers. For CPU clock which is much larger than the IP bus clock,
+      * CPU can run out of the interrupt handler before the interrupt flag being cleared, resulting in the
+      * CPU's entering the handler again and again. Adding DSB can prevent the issue from happening.
+      */
+      digitalWrite(GPIO_AD_03, LOW);
+    }
+    PIT_ClearStatusFlags(PIT, PIT_CHANNEL, kPIT_TimerFlag);
+    __enable_irq();
+    __DSB();
+  }
 
 void headphone_jack_check();
 
@@ -132,8 +161,6 @@ void drum_read(){
   previousValue = value;
 }
 
-
-
 int main(void) {
   board_init();
 
@@ -141,6 +168,29 @@ int main(void) {
   LEDs::init();
   pins_init();
   BS814A_begin();
+
+  pit_config_t pitConfig;
+  /* Set PERCLK_CLK source to OSC_CLK*/
+  CLOCK_SetMux(kCLOCK_PerclkMux, 1U);
+  /* Set PERCLK_CLK divider to 1 */
+  CLOCK_SetDiv(kCLOCK_PerclkDiv, 0U);
+
+  /*
+  * pitConfig.enableRunInDebug = false;
+  */
+  PIT_GetDefaultConfig(&pitConfig);
+
+  PIT_Init(PIT, &pitConfig);
+
+  PIT_SetTimerPeriod(PIT, PIT_CHANNEL, USEC_TO_COUNT(1000000U, CLOCK_GetFreq(kCLOCK_OscClk)));
+
+  PIT_EnableInterrupts(PIT, PIT_CHANNEL, kPIT_TimerInterruptEnable);
+
+  NVIC_SetVector(PIT_IRQn, (uint32_t)&InterruptTimer::isr);
+  NVIC_SetPriority(PIT_IRQn, 32);
+  EnableIRQ(PIT_IRQn);
+
+  PIT_StartTimer(PIT, PIT_CHANNEL);
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
   Serial.begin(31250U);
@@ -196,19 +246,25 @@ int main(void) {
 
   next_frame_time = millis() + frame_interval;
 
+  InterruptTimer::init();
+
   in_setup = false;
 
   while (true) {
     DatoUSB::background_update();
 
     if (power_check()) {
+
       midi_handle();
       sequencer_update();
 
       // Crude hard coded task switching
       keys_scan(); // 14 or 175us (depending on debounce)
       keyboard_to_note();
+
       pitch_update(); // ~30us
+
+      InterruptTimer::setTimerPeriod(map(synth.speed,0,1023,25000,15000));
 
       synth_update(); // ~ 100us
       midi_send_cc();
