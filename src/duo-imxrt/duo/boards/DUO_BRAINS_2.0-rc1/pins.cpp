@@ -23,19 +23,16 @@
 
 
 static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
-  digitalWrite(GPIO_SD_13, LOW);
   pinMode(mux_pin, INPUT_DISABLE);
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   
-  delayMicroseconds(40);
-  digitalWrite(GPIO_SD_13, HIGH);
-  return analogRead(mux_pin);
+  delayMicroseconds(50);
+  return (analogRead(mux_pin));
 }
 
 static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinMode mode) {
-  digitalWrite(GPIO_SD_13, LOW);
   pinMode(mux_pin, mode);
 
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
@@ -43,7 +40,6 @@ static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinM
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   delayMicroseconds(40);
   
-  digitalWrite(GPIO_SD_13, HIGH);
   return digitalRead(mux_pin);
 }
 
@@ -105,6 +101,7 @@ void pins_init() {
   pinMode(PIN_LED_2, OUTPUT);
   pinMode(PIN_LED_3, OUTPUT);
 
+  // These pins are available as benchmarking pins
   pinMode(GPIO_AD_03, OUTPUT);
   pinMode(GPIO_SD_13, OUTPUT);
 }

@@ -28,6 +28,7 @@
 #include "clock_config.h"
 #include "board.h"
 #include "fsl_adc.h"
+#include "fsl_common_arm.h"
 #include "fsl_xbara.h"
 #include "fsl_pwm.h"
 #include "fsl_common.h"
@@ -35,7 +36,7 @@
 volatile uint32_t systick_millis_count = 0;
 volatile uint32_t systick_cycle_count = 0;
 uint32_t systick_safe_read;	 // micros() synchronization
-volatile uint32_t scale_cpu_cycles_to_microseconds = 0;
+volatile uint32_t scale_cpu_cycles_to_microseconds = 0xFFFFFFFFu / (uint32_t)(500000000u / 1000000u);
 
 // (teensy4) page 411 says "24 MHz XTALOSC can be the external clock source of SYSTICK"
 // Testing shows the frequency is actually 100 kHz - but how?  Did NXP really
@@ -100,7 +101,7 @@ unsigned long micros( void )
   count2  = systick_millis_count;
 
   do
-  {
+{
     ticks=ticks2;
     pend=pend2;
     count=count2;
@@ -155,13 +156,23 @@ void init( void )
     /*allow io mux*/
     CLOCK_EnableClock(kCLOCK_Iomuxc); 
 
-    /* Set systick reload value to generate 1ms interrupt */
-    if(SysTick_Config(SystemCoreClock / 1000U))
-    {
-        while (1)
-        {
-        }
-    }
+    // /* Set systick reload value to generate 1ms interrupt */
+    // if(SysTick_Config(100'000 / 1000U))
+    // {
+    //     while (1)
+    //     {
+    //     }
+    // }
+    #define SYSTICK_EXT_FREQ 100000
+
+    SysTick->LOAD = (SYSTICK_EXT_FREQ / 1000) - 1;
+	  SysTick->VAL = 0;
+    SysTick->CTRL  = SysTick_CTRL_TICKINT_Msk   |
+                   SysTick_CTRL_ENABLE_Msk;    /* Enable SysTick IRQ and SysTick Timer */	  NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
+	  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // turn on cycle counter;
+	  systick_cycle_count = DWT->CYCCNT; // compiled 0, corrected w/1st systick
+
 
     // Initialize Analog Controller
     adc_config_t adcConfigStrcut;
