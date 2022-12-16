@@ -1,9 +1,42 @@
-#ifdef __DUO__DRUMS__
-#define __DUO__DRUMS__
+#ifndef DRUMS_H_D3BUGV50
+#define DRUMS_H_D3BUGV50
 
-namespace Drums{
-  void init();
-  void update();
+#include "lib/bs814a.h"
+#include "duo-firmware/src/DrumSynth.h"
+
+namespace Drums {
+void init() {
+  BS814A::init();
+  drum_init();
 }
 
-#endif
+
+void update() {
+  static BS814A::TouchState previousTouches;
+  static BS814A::TouchState touches;
+
+  if (!BS814A::readRaw(touches)) {
+    return;
+  }
+
+#define KEY_PRESSED(key) (touches.key && !previousTouches.key)
+
+  if (KEY_PRESSED(key3)) {
+    kick_noteon(50);
+  }
+  if (KEY_PRESSED(key4)) {
+    kick_noteon(127);
+  }
+  if (KEY_PRESSED(key2)) {
+    hat_noteon(30);
+  }
+  if (KEY_PRESSED(key1)) {
+    hat_noteon(127);
+  }
+#undef KEY_PRESSED
+
+  previousTouches = touches;
+}
+} // namespace Drums
+
+#endif /* end of include guard: DRUMS_H_D3BUGV50 */

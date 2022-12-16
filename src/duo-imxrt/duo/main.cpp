@@ -1,12 +1,10 @@
 #include "Arduino.h"
 
 #include "lib/board_init.h"
-#include "lib/bs814a.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
 #include "lib/usb/usb.h"
-#include "drums.h"
 #include "pins.h"
 #include "stubs/arduino_stubs.h"
 #include "board_audio_output.h"
@@ -46,6 +44,8 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define TOUCH4 18
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
+
+#include "drums.h"
 
 void headphone_jack_check();
 
@@ -117,7 +117,7 @@ int main(void) {
   Sync::init();
   LEDs::init();
   pins_init();
-  BS814A_begin();
+  Drums::init();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
   Serial.begin(31250U);
@@ -157,7 +157,6 @@ int main(void) {
   keys_scan();
   midi_init();
 
-  Drums::init();
 
   MIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
