@@ -67,7 +67,8 @@ bool readRaw(TouchState *state) {
   }
 
   clock_low();
-  // TODO: Do we need to read the stop bit?
+
+  // Read the stop bit
   digitalRead(PIN_BS814A_DATA);
   clock_hi();
 
