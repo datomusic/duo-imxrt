@@ -78,3 +78,4 @@ synth_parameters synth;
 #include "duo-firmware/src/note_stack.h"
 NoteStack<10> note_stack;
 
+#define BPM_TO_PERIOD(beatsPerMinute) (uint64_t)(2500000U / beatsPerMinute)

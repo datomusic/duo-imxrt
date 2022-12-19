@@ -5,8 +5,6 @@
 #include "clock_config.h"
 #include "fsl_common.h"
 
-#define BPM_TO_PERIOD(beatsPerMinute) (uint64_t)(2500000U / beatsPerMinute)
-
 #include "lib/board_init.h"
 #include "lib/bs814a.h"
 #include "lib/leds.h"
@@ -216,14 +214,12 @@ int main(void) {
       midi_handle();
       sequencer_update();
 
-      // Crude hard coded task switching
+
       keys_scan(); // 14 or 175us (depending on debounce)
       keyboard_to_note();
 
       pitch_update(); // ~30us
       
-
-
       synth_update(); // ~ 100us
       midi_send_cc();
 
@@ -238,16 +234,18 @@ int main(void) {
           next_frame_time = millis() + frame_interval;
           led_update();
         } else {
-          pots_read();   
-          int potvalue = synth.speed;
-          long tbpm = 240; // 2 x beats per minute
+          pots_read();
+          long tbpm = 240; 
       
-          if(potvalue < 895) {
-            tbpm = map(potvalue, 0, 895, BPM_TO_PERIOD(30), BPM_TO_PERIOD(200));
+          if(synth.speed < 512) {
+            tbpm = map(synth.speed, 0, 512, BPM_TO_PERIOD(30), BPM_TO_PERIOD(120));
+          } else if(synth.speed < 895) {
+            tbpm = map(synth.speed, 512, 895, BPM_TO_PERIOD(120), BPM_TO_PERIOD(200));
           } else {
-            tbpm = map(potvalue, 895, 1023, BPM_TO_PERIOD(200), BPM_TO_PERIOD(600));
+            tbpm = map(synth.speed, 895, 1023, BPM_TO_PERIOD(200), BPM_TO_PERIOD(600));
           }
-          InterruptTimer::setTimerPeriod((unsigned long)tbpm);
+
+          InterruptTimer::setTimerPeriod((uint32_t)tbpm);
         }
       }
     }
