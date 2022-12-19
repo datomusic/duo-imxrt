@@ -136,10 +136,6 @@ unsigned long micros( void )
 // 	return usec;
 // }
 
-uint32_t millis(void)
-{
-	return systick_millis_count;
-}
 
 void SysTick_Handler(void)
 {
