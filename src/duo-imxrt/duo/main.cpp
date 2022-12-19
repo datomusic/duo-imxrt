@@ -1,7 +1,6 @@
 #include "Arduino.h"
 
 #include "lib/board_init.h"
-#include "lib/bs814a.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
@@ -43,9 +42,10 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define TOUCH2 17
 #define TOUCH3 19
 #define TOUCH4 18
-#include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
+
+#include "drums.h"
 
 void headphone_jack_check();
 
@@ -111,36 +111,13 @@ void pots_read() {
 bool power_check() { return true; }
 
 
-void drum_read(){
-  TouchState value = BS814A_readRaw();
-
-  static TouchState previousValue;
-
-  if (value.key3 && !previousValue.key3) {
-    kick_noteon(50);
-  }
-  if (value.key4 && !previousValue.key4 ) {
-    kick_noteon(127);
-  }
-  if (value.key2 && !previousValue.key2 ) {
-    hat_noteon(30);
-  }
-  if (value.key1 && !previousValue.key1) {
-    hat_noteon(127);
-  }
-
-  previousValue = value;
-}
-
-
-
 int main(void) {
   board_init();
 
   Sync::init();
   LEDs::init();
   pins_init();
-  BS814A_begin();
+  Drums::init();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
   Serial.begin(31250U);
@@ -180,7 +157,6 @@ int main(void) {
   keys_scan();
   midi_init();
 
-  drum_init();
 
   MIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
@@ -210,7 +186,7 @@ int main(void) {
       synth_update(); // ~ 100us
       midi_send_cc();
 
-      drum_read(); // ~ 700us
+      Drums::update(); // ~ 700us
 
       midi_handle();
       sequencer_update();
