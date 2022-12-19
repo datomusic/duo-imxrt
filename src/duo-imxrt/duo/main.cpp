@@ -63,7 +63,6 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
     dc1.amplitude(velocity / 127.); // DC amplitude controls filter env amount.
     osc_pulse_midi_note = midi_note;
     osc_pulse_target_frequency = (int)midi_note_to_frequency(midi_note);
-    osc_pulse.frequency(osc_pulse_frequency);
     // Detune OSC2
     osc_saw.frequency(detune(osc_pulse_midi_note, detune_amount));
 
