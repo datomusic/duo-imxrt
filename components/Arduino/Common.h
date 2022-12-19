@@ -107,8 +107,11 @@ void pinMode(pin_size_t pinNumber, PinMode pinMode);
 void digitalWrite(pin_size_t pinNumber, uint8_t status);
 PinStatus digitalRead(pin_size_t pinNumber);
 
-
-unsigned long millis(void);
+extern volatile uint32_t systick_millis_count;
+static inline uint32_t millis (void) __attribute__((always_inline, unused));
+static inline uint32_t millis(void) {
+	return systick_millis_count;
+}
 unsigned long micros(void);
 void delay(unsigned long);
 void delayMicroseconds(unsigned int us);
