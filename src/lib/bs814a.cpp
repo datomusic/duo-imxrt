@@ -14,7 +14,7 @@ static void clock_hi() {
 }
 
 static void clock_low() {
-   GPIO1->DR &= ~(1UL << PIN_BS814A_CLOCK); 
+  GPIO1->DR &= ~(1UL << PIN_BS814A_CLOCK);
   delayMicroseconds(BS814A_CLOCK_PERIOD_US);
 }
 
