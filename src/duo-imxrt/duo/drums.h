@@ -1,7 +1,6 @@
 #ifndef DRUMS_H_D3BUGV50
 #define DRUMS_H_D3BUGV50
 
-#include "duo-firmware/src/DrumSynth.h"
 #include "lib/bs814a.h"
 
 namespace Drums {
@@ -16,35 +15,31 @@ void update() {
   if (!BS814A::readRaw(&touches)) {
     return;
   }
-#define m0 1
-#define m1 2
-#define m2 4
-#define m3 8
 
   if (hat_playing) {
-    if (!((touches & m0) || (touches & m1))) {
+    if (!((touches & BS814A::Button1) || (touches & BS814A::Button2))) {
       hat_noteoff();
     }
   } else {
-    if ((touches & m0) && (touches & m1)) {
+    if ((touches & BS814A::Button1) && (touches & BS814A::Button2)) {
       hat_noteon(64);
-    } else if ((touches & m0)) {
+    } else if ((touches & BS814A::Button1)) {
       hat_noteon(127);
-    } else if ((touches & m1)) {
+    } else if ((touches & BS814A::Button2)) {
       hat_noteon(0);
     }
   }
 
   if (kick_playing) {
-    if (!((touches & m2) || (touches & m3))) {
+    if (!((touches & BS814A::Button3) || (touches & BS814A::Button4))) {
       kick_noteoff();
     }
   } else {
-    if ((touches & m2) && (touches & m3)) {
+    if ((touches & BS814A::Button3) && (touches & BS814A::Button4)) {
       kick_noteon(64);
-    } else if ((touches & m2)) {
+    } else if ((touches & BS814A::Button3)) {
       kick_noteon(0);
-    } else if ((touches & m3)) {
+    } else if ((touches & BS814A::Button4)) {
       kick_noteon(127);
     }
   }
