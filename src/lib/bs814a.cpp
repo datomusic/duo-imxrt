@@ -8,14 +8,15 @@
 #define PIN_BS814A_CLOCK 3U
 #define PIN_BS814A_DATA 2U
 
-#define clock_low()                                                            \
-  digitalWrite(PIN_BS814A_CLOCK, LOW);                                         \
+static void clock_hi() {
+  GPIO1->DR |= (1UL << PIN_BS814A_CLOCK);
   delayMicroseconds(BS814A_CLOCK_PERIOD_US);
+}
 
-#define clock_hi()                                                             \
-  digitalWrite(PIN_BS814A_CLOCK, HIGH);                                        \
+static void clock_low() {
+   GPIO1->DR &= ~(1UL << PIN_BS814A_CLOCK); 
   delayMicroseconds(BS814A_CLOCK_PERIOD_US);
-
+}
 
 namespace BS814A {
 
