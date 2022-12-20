@@ -33,7 +33,7 @@ uint8_t note_is_playing = 0;
 bool note_is_triggered = false;
 int transpose = 0;
 bool next_step_is_random = false;
-int tempo_interval;
+int tempo_interval = 0;
 bool random_flag = 0;
 bool dfu_flag = 0;
 bool in_setup = true;

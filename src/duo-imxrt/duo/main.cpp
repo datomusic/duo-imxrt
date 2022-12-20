@@ -6,7 +6,6 @@
 #include "fsl_common.h"
 
 #include "lib/board_init.h"
-#include "lib/bs814a.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
@@ -21,6 +20,7 @@
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
 unsigned long internal_clock = 0;
+
 
 #include "globals.h"
 
@@ -51,9 +51,11 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define TOUCH2 17
 #define TOUCH3 19
 #define TOUCH4 18
-#include "duo-firmware/src/DrumSynth.h"
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
+
+#include "duo-firmware/src/DrumSynth.h"
+#include "drums.h"
 
 void headphone_jack_check();
 
@@ -71,7 +73,6 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
     dc1.amplitude(velocity / 127.); // DC amplitude controls filter env amount.
     osc_pulse_midi_note = midi_note;
     osc_pulse_target_frequency = (int)midi_note_to_frequency(midi_note);
-    osc_pulse.frequency(osc_pulse_frequency);
     // Detune OSC2
     osc_saw.frequency(detune(osc_pulse_midi_note, detune_amount));
 
@@ -119,34 +120,13 @@ void pots_read() {
 bool power_check() { return true; }
 
 
-void drum_read(){
-  TouchState value = BS814A_readRaw();
-
-  static TouchState previousValue;
-
-  if (value.key3 && !previousValue.key3) {
-    kick_noteon(50);
-  }
-  if (value.key4 && !previousValue.key4 ) {
-    kick_noteon(127);
-  }
-  if (value.key2 && !previousValue.key2 ) {
-    hat_noteon(30);
-  }
-  if (value.key1 && !previousValue.key1) {
-    hat_noteon(127);
-  }
-
-  previousValue = value;
-}
-
 int main(void) {
   board_init();
 
   Sync::init();
   LEDs::init();
   pins_init();
-  BS814A_begin();
+  Drums::init();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
   Serial.begin(31250U);
@@ -186,7 +166,6 @@ int main(void) {
   keys_scan();
   midi_init();
 
-  drum_init();
 
   MIDI.setHandleStart(sequencer_restart);
   usbMIDI.setHandleStart(sequencer_restart);
@@ -225,7 +204,7 @@ int main(void) {
       synth_update(); // ~ 100us
       midi_send_cc();
 
-      drum_read(); 
+      Drums::update(); // ~ 700us
 
       midi_handle();
       sequencer_update();
@@ -397,11 +376,17 @@ void enter_dfu() {
 
 
 void headphone_jack_check() {
-  if(headphone_jack_detected()) {
+  static unsigned long next_jack_check_time = 0;
+  const unsigned int jack_check_interval = 200;
+  
+  if (millis() > next_jack_check_time) {
+    next_jack_check_time = millis() + jack_check_interval; 
+    if(headphone_jack_detected()) {
     Audio::headphone_enable();
     Audio::amp_disable();
   } else {
     Audio::headphone_disable();
     Audio::amp_enable();
+  }
   }
 }
