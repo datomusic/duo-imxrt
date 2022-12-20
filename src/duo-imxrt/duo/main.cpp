@@ -46,6 +46,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
 
+#include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
 
 void headphone_jack_check();

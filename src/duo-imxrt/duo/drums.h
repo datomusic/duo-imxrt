@@ -1,7 +1,6 @@
 #ifndef DRUMS_H_D3BUGV50
 #define DRUMS_H_D3BUGV50
 
-#include "duo-firmware/src/DrumSynth.h"
 #include "lib/bs814a.h"
 
 namespace Drums {
@@ -11,30 +10,39 @@ void init() {
 }
 
 void update() {
-  static BS814A::TouchState previousTouches;
   static BS814A::TouchState touches;
 
   if (!BS814A::readRaw(&touches)) {
     return;
   }
 
-  if (BS814A::pressed(touches, previousTouches, 0)) {
-    hat_noteon(127);
+  if (hat_playing) {
+    if (!((touches & BS814A::Button1) || (touches & BS814A::Button2))) {
+      hat_noteoff();
+    }
+  } else {
+    if ((touches & BS814A::Button1) && (touches & BS814A::Button2)) {
+      hat_noteon(64);
+    } else if ((touches & BS814A::Button2)) {
+      hat_noteon(127);
+    } else if ((touches & BS814A::Button1)) {
+      hat_noteon(0);
+    }
   }
 
-  if (BS814A::pressed(touches, previousTouches, 1)) {
-    hat_noteon(30);
+  if (kick_playing) {
+    if (!((touches & BS814A::Button3) || (touches & BS814A::Button4))) {
+      kick_noteoff();
+    }
+  } else {
+    if ((touches & BS814A::Button3) && (touches & BS814A::Button4)) {
+      kick_noteon(64);
+    } else if ((touches & BS814A::Button3)) {
+      kick_noteon(0);
+    } else if ((touches & BS814A::Button4)) {
+      kick_noteon(127);
+    }
   }
-
-  if (BS814A::pressed(touches, previousTouches, 2)) {
-    kick_noteon(50);
-  }
-
-  if (BS814A::pressed(touches, previousTouches, 3)) {
-    kick_noteon(127);
-  }
-
-  previousTouches = touches;
 }
 } // namespace Drums
 
