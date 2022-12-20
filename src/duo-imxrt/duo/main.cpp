@@ -14,6 +14,7 @@
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
 
+
 #include "globals.h"
 
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
@@ -347,11 +348,17 @@ void enter_dfu() {
 
 
 void headphone_jack_check() {
-  if(headphone_jack_detected()) {
+  static unsigned long next_jack_check_time = 0;
+  const unsigned int jack_check_interval = 200;
+  
+  if (millis() > next_jack_check_time) {
+    next_jack_check_time = millis() + jack_check_interval; 
+    if(headphone_jack_detected()) {
     Audio::headphone_enable();
     Audio::amp_disable();
   } else {
     Audio::headphone_disable();
     Audio::amp_enable();
+  }
   }
 }
