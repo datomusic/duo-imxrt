@@ -11,30 +11,43 @@ void init() {
 }
 
 void update() {
-  static BS814A::TouchState previousTouches;
   static BS814A::TouchState touches;
 
   if (!BS814A::readRaw(&touches)) {
     return;
   }
+#define m0 1
+#define m1 2
+#define m2 4
+#define m3 8
 
-  if (BS814A::pressed(touches, previousTouches, 0)) {
-    hat_noteon(127);
+  if (hat_playing) {
+    if (!((touches & m0) || (touches & m1))) {
+      hat_noteoff();
+    }
+  } else {
+    if ((touches & m0) && (touches & m1)) {
+      hat_noteon(64);
+    } else if ((touches & m0)) {
+      hat_noteon(127);
+    } else if ((touches & m1)) {
+      hat_noteon(0);
+    }
   }
 
-  if (BS814A::pressed(touches, previousTouches, 1)) {
-    hat_noteon(30);
+  if (kick_playing) {
+    if (!((touches & m2) || (touches & m3))) {
+      kick_noteoff();
+    }
+  } else {
+    if ((touches & m2) && (touches & m3)) {
+      kick_noteon(64);
+    } else if ((touches & m2)) {
+      kick_noteon(0);
+    } else if ((touches & m3)) {
+      kick_noteon(127);
+    }
   }
-
-  if (BS814A::pressed(touches, previousTouches, 2)) {
-    kick_noteon(50);
-  }
-
-  if (BS814A::pressed(touches, previousTouches, 3)) {
-    kick_noteon(127);
-  }
-
-  previousTouches = touches;
 }
 } // namespace Drums
 
