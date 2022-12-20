@@ -24,9 +24,9 @@ void update() {
     if ((touches & BS814A::Button1) && (touches & BS814A::Button2)) {
       hat_noteon(64);
     } else if ((touches & BS814A::Button1)) {
-      hat_noteon(127);
-    } else if ((touches & BS814A::Button2)) {
       hat_noteon(0);
+    } else if ((touches & BS814A::Button2)) {
+      hat_noteon(127);
     }
   }
 
