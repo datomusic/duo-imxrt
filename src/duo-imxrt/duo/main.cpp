@@ -210,6 +210,8 @@ int main(void) {
     DatoUSB::background_update();
 
     if (power_check()) {
+      // delayMicroseconds(400);
+      SDK_DelayAtLeastUs(400, SystemCoreClock);
 
       midi_handle();
       sequencer_update();
@@ -230,23 +232,24 @@ int main(void) {
       
       headphone_jack_check();
       if (!dfu_flag) {
-        if (millis() > next_frame_time) {
+        // if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
           led_update();
-        } else {
+        // } else {
           pots_read();
-          long tbpm = 240; 
+          uint32_t tbpm = 240; 
       
-          if(synth.speed < 512) {
-            tbpm = map(synth.speed, 0, 512, BPM_TO_PERIOD(30), BPM_TO_PERIOD(120));
-          } else if(synth.speed < 895) {
-            tbpm = map(synth.speed, 512, 895, BPM_TO_PERIOD(120), BPM_TO_PERIOD(200));
+          if(synth.speed < 170) { 
+            tbpm = (uint32_t)map((float)synth.speed, 0, 170, BPM_TO_PERIOD(30), BPM_TO_PERIOD(60));
+          } else if(synth.speed < 852) {
+            tbpm = (uint32_t)map((float)synth.speed, 170, 852, BPM_TO_PERIOD(60), BPM_TO_PERIOD(180));
           } else {
-            tbpm = map(synth.speed, 895, 1023, BPM_TO_PERIOD(200), BPM_TO_PERIOD(600));
+            tbpm = (uint32_t)map((float)synth.speed, 852, 1023, BPM_TO_PERIOD(180), BPM_TO_PERIOD(600));
           }
 
           InterruptTimer::setTimerPeriod((uint32_t)tbpm);
-        }
+          
+        // }
       }
     }
   }

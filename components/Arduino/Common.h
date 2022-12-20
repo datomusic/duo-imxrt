@@ -112,6 +112,7 @@ static inline uint32_t millis (void) __attribute__((always_inline, unused));
 static inline uint32_t millis(void) {
 	return systick_millis_count;
 }
+
 unsigned long micros(void);
 void delay(unsigned long);
 void delayMicroseconds(unsigned int us);

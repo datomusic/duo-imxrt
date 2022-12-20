@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
+#include "fsl_common.h"
 
 #define PIN_AMP_MUTE	       GPIO_AD_11
 #define PIN_HP_ENABLE	       GPIO_AD_11
@@ -28,7 +29,8 @@ static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
   
-  delayMicroseconds(50);
+  // delayMicroseconds(50);
+  SDK_DelayAtLeastUs(50, SystemCoreClock);
   return (analogRead(mux_pin));
 }
 
@@ -38,7 +40,8 @@ static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinM
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  delayMicroseconds(40);
+  // delayMicroseconds(40);
+  SDK_DelayAtLeastUs(50, SystemCoreClock);
   
   return digitalRead(mux_pin);
 }

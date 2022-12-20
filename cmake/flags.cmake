@@ -55,6 +55,7 @@ SET(CMAKE_C_FLAGS_DEBUG " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -g \
     -O0 \
     -mcpu=cortex-m7 \
@@ -80,6 +81,7 @@ SET(CMAKE_C_FLAGS_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
@@ -106,6 +108,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_DEBUG " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -g \
     -O0 \
     -mcpu=cortex-m7 \
@@ -134,6 +137,7 @@ SET(CMAKE_C_FLAGS_FLEXSPI_NOR_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
@@ -159,6 +163,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -g \
     -O0 \
     -mcpu=cortex-m7 \
@@ -185,6 +190,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
@@ -212,6 +218,7 @@ SET(CMAKE_CXX_FLAGS_FLEXSPI_NOR_DEBUG " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -g \
     -O0 \
     -mcpu=cortex-m7 \
@@ -240,6 +247,7 @@ SET(CMAKE_CXX_FLAGS_FLEXSPI_NOR_RELEASE " \
     -D__IMXRT1011__ \
     -DSERIAL_PORT_TYPE_UART=1 \
     -DMCUXPRESSO_SDK \
+    -DSDK_DELAY_USE_DWT \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
