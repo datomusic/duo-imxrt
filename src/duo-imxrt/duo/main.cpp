@@ -158,10 +158,12 @@ int main(void) {
   keys_scan();
   midi_init();
 
-
   MIDI.setHandleStart(sequencer_restart);
+  usbMIDI.setHandleStart(sequencer_restart);
   MIDI.setHandleContinue(sequencer_restart);
+  usbMIDI.setHandleContinue(sequencer_restart);
   MIDI.setHandleStop(sequencer_stop);
+  usbMIDI.setHandleStop(sequencer_stop);
 
   previous_note_on_time = millis();
 
