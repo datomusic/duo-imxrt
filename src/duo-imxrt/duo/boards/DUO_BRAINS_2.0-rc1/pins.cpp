@@ -24,7 +24,7 @@
 #define BENCHMARK_PIN        GPIO_SD_13
 
 // Channel 0 of BRN_MUX is connected to a resistor that goes nowhere
-#define UNCONNECTED_ANALOG   0
+#define UNCONNECTED_ANALOG   1
 
 static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
   pinMode(mux_pin, INPUT_DISABLE);
@@ -109,7 +109,7 @@ void pins_init() {
   pinMode(GPIO_AD_03, OUTPUT);
   pinMode(GPIO_SD_13, OUTPUT);
 
-  randomSeed(muxAnalogRead(UNCONNECTED_ANALOG, PIN_BRN_MUX_IO));
+  randomSeed(analogRead(GPIO_AD_03));
 }
 
 bool headphone_jack_detected() {
