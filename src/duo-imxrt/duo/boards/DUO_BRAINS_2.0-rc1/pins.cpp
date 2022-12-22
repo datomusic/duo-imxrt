@@ -21,6 +21,8 @@
 #define OSC_LED              PIN_LED_1
 #define FILTER_LED           PIN_LED_2
 
+#define BENCHMARK_PIN        GPIO_SD_13
+
 // Channel 0 of BRN_MUX is connected to a resistor that goes nowhere
 #define UNCONNECTED_ANALOG   0
 
