@@ -1,47 +1,57 @@
 #include "../../pins.h"
-#include <Arduino.h>
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
+#include <Arduino.h>
 
-#define PIN_AMP_MUTE	       GPIO_AD_11
-#define PIN_HP_ENABLE	       GPIO_AD_11
+#define PIN_AMP_MUTE GPIO_AD_11
+#define PIN_HP_ENABLE GPIO_AD_11
 
-#define PIN_SYN_MUX_IO       GPIO_AD_14
-#define PIN_BRN_MUX_IO       GPIO_AD_02
+#define PIN_SYN_MUX_IO GPIO_AD_14
+#define PIN_BRN_MUX_IO GPIO_AD_02
 
-#define PIN_SYN_ADDR0        GPIO_SD_00
-#define PIN_SYN_ADDR1        GPIO_SD_01
-#define PIN_SYN_ADDR2        GPIO_SD_02
+#define PIN_SYN_ADDR0 GPIO_SD_00
+#define PIN_SYN_ADDR1 GPIO_SD_01
+#define PIN_SYN_ADDR2 GPIO_SD_02
 
-#define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_05
-#define PIN_LED_3            GPIO_01
+#define PIN_LED_1 GPIO_08
+#define PIN_LED_2 GPIO_05
+#define PIN_LED_3 GPIO_01
 
-#define ENV_LED              PIN_LED_3
-#define OSC_LED              PIN_LED_1
-#define FILTER_LED           PIN_LED_2
+#define ENV_LED PIN_LED_3
+#define OSC_LED PIN_LED_1
+#define FILTER_LED PIN_LED_2
 
 // Channel 0 of BRN_MUX is connected to a resistor that goes nowhere
-#define UNCONNECTED_ANALOG   0
+#define UNCONNECTED_ANALOG 0
+
+static void gpio2_write(uint32_t pin, uint8_t output) {
+  if (output == 0U) {
+    GPIO2->DR_CLEAR = (1UL << pin);
+  } else {
+    GPIO2->DR_SET = (1UL << pin);
+  }
+}
+
+static void setup_mux(const uint8_t channel, const uint8_t mux_pin,
+                      PinMode mode) {
+  pinMode(mux_pin, mode);
+
+  gpio2_write(0, bitRead(channel, 0));
+  gpio2_write(1, bitRead(channel, 1));
+  gpio2_write(2, bitRead(channel, 2));
+
+  delayMicroseconds(40);
+}
 
 static int muxAnalogRead(const uint8_t channel, const uint8_t mux_pin) {
   pinMode(mux_pin, INPUT_DISABLE);
-  digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
-  digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
-  digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  
-  delayMicroseconds(50);
+  setup_mux(channel, mux_pin, INPUT_DISABLE);
   return (analogRead(mux_pin));
 }
 
-static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinMode mode) {
-  pinMode(mux_pin, mode);
-
-  digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
-  digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
-  digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
-  delayMicroseconds(40);
-  
+static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin,
+                              PinMode mode) {
+  setup_mux(channel, mux_pin, mode);
   return digitalRead(mux_pin);
 }
 
@@ -84,7 +94,7 @@ bool pinRead(const Pin pin) {
       // The pulldown on the SYNC_DETECT pin is too weak
       // So let's do an analogRead and compare it to 70%
       // of fullscale
-      return !(muxAnalogRead(2, PIN_BRN_MUX_IO) < 700); 
+      return !(muxAnalogRead(2, PIN_BRN_MUX_IO) < 700);
     default:
       return false;
   }
@@ -93,7 +103,6 @@ bool pinRead(const Pin pin) {
 void pins_init() {
   pinMode(PIN_HP_ENABLE, OUTPUT);
   pinMode(PIN_AMP_MUTE, OUTPUT);
-
 
   pinMode(PIN_SYN_ADDR0, OUTPUT);
   pinMode(PIN_SYN_ADDR1, OUTPUT);
@@ -110,6 +119,4 @@ void pins_init() {
   randomSeed(muxAnalogRead(UNCONNECTED_ANALOG, PIN_BRN_MUX_IO));
 }
 
-bool headphone_jack_detected() {
-  return pinRead(HP_DETECT_PIN);
-}
+bool headphone_jack_detected() { return pinRead(HP_DETECT_PIN); }
