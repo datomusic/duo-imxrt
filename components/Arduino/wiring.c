@@ -152,19 +152,14 @@ void init( void )
     /*allow io mux*/
     CLOCK_EnableClock(kCLOCK_Iomuxc); 
 
-    // /* Set systick reload value to generate 1ms interrupt */
-    // if(SysTick_Config(100'000 / 1000U))
-    // {
-    //     while (1)
-    //     {
-    //     }
-    // }
-    #define SYSTICK_EXT_FREQ 100000
+    /* Set systick reload value to generate 1ms interrupt */
+    if(SysTick_Config(SystemCoreClock / 1000U))
+    {
+        while (1)
+        {
+        }
+    }
 
-    SysTick->LOAD = (SYSTICK_EXT_FREQ / 1000) - 1;
-	  SysTick->VAL = 0;
-    SysTick->CTRL  = SysTick_CTRL_TICKINT_Msk   |
-                   SysTick_CTRL_ENABLE_Msk;    /* Enable SysTick IRQ and SysTick Timer */	  NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
 	  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // turn on cycle counter;
 	  systick_cycle_count = DWT->CYCCNT; // compiled 0, corrected w/1st systick
