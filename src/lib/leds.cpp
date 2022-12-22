@@ -47,8 +47,8 @@ static void yes_interrupts() {
   __enable_irq();
 }
 
-inline static void pin_hi() { NEOPIXEL_PORT->DR |= (1UL << NEOPIXEL_PIN); }
-inline static void pin_lo() { NEOPIXEL_PORT->DR &= ~(1UL << NEOPIXEL_PIN); }
+#define pin_hi() NEOPIXEL_PORT->DR_SET = (1UL << NEOPIXEL_PIN);
+#define pin_lo() NEOPIXEL_PORT->DR_CLEAR = (1UL << NEOPIXEL_PIN);
 
 namespace LEDs {
 
@@ -86,7 +86,8 @@ static inline void send_byte(uint8_t byte, register uint32_t &next_cycle_start,
 
     // Keep bit on for relevant time.
     const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
-    const uint32_t on_cutoff = next_cycle_start - (timings.interval - on_cycles);
+    const uint32_t on_cutoff =
+        next_cycle_start - (timings.interval - on_cycles);
     pin_hi();
     while (DWT->CYCCNT < on_cutoff)
       ;
@@ -130,9 +131,12 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
     const Pixel pix = *(pixel_ptr++);
 
-    send_byte(((pix.g * correction.g * brightness)>>16), next_cycle_start, timings);
-    send_byte(((pix.r * correction.r * brightness)>>16), next_cycle_start, timings);
-    send_byte(((pix.b * correction.b * brightness)>>16), next_cycle_start, timings);
+    send_byte(((pix.g * correction.g * brightness) >> 16), next_cycle_start,
+              timings);
+    send_byte(((pix.r * correction.r * brightness) >> 16), next_cycle_start,
+              timings);
+    send_byte(((pix.b * correction.b * brightness) >> 16), next_cycle_start,
+              timings);
 
 #ifdef ALLOW_INTERRUPTS
     yes_interrupts();
@@ -146,7 +150,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 void show(const Pixel *const pixels, const int pixel_count) {
   show_pixels(pixels, pixel_count);
 #ifdef ALLOW_INTERRUPTS
-    yes_interrupts();
+  yes_interrupts();
 #endif
 }
 
