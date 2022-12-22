@@ -14,6 +14,7 @@
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
 
+#define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
 
 #include "globals.h"
 
@@ -185,8 +186,6 @@ int main(void) {
       midi_handle();
       sequencer_update();
 
-      // Crude hard coded task switching
-      keys_scan(); // 14 or 175us (depending on debounce)
       keyboard_to_note();
       pitch_update(); // ~30us
 
@@ -203,8 +202,10 @@ int main(void) {
         if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
           led_update();
+        } else {
           sequencer_update();
           pots_read();   
+          keys_scan(); // 14 or 175us (depending on debounce)
         }
       }
     }
@@ -311,15 +312,20 @@ void process_key(const char k, const char state) {
 }
 
 void keys_scan() {
-  if (pinRead(DELAY_PIN)) {
+  AudioNoInterrupts();
+  if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
+
+    delay_fader.fadeOut(3*440);
     mixer_delay.gain(0, 0.0f); // Delay input
     mixer_delay.gain(3, 0.0f);
-  } else {
+  } else if(!pinRead(DELAY_PIN) && synth.delay == false) {
     synth.delay = true;
+    delay_fader.fadeIn(10);
     mixer_delay.gain(0, 0.5f); // Delay input
     mixer_delay.gain(3, 0.4f); // Hat delay input
   }
+  AudioInterrupts();
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {

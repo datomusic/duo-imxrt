@@ -221,7 +221,7 @@ void Keypad::scanKeys() {
 	for (byte c=0; c<sizeKpd.columns; c++) {
 		pinMode(columnPins[c],OUTPUT);
 		digitalWrite(columnPins[c], LOW);	// Begin column pulse output.
-		delay(1);
+		delayMicroseconds(50);
 		for (byte r=0; r<sizeKpd.rows; r++) {
 			bitWrite(bitMap[r], c, !pin_read(rowPins[r]));  // keypress is active low so invert to high.
 		}

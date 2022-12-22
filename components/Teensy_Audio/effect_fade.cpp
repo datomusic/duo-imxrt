@@ -32,7 +32,7 @@ extern "C" {
 extern const int16_t fader_table[257];
 };
 
-void AudioEffectFade::update(void)
+RAMFUNCTION_SECTION_CODE(void AudioEffectFade::update(void))
 {
 	audio_block_t *block;
 	uint32_t i, pos, inc, index, scale;
