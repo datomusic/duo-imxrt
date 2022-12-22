@@ -183,8 +183,8 @@ void AudioOutputPT8211::begin(void)
  */
 static bool buffer_toggle = false;
 
-void AudioOutputPT8211::isr(I2S_Type *base, sai_edma_handle_t *handle,
-                         status_t status, void *userData) {
+RAMFUNCTION_SECTION_CODE(void AudioOutputPT8211::isr(I2S_Type *base, sai_edma_handle_t *handle,
+                         status_t status, void *userData)) {
   __disable_irq();
 	int16_t *dest;
 	__unused int16_t *dest_copy; 
