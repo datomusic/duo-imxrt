@@ -172,9 +172,13 @@ int main(void) {
 
   next_frame_time = millis() + frame_interval;
 
-  in_setup = false;
-
+  in_setup = false;  
+  
+  bool pinState = LOW;
   while (true) {
+    digitalWrite(GPIO_SD_13, pinState);
+    pinState = !pinState;
+
     DatoUSB::background_update();
 
     if (power_check()) {
@@ -316,7 +320,6 @@ void keys_scan() {
     mixer_delay.gain(0, 0.5f); // Delay input
     mixer_delay.gain(3, 0.4f); // Hat delay input
   }
-
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {
