@@ -114,7 +114,7 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   no_interrupts();
   pin_lo();
 
-  DWT->CYCCNT = 0;
+  __DSB();
   uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
 
   while (pixel_ptr != end) {
