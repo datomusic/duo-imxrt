@@ -14,6 +14,7 @@
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
 
+#define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
 
 #include "globals.h"
 
@@ -185,8 +186,6 @@ int main(void) {
       midi_handle();
       sequencer_update();
 
-      // Crude hard coded task switching
-      keys_scan(); // 14 or 175us (depending on debounce)
       keyboard_to_note();
       pitch_update(); // ~30us
 
@@ -203,8 +202,10 @@ int main(void) {
         if (millis() > next_frame_time) {
           next_frame_time = millis() + frame_interval;
           led_update();
+        } else {
           sequencer_update();
           pots_read();   
+          keys_scan(); // 14 or 175us (depending on debounce)
         }
       }
     }
