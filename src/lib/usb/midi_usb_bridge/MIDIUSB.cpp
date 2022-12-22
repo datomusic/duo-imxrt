@@ -1,8 +1,6 @@
 #include "MIDIUSB.h"
 #include "lib/usb/usb.h"
 
-const int CABLE_NUM = 0;
-
 MidiUSB_ MidiUSB;
 
 midiEventPacket_t MidiUSB_::read(void) {
