@@ -201,6 +201,7 @@ SECTIONS
     . = ALIGN(32);
     __ram_function_start__ = .;
     *(CodeQuickAccess)
+    *(RamFunction)
     . = ALIGN(128);
     __ram_function_end__ = .;
   } > m_qacode
