@@ -24,5 +24,5 @@ void MidiUSB_::flush(void) {}
 void MidiUSB_::sendMIDI(const midiEventPacket_t event) {
   const uint8_t packet[4] = {event.header, event.byte1, event.byte2,
                              event.byte3};
-  DatoUSB::midi_send(CABLE_NUM, packet, 4);
+  DatoUSB::midi_send(packet);
 }

@@ -8,7 +8,7 @@ namespace DatoUSB {
 void init();
 bool background_update();
 bool midi_read(uint8_t packet[4]);
-void midi_send(int cable_num, const uint8_t packet[], const int packet_len);
+void midi_send(const uint8_t packet[4]);
 
 }; // namespace DatoUSB
 
