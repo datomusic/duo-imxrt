@@ -312,15 +312,20 @@ void process_key(const char k, const char state) {
 }
 
 void keys_scan() {
-  if (pinRead(DELAY_PIN)) {
+  AudioNoInterrupts();
+  if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
+
+    delay_fader.fadeOut(3*440);
     mixer_delay.gain(0, 0.0f); // Delay input
     mixer_delay.gain(3, 0.0f);
-  } else {
+  } else if(!pinRead(DELAY_PIN) && synth.delay == false) {
     synth.delay = true;
+    delay_fader.fadeIn(10);
     mixer_delay.gain(0, 0.5f); // Delay input
     mixer_delay.gain(3, 0.4f); // Hat delay input
   }
+  AudioInterrupts();
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {
