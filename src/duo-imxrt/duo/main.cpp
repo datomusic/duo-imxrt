@@ -120,6 +120,7 @@ int main(void) {
   LEDs::init();
   pins_init();
   Drums::init();
+  DatoUSB::init();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
   Serial.begin(31250U);
@@ -145,19 +146,23 @@ int main(void) {
   // }
   midi_set_channel(stored_midi_channel);
 
+  // The order sequencer_init, button_matrix_init, led_init and midi_init is
+  // important Hold a button of the keyboard at startup to select MIDI channel
+  next_frame_time = millis() + 100;
+  button_matrix_init();
+  while(millis() < next_frame_time) {
+    keys_scan();
+    DatoUSB::background_update();
+  }
+  next_frame_time = millis() + frame_interval;
+  midi_init();
   led_init();
-  DatoUSB::init();
+
   AudioNoInterrupts();
   headphone_preamp.gain(HEADPHONE_GAIN);
   speaker_preamp.gain(SPEAKER_GAIN);
   audio_init();
   AudioInterrupts();
-
-  // The order sequencer_init, button_matrix_init, led_init and midi_init is
-  // important Hold a button of the keyboard at startup to select MIDI channel
-  button_matrix_init();
-  keys_scan();
-  midi_init();
 
   MIDI.setHandleStart(sequencer_restart);
   usbMIDI.setHandleStart(sequencer_restart);
@@ -170,8 +175,6 @@ int main(void) {
 
   Audio::headphone_enable();
   Audio::amp_enable();
-
-  next_frame_time = millis() + frame_interval;
 
   in_setup = false;  
   
@@ -198,16 +201,20 @@ int main(void) {
       sequencer_update();
       
       headphone_jack_check();
+      #ifdef DEV_MODE
       if (!dfu_flag) {
-        if (millis() > next_frame_time) {
-          next_frame_time = millis() + frame_interval;
-          led_update();
-        } else {
-          sequencer_update();
-          pots_read();   
-          keys_scan(); // 14 or 175us (depending on debounce)
-        }
+      #endif
+      if (millis() > next_frame_time) {
+        next_frame_time = millis() + frame_interval;
+        led_update();
+      } else {
+        sequencer_update();
+        pots_read();   
+        keys_scan(); // 14 or 175us (depending on debounce)
       }
+      #ifdef DEV_MODE
+      }
+      #endif
     }
   }
 }
