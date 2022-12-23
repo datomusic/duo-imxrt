@@ -59,7 +59,7 @@ void headphone_jack_check();
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
-  if (pinRead(ACCENT_PIN)) {
+  if (synth.accent) {
     velocity = 127;
   }
 
@@ -113,6 +113,7 @@ void pots_read() {
 
   synth.glide = pinRead(GLIDE_PIN);
   synth.crush = pinRead(BITC_PIN);
+  synth.accent = pinRead(ACCENT_PIN);
 }
 
 bool power_check() { return true; }
@@ -323,7 +324,7 @@ void process_key(const char k, const char state) {
   }
 }
 
-void keys_scan() {
+inline void keys_scan() {
   AudioNoInterrupts();
   if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
