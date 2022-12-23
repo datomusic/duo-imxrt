@@ -6,7 +6,6 @@
 #include "lib/pin_mux.h"
 #include "lib/usb/usb.h"
 #include "pins.h"
-#include "stubs/arduino_stubs.h"
 #include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
@@ -44,11 +43,6 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define GRB 1
 #define SK6812 1
 #include "duo-firmware/src/Leds.h"
-#include "duo-firmware/src/TouchSlider.h"
-#define TOUCH1 16
-#define TOUCH2 17
-#define TOUCH3 19
-#define TOUCH4 18
 #include "duo-firmware/src/Pitch.h"
 #include "stubs/power_stubs.h"
 
