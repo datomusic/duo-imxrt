@@ -20,7 +20,12 @@ unsigned int frame_interval = 10;
 
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
-#include "stubs/MidiFunctions_stubs.h"
+#define setHandleSysEx setHandleSystemExclusive
+#define SIM_UIDH OCOTP->CFG0
+#define SIM_UIDMH OCOTP->CFG1
+#define SIM_UIDML 0
+#define SIM_UIDL 0
+
 #include "duo-firmware/src/MidiFunctions.h"
 
 #include "lib/sync.h"

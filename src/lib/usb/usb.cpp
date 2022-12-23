@@ -23,14 +23,13 @@ bool DatoUSB::midi_read(uint8_t packet[4]) {
   if (tud_midi_available()) {
     tud_midi_packet_read(packet);
     ret = true;
-  } 
+  }
 
   return ret;
 }
 
-void DatoUSB::midi_send(const int cable_num, const uint8_t packet[],
-                        const int packet_len) {
-  tud_midi_stream_write(cable_num, packet, packet_len);
+void DatoUSB::midi_send(const uint8_t packet[4]) {
+  tud_midi_packet_write(packet);
 }
 
 static void usb_irq_handler(int instance) {
