@@ -328,7 +328,6 @@ inline void keys_scan() {
   AudioNoInterrupts();
   if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
-
     delay_fader.fadeOut(3*440);
     mixer_delay.gain(0, 0.0f); // Delay input
     mixer_delay.gain(3, 0.0f);
