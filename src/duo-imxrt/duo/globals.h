@@ -69,7 +69,7 @@ typedef struct {
   int speed;
   bool glide;
   bool accent;
-  bool delay;
+  bool delay = true;
   bool crush;
   int gateLength;
 } synth_parameters;
