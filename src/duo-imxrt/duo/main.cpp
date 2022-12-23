@@ -201,16 +201,20 @@ int main(void) {
       sequencer_update();
       
       headphone_jack_check();
+      #ifdef DEV_MODE
       if (!dfu_flag) {
-        if (millis() > next_frame_time) {
-          next_frame_time = millis() + frame_interval;
-          led_update();
-        } else {
-          sequencer_update();
-          pots_read();   
-          keys_scan(); // 14 or 175us (depending on debounce)
-        }
+      #endif
+      if (millis() > next_frame_time) {
+        next_frame_time = millis() + frame_interval;
+        led_update();
+      } else {
+        sequencer_update();
+        pots_read();   
+        keys_scan(); // 14 or 175us (depending on debounce)
       }
+      #ifdef DEV_MODE
+      }
+      #endif
     }
   }
 }
