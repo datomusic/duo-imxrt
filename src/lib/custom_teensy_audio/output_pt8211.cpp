@@ -420,8 +420,8 @@ if (buffer_toggle) {
 		memset(dest,0,sizeof(i2s_tx_buffer) / 2);
 	}
 
-	// arm_dcsche_flush_delete(dest_copy, sizeof(i2s_tx_buffer) / 2);
-
+	SCB_CleanInvalidateDCache_by_Addr(dest_copy, sizeof(i2s_tx_buffer) / 2);
+	
 	if (offsetL < AUDIO_BLOCK_SAMPLES) {
 		AudioOutputPT8211::block_left_offset = offsetL;
 	} else {
