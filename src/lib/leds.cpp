@@ -131,11 +131,11 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
     const Pixel pix = *(pixel_ptr++);
 
-    send_byte(((pix.g * correction.g * brightness) >> 16), next_cycle_start,
+    send_byte(((pix.g * correction.g * _brightness) >> 16), next_cycle_start,
               timings);
-    send_byte(((pix.r * correction.r * brightness) >> 16), next_cycle_start,
+    send_byte(((pix.r * correction.r * _brightness) >> 16), next_cycle_start,
               timings);
-    send_byte(((pix.b * correction.b * brightness) >> 16), next_cycle_start,
+    send_byte(((pix.b * correction.b * _brightness) >> 16), next_cycle_start,
               timings);
 
 #ifdef ALLOW_INTERRUPTS
@@ -147,11 +147,13 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   return true;
 }
 
+void setBrightness(int brightness) {
+  _brightness = brightness;
+}
 void show(const Pixel *const pixels, const int pixel_count) {
   while(!show_pixels(pixels, pixel_count));
 #ifdef ALLOW_INTERRUPTS
   yes_interrupts();
 #endif
 }
-
 } // namespace LEDs

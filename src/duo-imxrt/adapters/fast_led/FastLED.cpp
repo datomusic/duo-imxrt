@@ -9,8 +9,8 @@ void FastLED_::clear() {
   memset(raw_pixels, 0, sizeof(CRGB) * pixel_count);
 }
 
-void FastLED_::setBrightness(int) {
-  // TODO
+void FastLED_::setBrightness(int brightness) {
+  LEDs::setBrightness(brightness);
 }
 void FastLED_::setCorrection(int) {
   // TODO

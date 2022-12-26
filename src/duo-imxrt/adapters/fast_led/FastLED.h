@@ -5,7 +5,7 @@
 struct FastLED_ {
   void show();
   void clear();
-  void setBrightness(int);
+  void setBrightness(int brightness);
   void setCorrection(int);
 
   // We ignore the template parameters, since our current
@@ -24,6 +24,7 @@ struct FastLED_ {
 private:
   int pixel_count;
   CRGB *raw_pixels;
+  int _brightness;
 };
 
 FastLED_ FastLED;
