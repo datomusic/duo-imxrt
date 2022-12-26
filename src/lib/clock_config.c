@@ -163,13 +163,15 @@ void BOARD_BootClockRUN(void)
     /* Set Oscillator ready counter value. */
     CCM->CCR = (CCM->CCR & (~CCM_CCR_OSCNT_MASK)) | CCM_CCR_OSCNT(127);
     /* Setting the VDD_SOC to 1.25V. It is necessary to config CORE to 500Mhz. */
-    DCDC->REG3 = (DCDC->REG3 & (~DCDC_REG3_TRG_MASK)) | DCDC_REG3_TRG(0x12);
+    // DCDC->REG3 = (DCDC->REG3 & (~DCDC_REG3_TRG_MASK)) | DCDC_REG3_TRG(0x12);
+    /* Setting the VDD_SOC to 1.15V for 250 MHz operation */
+    DCDC->REG3 = (DCDC->REG3 & (~DCDC_REG3_TRG_MASK)) | DCDC_REG3_TRG(0xE);
     /* Waiting for DCDC_STS_DC_OK bit is asserted */
     while (DCDC_REG0_STS_DC_OK_MASK != (DCDC_REG0_STS_DC_OK_MASK & DCDC->REG0))
     {
     }
     /* Set AHB_PODF. */
-    CLOCK_SetDiv(kCLOCK_AhbDiv, 0);
+    CLOCK_SetDiv(kCLOCK_AhbDiv, 1);
     /* Disable IPG clock gate. */
     CLOCK_DisableClock(kCLOCK_Adc1);
     CLOCK_DisableClock(kCLOCK_Xbar1);

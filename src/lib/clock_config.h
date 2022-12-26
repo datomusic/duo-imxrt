@@ -40,7 +40,7 @@ void BOARD_InitBootClocks(void);
 /*******************************************************************************
  * Definitions for BOARD_BootClockRUN configuration
  ******************************************************************************/
-#define BOARD_BOOTCLOCKRUN_CORE_CLOCK             500000000U  /*!< Core clock frequency: 500000000Hz */
+#define BOARD_BOOTCLOCKRUN_CORE_CLOCK             250000000U  /*!< Core clock frequency: 500000000Hz */
 
 /* Clock outputs (values are in Hz): */
 #define BOARD_BOOTCLOCKRUN_ADC_ALT_CLK                40000000UL
@@ -49,7 +49,7 @@ void BOARD_InitBootClocks(void);
 #define BOARD_BOOTCLOCKRUN_CLKO2_CLK                  0UL
 #define BOARD_BOOTCLOCKRUN_CLK_1M                     1000000UL
 #define BOARD_BOOTCLOCKRUN_CLK_24M                    24000000UL
-#define BOARD_BOOTCLOCKRUN_CORE_CLK_ROOT              500000000UL
+#define BOARD_BOOTCLOCKRUN_CORE_CLK_ROOT              250000000UL
 #define BOARD_BOOTCLOCKRUN_ENET_500M_REF_CLK          500000000UL
 #define BOARD_BOOTCLOCKRUN_FLEXIO1_CLK_ROOT           30000000UL
 #define BOARD_BOOTCLOCKRUN_FLEXSPI_CLK_ROOT           132000000UL
