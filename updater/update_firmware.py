@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import sys
 import time
 import rtmidi
@@ -49,12 +50,16 @@ def find_mboot_interface():
             return None
 
 
-def update_firmware(firmware_path):
+def update_firmware(firmware_path, interactive):
     with open(firmware_path, "rb") as firmware:
         firmware_bytes = firmware.read()
 
     if not enter_bootloader():
-        input("Please enter bootloader manually, then press Enter.")
+        if interactive:
+            input("Please enter bootloader manually, then press Enter.")
+        else:
+            print("Aborting.")
+            return False
 
     time.sleep(1)
     interface = find_sdp_interface()
@@ -98,13 +103,24 @@ def update_firmware(firmware_path):
         print("Resetting")
         mboot.reset(reopen=False)
 
-
 def main():
-    firmware_path = "./duo_firmware.bin"
-    if len(sys.argv) > 1:
-        firmware_path = sys.argv[1]
+    parser = argparse.ArgumentParser(prog="DUO firmware updater")
+    parser.add_argument('firmware_path', nargs='?', default="./duo_firmware.bin", )
+    parser.add_argument(
+        '-c', '--continuous', action='store_true', 
+        help="Disable user interaction and keep polling after successful or failed updates."
+    )
 
-    update_firmware(firmware_path)
+    args = parser.parse_args()
+
+    if args.continuous:
+        print("Polling (continuous mode).")
+        print()
+        while True:
+            time.sleep(3)
+            update_firmware(args.firmware_path, False)
+    else:
+        update_firmware(args.firmware_path, True)
 
 
 if __name__ == "__main__":
