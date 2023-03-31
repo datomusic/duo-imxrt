@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import sys
 import time
 import rtmidi
@@ -15,6 +16,7 @@ def find_duo_midi_port():
     for (index, name) in enumerate(rtmidi.MidiOut().get_ports()):
         if "duo" in name.lower():
             return index
+    return None
 
 
 def enter_bootloader():
@@ -22,11 +24,12 @@ def enter_bootloader():
 
     if not duo_port:
         print("Could not detect DUO midi port.")
-        print("Please make sure it's connected and select the correct port.")
-
-    midiout, portname = open_midioutput(duo_port, use_virtual=False)
-    reset_syx = [0xF0, 0x7d, 0x64, 0x0b, 0xF7]
-    midiout.send_message(reset_syx)
+        return False
+    else:
+        midiout, portname = open_midioutput(duo_port, use_virtual=False)
+        reset_syx = [0xF0, 0x7d, 0x64, 0x0b, 0xF7]
+        midiout.send_message(reset_syx)
+        return True
 
 
 def find_sdp_interface():
@@ -35,6 +38,7 @@ def find_sdp_interface():
             return interface
         case _:
             print("No DUO connected")
+            return None
 
 
 def find_mboot_interface():
@@ -43,19 +47,25 @@ def find_mboot_interface():
             return interface
         case _:
             print("No DUO connected")
+            return None
 
 
-def update_firmware(firmware_path):
+def update_firmware(firmware_path, interactive):
     with open(firmware_path, "rb") as firmware:
         firmware_bytes = firmware.read()
 
-    try:
-        enter_bootloader()
-    except rtmidi._rtmidi.InvalidPortError:
-        pass
+    if not enter_bootloader():
+        if interactive:
+            input("Please enter bootloader manually, then press Enter.")
+        else:
+            print("Aborting.")
+            return False
 
     time.sleep(1)
     interface = find_sdp_interface()
+    if not interface:
+        print("Aborting.")
+        return False
 
     print("Sending flashloader")
     with SDP(interface) as s:
@@ -67,7 +77,11 @@ def update_firmware(firmware_path):
     print("Sent flashloader. Rebooting.")
     time.sleep(1)
 
+    print("Finding boot interface.")
     boot_interface = find_mboot_interface()
+    if not boot_interface:
+        print("Aborting.")
+        return False
 
     with McuBoot(boot_interface) as mboot:
         mboot.get_property(1, 0)
@@ -89,13 +103,24 @@ def update_firmware(firmware_path):
         print("Resetting")
         mboot.reset(reopen=False)
 
-
 def main():
-    firmware_path = "./duo_firmware.bin"
-    if len(sys.argv) > 1:
-        firmware_path = sys.argv[1]
+    parser = argparse.ArgumentParser(prog="DUO firmware updater")
+    parser.add_argument('firmware_path', nargs='?', default="./duo_firmware.bin", )
+    parser.add_argument(
+        '-c', '--continuous', action='store_true', 
+        help="Disable user interaction and keep polling after successful or failed updates."
+    )
 
-    update_firmware(firmware_path)
+    args = parser.parse_args()
+
+    if args.continuous:
+        print("Polling (continuous mode).")
+        print()
+        while True:
+            time.sleep(3)
+            update_firmware(args.firmware_path, False)
+    else:
+        update_firmware(args.firmware_path, True)
 
 
 if __name__ == "__main__":
