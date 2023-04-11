@@ -104,8 +104,11 @@ def update_firmware(firmware_path, interactive):
         mboot.reset(reopen=False)
 
 def main():
+    from os.path import dirname
+    script_path = dirname(sys.argv[0])
+
     parser = argparse.ArgumentParser(prog="DUO firmware updater")
-    parser.add_argument('firmware_path', nargs='?', default="./duo_firmware.bin", )
+    parser.add_argument('firmware_path', nargs='?', default=f"{script_path}/duo_firmware.bin", )
     parser.add_argument(
         '-c', '--continuous', action='store_true', 
         help="Disable user interaction and keep polling after successful or failed updates."
