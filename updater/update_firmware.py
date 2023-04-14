@@ -50,7 +50,7 @@ def find_mboot_interface():
             return None
 
 
-def update_firmware(firmware_path, interactive):
+def update_firmware(firmware_path, data_path, interactive):
     with open(firmware_path, "rb") as firmware:
         firmware_bytes = firmware.read()
 
@@ -69,7 +69,7 @@ def update_firmware(firmware_path, interactive):
 
     print("Sending flashloader")
     with SDP(interface) as s:
-        flashloader_bytes = open("./data/ivt_flashloader.bin", "rb").read()
+        flashloader_bytes = open(f"{data_path}/ivt_flashloader.bin", "rb").read()
         flashloader_addr = 0x20205800
         s.write_file(flashloader_addr, flashloader_bytes)
         s.jump_and_run(flashloader_addr)
@@ -104,8 +104,9 @@ def update_firmware(firmware_path, interactive):
         mboot.reset(reopen=False)
 
 def main():
-    from os.path import dirname
-    script_path = dirname(sys.argv[0])
+    from os.path import dirname,abspath
+    script_path = abspath(dirname(sys.argv[0]))
+    data_path = f"{script_path}/data"
 
     parser = argparse.ArgumentParser(prog="DUO firmware updater")
     parser.add_argument('firmware_path', nargs='?', default=f"{script_path}/duo_firmware.bin", )
@@ -121,9 +122,9 @@ def main():
         print()
         while True:
             time.sleep(3)
-            update_firmware(args.firmware_path, False)
+            update_firmware(args.firmware_path, data_path, False)
     else:
-        update_firmware(args.firmware_path, True)
+        update_firmware(args.firmware_path, data_path, True)
 
 
 if __name__ == "__main__":
