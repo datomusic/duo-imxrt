@@ -58,8 +58,7 @@ def update_firmware(firmware_path, data_path, interactive):
         if interactive:
             input("Please enter bootloader manually, then press Enter.")
         else:
-            print("Aborting.")
-            return False
+            print("Continuing. [Continuous mode]")
 
     time.sleep(1)
     interface = find_sdp_interface()
