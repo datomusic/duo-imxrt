@@ -50,15 +50,15 @@ def find_mboot_interface():
             return None
 
 
-def update_firmware(firmware_path, data_path, interactive):
+def update_firmware(firmware_path, data_path, continuous):
     with open(firmware_path, "rb") as firmware:
         firmware_bytes = firmware.read()
 
     if not enter_bootloader():
-        if interactive:
-            input("Please enter bootloader manually, then press Enter.")
-        else:
+        if continuous:
             print("Continuing. [Continuous mode]")
+        else:
+            input("Please enter bootloader manually, then press Enter.")
 
     time.sleep(1)
     interface = find_sdp_interface()
@@ -121,9 +121,9 @@ def main():
         print()
         while True:
             time.sleep(3)
-            update_firmware(args.firmware_path, data_path, False)
+            update_firmware(args.firmware_path, data_path, True)
     else:
-        update_firmware(args.firmware_path, data_path, True)
+        update_firmware(args.firmware_path, data_path, False)
 
 
 if __name__ == "__main__":
