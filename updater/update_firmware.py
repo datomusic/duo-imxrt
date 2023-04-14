@@ -117,7 +117,7 @@ def main():
     args = parser.parse_args()
 
     if args.continuous:
-        print("Polling (continuous mode).")
+        print("Polling [continuous mode].")
         print()
         while True:
             time.sleep(3)
