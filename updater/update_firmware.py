@@ -22,7 +22,7 @@ def find_duo_midi_port():
 def enter_bootloader():
     duo_port = find_duo_midi_port()
 
-    if not duo_port:
+    if duo_port is None:
         print("Could not detect DUO midi port.")
         return False
     else:
@@ -50,16 +50,15 @@ def find_mboot_interface():
             return None
 
 
-def update_firmware(firmware_path, interactive):
+def update_firmware(firmware_path, data_path, continuous):
     with open(firmware_path, "rb") as firmware:
         firmware_bytes = firmware.read()
 
     if not enter_bootloader():
-        if interactive:
-            input("Please enter bootloader manually, then press Enter.")
+        if continuous:
+            print("Continuing. [Continuous mode]")
         else:
-            print("Aborting.")
-            return False
+            input("Please enter bootloader manually, then press Enter.")
 
     time.sleep(1)
     interface = find_sdp_interface()
@@ -69,7 +68,7 @@ def update_firmware(firmware_path, interactive):
 
     print("Sending flashloader")
     with SDP(interface) as s:
-        flashloader_bytes = open("./data/ivt_flashloader.bin", "rb").read()
+        flashloader_bytes = open(f"{data_path}/ivt_flashloader.bin", "rb").read()
         flashloader_addr = 0x20205800
         s.write_file(flashloader_addr, flashloader_bytes)
         s.jump_and_run(flashloader_addr)
@@ -104,8 +103,9 @@ def update_firmware(firmware_path, interactive):
         mboot.reset(reopen=False)
 
 def main():
-    from os.path import dirname
-    script_path = dirname(sys.argv[0])
+    from os.path import dirname,abspath
+    script_path = abspath(dirname(sys.argv[0]))
+    data_path = f"{script_path}/data"
 
     parser = argparse.ArgumentParser(prog="DUO firmware updater")
     parser.add_argument('firmware_path', nargs='?', default=f"{script_path}/duo_firmware.bin", )
@@ -117,13 +117,13 @@ def main():
     args = parser.parse_args()
 
     if args.continuous:
-        print("Polling (continuous mode).")
+        print("Polling [continuous mode].")
         print()
         while True:
             time.sleep(3)
-            update_firmware(args.firmware_path, False)
+            update_firmware(args.firmware_path, data_path, True)
     else:
-        update_firmware(args.firmware_path, True)
+        update_firmware(args.firmware_path, data_path, False)
 
 
 if __name__ == "__main__":
