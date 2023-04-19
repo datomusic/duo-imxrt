@@ -22,7 +22,7 @@ def find_duo_midi_port():
 def enter_bootloader():
     duo_port = find_duo_midi_port()
 
-    if not duo_port:
+    if duo_port is None:
         print("Could not detect DUO midi port.")
         return False
     else:
