@@ -8,6 +8,8 @@
 #if defined(__GNUC__)
 #include <stdio.h>
 #include <errno.h>
+#include <stdint.h>
+#include <sys/types.h>
 #endif
 
 #if defined(__GNUC__)
