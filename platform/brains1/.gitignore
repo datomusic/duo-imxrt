@@ -11,5 +11,3 @@ tools/
 *.bin
 *.d
 duo-firmware.bin
-libraries/Audio
-libraries/MIDI

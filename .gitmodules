@@ -10,3 +10,12 @@
 [submodule "libraries/duo-firmware"]
 	path = platform/imxrt1010/libraries/duo-firmware
 	url = git@github.com:datomusic/duo-firmware.git
+[submodule "platform/brains1/libraries/MIDI"]
+	path = platform/brains1/libraries/MIDI
+	url = https://github.com/FortySevenEffects/arduino_midi_library
+[submodule "platform/brains1/libraries/FastLED"]
+	path = platform/brains1/libraries/FastLED
+	url = https://github.com/FastLED/FastLED
+[submodule "platform/brains1/libraries/Audio"]
+	path = platform/brains1/libraries/Audio
+	url = https://github.com/datomusic/Audio
