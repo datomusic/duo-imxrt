@@ -13,9 +13,6 @@
 [submodule "platform/brains1/libraries/MIDI"]
 	path = platform/brains1/libraries/MIDI
 	url = https://github.com/FortySevenEffects/arduino_midi_library
-[submodule "platform/brains1/libraries/FastLED"]
-	path = platform/brains1/libraries/FastLED
-	url = https://github.com/FastLED/FastLED
 [submodule "platform/brains1/libraries/Audio"]
 	path = platform/brains1/libraries/Audio
 	url = https://github.com/datomusic/Audio
