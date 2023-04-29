@@ -1,0 +1,15 @@
+.DS_Store
+*.elf
+*.hex
+build/
+stino.settings
+tools/
+.project
+.cproject
+.settings/
+*.o
+*.bin
+*.d
+duo-firmware.bin
+libraries/Audio
+libraries/MIDI
