@@ -1,3 +1,5 @@
+FIRMWARE_PATH = ../../firmware
+
 # The name of your project (used to name the compiled .hex file)
 TARGET = $(notdir $(CURDIR))
 
@@ -52,7 +54,7 @@ LIBRARYPATH = $(CURDIR)/libraries
 #************************************************************************
 
 # CPPFLAGS = compiler options for C and C++
-CPPFLAGS = -Wall -g -O2 -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -Isrc -I$(COREPATH)
+CPPFLAGS = -Wall -g -O2 -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -Isrc -I"$(FIRMWARE_PATH)" -I$(COREPATH)
 
 # compiler options for C++ only
 CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
@@ -107,9 +109,9 @@ LC_FILES := $(wildcard $(LIBRARYPATH)/*/*.c) $(wildcard $(LIBRARYPATH)/*/*/*.c)
 LCPP_FILES := $(wildcard $(LIBRARYPATH)/*/*.cpp) $(wildcard $(LIBRARYPATH)/*/*/*.cpp)
 TC_FILES := $(wildcard $(COREPATH)/*.c)
 TCPP_FILES := $(wildcard $(COREPATH)/*.cpp)
-C_FILES := $(wildcard src/*.c)
-CPP_FILES := $(wildcard src/*.cpp)
-INO_FILES := $(wildcard src/*.ino)
+C_FILES := $(wildcard src/*.c) $(wildcard $(FIRMWARE_PATH)/*.c)
+CPP_FILES := $(wildcard src/*.cpp) $(wildcard $(FIRMWARE_PATH)/*.cpp)
+INO_FILES := $(wildcard src/*.ino) $(wildcard $(FIRMWARE_PATH)/*.ino)
 
 # include paths for libraries
 L_INC := $(foreach lib,	$(filter %/, $(wildcard $(LIBRARYPATH)/*/)), -I$(lib)) $(foreach lib,	$(filter %/, $(wildcard $(LIBRARYPATH)/*/src/)), -I$(lib)) $(foreach lib,	$(filter %/, $(wildcard $(LIBRARYPATH)/*/utility/)), -I$(lib))
