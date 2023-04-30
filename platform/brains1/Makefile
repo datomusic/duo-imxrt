@@ -1,4 +1,4 @@
-FIRMWARE_PATH = ../../firmware
+FIRMWARE_PATH = $(abspath $(CURDIR)/../../firmware)
 
 # The name of your project (used to name the compiled .hex file)
 TARGET = $(notdir $(CURDIR))
