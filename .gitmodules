@@ -7,9 +7,6 @@
 [submodule "libraries/Arduino-USBMIDI"]
 	path = platform/imxrt1010/libraries/Arduino-USBMIDI
 	url = git@github.com:lathoub/Arduino-USBMIDI.git
-[submodule "libraries/duo-firmware"]
-	path = platform/imxrt1010/libraries/duo-firmware
-	url = git@github.com:datomusic/duo-firmware.git
 [submodule "platform/brains1/libraries/MIDI"]
 	path = platform/brains1/libraries/MIDI
 	url = https://github.com/FortySevenEffects/arduino_midi_library
