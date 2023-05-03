@@ -75,6 +75,6 @@ typedef struct {
 } synth_parameters;
 
 synth_parameters synth;
-#include "duo-firmware/src/note_stack.h"
+#include "firmware/note_stack.h"
 NoteStack<10> note_stack;
 

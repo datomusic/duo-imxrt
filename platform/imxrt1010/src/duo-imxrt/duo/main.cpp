@@ -28,6 +28,7 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 #include "duo-firmware/src/MidiFunctions.h"
 
 #include "lib/sync.h"
+#include "lib/elapsedMillis.h"
 #include "duo-firmware/src/TempoHandler.h"
 TempoHandler tempo_handler;
 
