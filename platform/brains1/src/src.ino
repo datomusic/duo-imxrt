@@ -87,21 +87,9 @@ int tempo_interval_msec();
 
 void enter_dfu();
 
-// 10 bit representation of full scale parameters
-typedef struct {
-  int detune;
-  int pulseWidth;
-  int filter;
-  int resonance;
-  int release;
-  int amplitude;
-  bool glide;
-  bool accent;
-  bool delay;
-  bool crush;
-} synth_parameters;
-
+#include "synth_params.h"
 synth_parameters synth;
+
 #include "note_stack.h"
 NoteStack<10> note_stack;
 

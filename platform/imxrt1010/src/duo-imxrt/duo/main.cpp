@@ -33,7 +33,7 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 TempoHandler tempo_handler;
 
 #include "buttons.h"
-#include "duo-firmware/src/Sequencer.h"
+#include "firmware/Sequencer.h"
 #include "duo-firmware/src/Synth.h"
 
 // One more LED than the physical number of leds for loopback testing
