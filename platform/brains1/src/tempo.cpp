@@ -2,6 +2,7 @@
 #include "tempo.h"
 #include "Arduino.h"
 #include "TempoHandler.h"
+#include "pinmap.h"
 
 void Tempo::update_internal(TempoHandler &handler) {
   int potvalue = potRead(TEMPO_POT);
@@ -14,10 +15,10 @@ void Tempo::update_internal(TempoHandler &handler) {
   } else {
     tbpm = map(potvalue, 895, 1023, 400, 1200);
   }
-  _tempo_interval = 5000000 / tbpm;
+  handler._tempo_interval = 5000000 / tbpm;
 
-  if ((micros() - _previous_clock_time) > _tempo_interval) {
-    _previous_clock_time = micros();
-    trigger();
+  if ((micros() - handler._previous_clock_time) > handler._tempo_interval) {
+    handler._previous_clock_time = micros();
+    handler.trigger();
   }
 }
