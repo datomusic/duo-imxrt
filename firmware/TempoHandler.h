@@ -26,6 +26,7 @@
 #define TEMPO_SYNC_DIVIDER   12
 #define TEMPO_SYNC_PULSE_MS  12
 
+#include <MIDI.h>
 #include "tempo.h"
 #include "sync.h"
  
@@ -47,7 +48,7 @@ class TempoHandler
     void setPPQN(int ppqn) {
       _ppqn = ppqn;
     }
-    void update() {
+    void update(const uint32_t midi_clock) {
       // Determine which source is selected for tempo
       if(Sync::detect()) {
         if(_source != TEMPO_SOURCE_SYNC) {
@@ -69,7 +70,7 @@ class TempoHandler
           tempo.update_internal(*this);
           break;
         case TEMPO_SOURCE_MIDI:
-          update_midi();
+          update_midi(midi_clock);
           break;
         case TEMPO_SOURCE_SYNC:
           update_sync();
@@ -84,7 +85,6 @@ class TempoHandler
       _midi_clock_received_flag = 1;
     }
     void midi_clock_reset() {
-      midi_clock = 0;
       _previous_midi_clock = 0;
     }
     void reset_clock_source() {
@@ -111,7 +111,7 @@ class TempoHandler
     uint16_t _ppqn = 24;
 
 
-    void update_midi() { 
+    void update_midi(const uint32_t midi_clock) { 
       if(midi_clock != _previous_midi_clock) {
         _previous_midi_clock = midi_clock;
         _previous_clock_time = micros();
@@ -150,7 +150,8 @@ class TempoHandler
      * Calls the callback, updates the clock and sends out MIDI/Sync pulses
      */
     void trigger() {
-      MIDI.sendRealTime(midi::Clock);
+      // TODO: Enable midi clock output
+      // MIDI.sendRealTime(midi::Clock);
       usbMIDI.sendRealTime(midi::Clock);
 
       if((_clock % _ppqn) == 0) {
