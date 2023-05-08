@@ -72,7 +72,6 @@ void midi_print_firmware_version();
 void midi_print_serial_number();
 void midi_print_identity();
 float midi_note_to_frequency(int x);
-void midi_usb_sysex(byte *data, unsigned length);
 
 synth_parameters midi_parameters;
 
