@@ -38,6 +38,7 @@
 #define SYSEX_FIRMWARE_VERSION 0x01
 #define SYSEX_SERIAL_NUMBER 0x02
 #define SYSEX_REBOOT_BOOTLOADER 0x0B
+#define SYSEX_RESET_TRANSPOSE 0x0C
 #define SYSEX_SELFTEST 0x0A
 
 const float MIDI_NOTE_FREQUENCY[127] = {
@@ -71,12 +72,6 @@ void midi_print_firmware_version();
 void midi_print_serial_number();
 void midi_print_identity();
 float midi_note_to_frequency(int x);
-void midi_usb_sysex(const uint8_t *data, uint16_t length, bool complete);
-
-void midi_send_realtime(const midi::MidiType message){
-    MIDI.sendRealTime(message);
-    usbMIDI.sendRealTime(message);
-}
 
 synth_parameters midi_parameters;
 
@@ -151,6 +146,10 @@ void midi_send_cc() {
   }
 }
 
+namespace PlatformMidi{
+  void init();
+};
+
 void midi_init() {
   MIDI.begin(MIDI_CHANNEL);
   MIDI.setHandleNoteOn(midi_note_on);
@@ -161,10 +160,8 @@ void midi_init() {
   usbMIDI.setHandleNoteOn(midi_note_on);
   usbMIDI.setHandleNoteOff(midi_note_off);
 
-  usbMIDI.setHandleSysEx(midi_usb_sysex);
   MIDI.setHandleControlChange(midi_handle_cc);
-
-  usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
+  PlatformMidi::init();
 }
 
 void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value) {
@@ -207,7 +204,7 @@ void midi_note_off(uint8_t channel, uint8_t note, uint8_t velocity) {
   note_stack.NoteOff(note);
 }
 
-void midi_usb_sysex(const uint8_t *data, uint16_t length, bool complete) {
+void midi_usb_sysex(MIDI_SYSEX_DATA_TYPE *data, unsigned length) {
 
   if(data[1] == SYSEX_DATO_ID && data[2] == SYSEX_DUO_ID) {
     switch(data[3]) {
@@ -219,6 +216,9 @@ void midi_usb_sysex(const uint8_t *data, uint16_t length, bool complete) {
         break;
       case SYSEX_SELFTEST:
         // enter_selftest();
+        break;
+      case SYSEX_RESET_TRANSPOSE:
+        transpose = 0;
         break;
       case SYSEX_REBOOT_BOOTLOADER:
         enter_dfu();
@@ -232,16 +232,6 @@ void midi_usb_sysex(const uint8_t *data, uint16_t length, bool complete) {
       }
     }
   }
-}
-
-void midi_set_channel(uint8_t channel) {
-  if(channel > 0 && channel <= 16) {
-    MIDI_CHANNEL = channel;
-  }
-}
-
-uint8_t midi_get_channel() {
-  return MIDI_CHANNEL;
 }
 
 void midi_print_identity() {

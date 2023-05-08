@@ -25,7 +25,28 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 #define SIM_UIDML 0
 #define SIM_UIDL 0
 
-#include "duo-firmware/src/MidiFunctions.h"
+#define MIDI_SYSEX_DATA_TYPE byte
+#include "firmware/MidiFunctions.h"
+
+void midi_usb_sysex_callback(byte *data, unsigned length) {
+  midi_usb_sysex(data, length);
+}
+
+void PlatformMidi::init(){
+  usbMIDI.setHandleClock(midi_handle_clock);
+  usbMIDI.setHandleSysEx(midi_usb_sysex_callback);
+  //usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
+}
+
+RAMFUNCTION_SECTION_CODE(void midi_set_channel(uint8_t channel)) {
+  if(channel > 0 && channel <= 16) {
+    MIDI_CHANNEL = channel;
+  }
+}
+
+RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
+  return MIDI_CHANNEL;
+}
 
 #include "lib/sync.h"
 #include "lib/elapsedMillis.h"
