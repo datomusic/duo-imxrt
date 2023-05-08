@@ -1,6 +1,7 @@
-#pragma once
+#ifndef SYNC_H
+#define SYNC_H
 
-#include "fsl_common.h"
+#include <cstdint>
 
 namespace Sync {
     void init();
@@ -9,3 +10,6 @@ namespace Sync {
     void write(uint8_t value);
     bool detect();
 }
+
+
+#endif /* end of include guard: SYNC_H */

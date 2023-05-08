@@ -29,8 +29,13 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
 #include "lib/sync.h"
 #include "lib/elapsedMillis.h"
-#include "duo-firmware/src/TempoHandler.h"
-TempoHandler tempo_handler;
+#include "firmware/TempoHandler.h"
+TempoHandler tempo_handler(synth);
+
+void midi_send_realtime(const midi::MidiType message){
+    MIDI.sendRealTime(message);
+    usbMIDI.sendRealTime(message);
+}
 
 #include "buttons.h"
 #include "firmware/Sequencer.h"
@@ -44,7 +49,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define GRB 1
 #define SK6812 1
 #include "duo-firmware/src/Leds.h"
-#include "duo-firmware/src/Pitch.h"
+#include "firmware/Pitch.h"
 #include "stubs/power_stubs.h"
 
 #include "duo-firmware/src/DrumSynth.h"

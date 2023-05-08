@@ -25,10 +25,24 @@
 #define TEMPO_SOURCE_SYNC     2
 #define TEMPO_SYNC_DIVIDER   12
 #define TEMPO_SYNC_PULSE_MS  12
+
+#include <MIDI.h>
+#include "lib/tempo.h"
+#include "lib/sync.h"
+#include "firmware/synth_params.h"
+#include "lib/elapsedMillis.h"
+
+void midi_send_realtime(const midi::MidiType message);
  
 class TempoHandler 
 {
+  friend class Tempo;
+
   public:
+    TempoHandler(synth_parameters &synth_params): synth_params(synth_params){
+      tempo.init();
+    }
+
     inline void setHandleTempoEvent(void (*fptr)()) {
       tTempoCallback = fptr;
     }
@@ -38,9 +52,9 @@ class TempoHandler
     void setPPQN(int ppqn) {
       _ppqn = ppqn;
     }
-    void update() {
+    void update(const uint32_t midi_clock) {
       // Determine which source is selected for tempo
-      if(digitalRead(SYNC_DETECT)) {
+      if(Sync::detect()) {
         if(_source != TEMPO_SOURCE_SYNC) {
           _source = TEMPO_SOURCE_SYNC;
         }
@@ -57,10 +71,10 @@ class TempoHandler
 
       switch(_source) {
         case TEMPO_SOURCE_INTERNAL:
-          update_internal();
+          tempo.update_internal(*this, synth_params.speed);
           break;
         case TEMPO_SOURCE_MIDI:
-          update_midi();
+          update_midi(midi_clock);
           break;
         case TEMPO_SOURCE_SYNC:
           update_sync();
@@ -68,14 +82,13 @@ class TempoHandler
       }
 
       if(syncStart >= TEMPO_SYNC_PULSE_MS) {
-        digitalWrite(SYNC_OUT_PIN, LOW);
+        Sync::write(LOW);
       }
     }
     void midi_clock_received() {
       _midi_clock_received_flag = 1;
     }
     void midi_clock_reset() {
-      midi_clock = 0;
       _previous_midi_clock = 0;
     }
     void reset_clock_source() {
@@ -86,6 +99,8 @@ class TempoHandler
       return _source == TEMPO_SOURCE_INTERNAL;
     }
   private:
+    synth_parameters& synth_params;
+    Tempo tempo;
     elapsedMillis syncStart;
     void (*tTempoCallback)();
     void (*tAlignCallback)();
@@ -100,7 +115,8 @@ class TempoHandler
     uint16_t _clock = 0;
     uint16_t _ppqn = 24;
 
-    void update_midi() { 
+
+    void update_midi(const uint32_t midi_clock) { 
       if(midi_clock != _previous_midi_clock) {
         _previous_midi_clock = midi_clock;
         _previous_clock_time = micros();
@@ -109,7 +125,7 @@ class TempoHandler
     }
     void update_sync() {
       static uint8_t _sync_pin_previous_value = 1;
-      uint8_t _sync_pin_value = digitalRead(SYNC_IN);
+      uint8_t _sync_pin_value = Sync::read();
 
       if(_sync_pin_previous_value && !_sync_pin_value) {
         _tempo_interval = (micros() - _previous_sync_time) / TEMPO_SYNC_DIVIDER;
@@ -135,37 +151,17 @@ class TempoHandler
       _sync_pin_previous_value = _sync_pin_value;
     }
 
-    void update_internal() {
-      int potvalue = potRead(TEMPO_POT);
-      int tbpm = 240; // 2 x beats per minute
-
-      if(potvalue < 128) {
-        tbpm = map(potvalue,0,128,60,120);
-      } else if(potvalue < 895) {
-        tbpm = map(potvalue, 128,895,120,400);
-      } else {
-        tbpm = map(potvalue, 895,1023,400,1200);
-      }
-      _tempo_interval = 5000000/tbpm;
-      
-      if((micros() - _previous_clock_time) > _tempo_interval)  {
-        _previous_clock_time = micros();
-        trigger();
-      }
-    }
-
     /*
      * Calls the callback, updates the clock and sends out MIDI/Sync pulses
      */
     void trigger() {
-      MIDI.sendRealTime(midi::Clock);
-      usbMIDI.sendRealTime(midi::Clock);
+      midi_send_realtime(midi::Clock);
 
       if((_clock % _ppqn) == 0) {
         _clock = 0;
       }
       if((_clock % TEMPO_SYNC_DIVIDER) == 0) {
-        digitalWrite(SYNC_OUT_PIN, HIGH);
+        Sync::write(HIGH);
         syncStart = 0;
       } 
       if (tTempoCallback != 0) {

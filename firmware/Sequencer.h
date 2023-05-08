@@ -53,11 +53,16 @@ void sequencer_init() {
   current_step = SEQUENCER_NUM_STEPS - 1;
 }
 
+static void reset_midi_clock(){
+  midi_clock = 0;
+  tempo_handler.midi_clock_reset();
+}
+
 void sequencer_restart() {
   MIDI.sendRealTime(midi::Start);
   delay(1);
   current_step = SEQUENCER_NUM_STEPS - 1;
-  tempo_handler.midi_clock_reset();
+  reset_midi_clock();
   sequencer_is_running = true;
   sequencer_clock = 0;
 }
@@ -78,7 +83,7 @@ void sequencer_reset_clock() {
 void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
-  tempo_handler.midi_clock_reset();
+  reset_midi_clock();
   sequencer_is_running = true;
 }
 
@@ -172,7 +177,7 @@ void sequencer_reset() {
 
 void sequencer_update() {
   gate_length_msec = map(synth.gateLength,0,1023,10,200);
-  tempo_handler.update();
+  tempo_handler.update(midi_clock);
 
   if(!note_is_done_playing && millis() >= note_off_time && note_is_triggered) { 
     sequencer_untrigger_note();
