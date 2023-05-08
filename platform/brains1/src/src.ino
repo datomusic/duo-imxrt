@@ -94,7 +94,36 @@ synth_parameters synth;
 NoteStack<10> note_stack;
 
 #include "pinmap.h"
+
+#define MIDI_SYSEX_DATA_TYPE const uint8_t
 #include "MidiFunctions.h"
+
+void midi_usb_sysex_callback(MIDI_SYSEX_DATA_TYPE *data, uint16_t length, bool complete){
+  midi_usb_sysex(data, length);
+}
+
+void PlatformMidi::init(){
+  usbMIDI.setHandleSysEx(midi_usb_sysex_callback);
+  usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
+}
+
+
+
+void midi_send_realtime(const midi::MidiType message){
+    MIDI.sendRealTime(message);
+    usbMIDI.sendRealTime(message);
+}
+
+void midi_set_channel(uint8_t channel) {
+  if(channel > 0 && channel <= 16) {
+    MIDI_CHANNEL = channel;
+  }
+}
+
+uint8_t midi_get_channel() {
+  return MIDI_CHANNEL;
+}
+
 #include "MathFunctions.h"
 #include "Buttons.h"
 #include "Synth.h"
