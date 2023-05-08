@@ -29,6 +29,8 @@
 #include <MIDI.h>
 #include "tempo.h"
 #include "sync.h"
+
+void midi_send_realtime(const midi::MidiType message);
  
 class TempoHandler 
 {
@@ -150,9 +152,7 @@ class TempoHandler
      * Calls the callback, updates the clock and sends out MIDI/Sync pulses
      */
     void trigger() {
-      // TODO: Enable midi clock output
-      // MIDI.sendRealTime(midi::Clock);
-      usbMIDI.sendRealTime(midi::Clock);
+      midi_send_realtime(midi::Clock);
 
       if((_clock % _ppqn) == 0) {
         _clock = 0;

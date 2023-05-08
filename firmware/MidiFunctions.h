@@ -73,6 +73,11 @@ void midi_print_identity();
 float midi_note_to_frequency(int x);
 void midi_usb_sysex(const uint8_t *data, uint16_t length, bool complete);
 
+void midi_send_realtime(const midi::MidiType message){
+    MIDI.sendRealTime(message);
+    usbMIDI.sendRealTime(message);
+}
+
 synth_parameters midi_parameters;
 
 void midi_handle() {
