@@ -57,10 +57,10 @@ LIBRARYPATH = $(CURDIR)/libraries
 CPPFLAGS = -Wall -g -O2 -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -Isrc -I"$(FIRMWARE_PATH)" -I$(COREPATH)
 
 # compiler options for C++ only
-CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
+CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti -Wno-class-memaccess
 
 # compiler options for C only
-CFLAGS =
+CFLAGS = -Wno-class-memaccess
 
 # linker options
 LDFLAGS = -O2 -Wl,--gc-sections,--defsym=__rtc_localtime=0 -mthumb

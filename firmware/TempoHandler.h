@@ -25,12 +25,19 @@
 #define TEMPO_SOURCE_SYNC     2
 #define TEMPO_SYNC_DIVIDER   12
 #define TEMPO_SYNC_PULSE_MS  12
- 
-#include "tempo.h"
 
+#include "tempo.h"
+#include "sync.h"
+ 
 class TempoHandler 
 {
+  friend class Tempo;
+
   public:
+    TempoHandler(){
+      tempo.init();
+    }
+
     inline void setHandleTempoEvent(void (*fptr)()) {
       tTempoCallback = fptr;
     }
@@ -42,7 +49,7 @@ class TempoHandler
     }
     void update() {
       // Determine which source is selected for tempo
-      if(digitalRead(SYNC_DETECT)) {
+      if(Sync::detect()) {
         if(_source != TEMPO_SOURCE_SYNC) {
           _source = TEMPO_SOURCE_SYNC;
         }
@@ -59,7 +66,7 @@ class TempoHandler
 
       switch(_source) {
         case TEMPO_SOURCE_INTERNAL:
-          update_internal();
+          tempo.update_internal(*this);
           break;
         case TEMPO_SOURCE_MIDI:
           update_midi();
@@ -70,7 +77,7 @@ class TempoHandler
       }
 
       if(syncStart >= TEMPO_SYNC_PULSE_MS) {
-        digitalWrite(SYNC_OUT_PIN, LOW);
+        Sync::write(LOW);
       }
     }
     void midi_clock_received() {
@@ -88,6 +95,7 @@ class TempoHandler
       return _source == TEMPO_SOURCE_INTERNAL;
     }
   private:
+    Tempo tempo;
     elapsedMillis syncStart;
     void (*tTempoCallback)();
     void (*tAlignCallback)();
@@ -102,6 +110,7 @@ class TempoHandler
     uint16_t _clock = 0;
     uint16_t _ppqn = 24;
 
+
     void update_midi() { 
       if(midi_clock != _previous_midi_clock) {
         _previous_midi_clock = midi_clock;
@@ -111,7 +120,7 @@ class TempoHandler
     }
     void update_sync() {
       static uint8_t _sync_pin_previous_value = 1;
-      uint8_t _sync_pin_value = digitalRead(SYNC_IN);
+      uint8_t _sync_pin_value = Sync::read();
 
       if(_sync_pin_previous_value && !_sync_pin_value) {
         _tempo_interval = (micros() - _previous_sync_time) / TEMPO_SYNC_DIVIDER;
@@ -137,14 +146,6 @@ class TempoHandler
       _sync_pin_previous_value = _sync_pin_value;
     }
 
-    void update_internal() {
-      const int potvalue = potRead(TEMPO_POT);
-      if(tempo_tick(potvalue, _previous_clock_time, _tempo_interval))  {
-        _previous_clock_time = micros();
-        trigger();
-      }
-    }
-
     /*
      * Calls the callback, updates the clock and sends out MIDI/Sync pulses
      */
@@ -156,7 +157,7 @@ class TempoHandler
         _clock = 0;
       }
       if((_clock % TEMPO_SYNC_DIVIDER) == 0) {
-        digitalWrite(SYNC_OUT_PIN, HIGH);
+        Sync::write(HIGH);
         syncStart = 0;
       } 
       if (tTempoCallback != 0) {
