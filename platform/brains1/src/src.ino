@@ -107,8 +107,6 @@ void PlatformMidi::init(){
   usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
 }
 
-
-
 void midi_send_realtime(const midi::MidiType message){
     MIDI.sendRealTime(message);
     usbMIDI.sendRealTime(message);
