@@ -338,6 +338,7 @@ void keys_scan() {
 }
 
 void pots_read() {
+  synth.speed = potRead(TEMPO_POT);
   gate_length_msec = map(potRead(GATE_POT),0,1023,10,200);
   
   synth.detune = potRead(OSC_DETUNE_POT);
