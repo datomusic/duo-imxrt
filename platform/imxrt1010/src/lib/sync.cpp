@@ -2,6 +2,7 @@
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
 #include "board.h"
+#include "duo/pins.h"
 
 namespace Sync {
     void init() {
@@ -21,6 +22,7 @@ namespace Sync {
     void write(uint8_t value) {
         GPIO_PinWrite(SYNC_OUT_PORT, SYNC_OUT_PIN, value);
     }
+
     bool detect(){
       return pinRead(SYNC_DETECT_PIN);
     }

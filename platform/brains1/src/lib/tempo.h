@@ -5,7 +5,7 @@ class TempoHandler;
 
 struct Tempo {
   void init(){}
-  void update_internal(TempoHandler &handler);
+  void update_internal(TempoHandler &handler, const int potvalue);
 };
 
 #endif /* end of include guard: TEMPO_H */

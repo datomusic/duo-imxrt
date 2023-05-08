@@ -54,13 +54,13 @@ LIBRARYPATH = $(CURDIR)/libraries
 #************************************************************************
 
 # CPPFLAGS = compiler options for C and C++
-CPPFLAGS = -Wall -g -O2 -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -Isrc -I"$(FIRMWARE_PATH)" -I$(COREPATH)
+CPPFLAGS = -Wall -g -O2 -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -Isrc -I../../ -I"$(FIRMWARE_PATH)" -I$(COREPATH)
 
 # compiler options for C++ only
-CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti -Wno-class-memaccess
+CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
 
 # compiler options for C only
-CFLAGS = -Wno-class-memaccess
+CFLAGS =
 
 # linker options
 LDFLAGS = -O2 -Wl,--gc-sections,--defsym=__rtc_localtime=0 -mthumb
@@ -109,8 +109,8 @@ LC_FILES := $(wildcard $(LIBRARYPATH)/*/*.c) $(wildcard $(LIBRARYPATH)/*/*/*.c)
 LCPP_FILES := $(wildcard $(LIBRARYPATH)/*/*.cpp) $(wildcard $(LIBRARYPATH)/*/*/*.cpp)
 TC_FILES := $(wildcard $(COREPATH)/*.c)
 TCPP_FILES := $(wildcard $(COREPATH)/*.cpp)
-C_FILES := $(wildcard src/*.c) $(wildcard $(FIRMWARE_PATH)/*.c)
-CPP_FILES := $(wildcard src/*.cpp) $(wildcard $(FIRMWARE_PATH)/*.cpp)
+C_FILES := $(wildcard src/*.c) $(wildcard src/lib/*.c) $(wildcard $(FIRMWARE_PATH)/*.c)
+CPP_FILES := $(wildcard src/*.cpp) $(wildcard src/lib/*.cpp) $(wildcard $(FIRMWARE_PATH)/*.cpp)
 INO_FILES := $(wildcard src/*.ino) $(wildcard $(FIRMWARE_PATH)/*.ino)
 
 # include paths for libraries

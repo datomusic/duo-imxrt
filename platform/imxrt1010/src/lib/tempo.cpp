@@ -1,11 +1,13 @@
 #include "tempo.h"
+#include <Arduino.h>
 
 #define BPM_TO_MILLIS(bpm) (2500000 / bpm)
 
+#include "firmware/TempoHandler.h"
+
 void Tempo::init() { last_millis = millis(); }
 
-void Tempo::update_internal(TempoHandler &handler) {
-  const int potvalue = synth.speed;
+void Tempo::update_internal(TempoHandler &handler, const int potvalue) {
   uint32_t scaled_millis_per_beat; // 2 x beats per minute
 
   if (potvalue < 128) {

@@ -27,8 +27,10 @@
 #define TEMPO_SYNC_PULSE_MS  12
 
 #include <MIDI.h>
-#include "tempo.h"
-#include "sync.h"
+#include "lib/tempo.h"
+#include "lib/sync.h"
+#include "firmware/synth_params.h"
+#include "lib/elapsedMillis.h"
 
 void midi_send_realtime(const midi::MidiType message);
  
@@ -37,7 +39,7 @@ class TempoHandler
   friend class Tempo;
 
   public:
-    TempoHandler(){
+    TempoHandler(synth_parameters &synth_params): synth_params(synth_params){
       tempo.init();
     }
 
@@ -69,7 +71,7 @@ class TempoHandler
 
       switch(_source) {
         case TEMPO_SOURCE_INTERNAL:
-          tempo.update_internal(*this);
+          tempo.update_internal(*this, synth_params.speed);
           break;
         case TEMPO_SOURCE_MIDI:
           update_midi(midi_clock);
@@ -97,6 +99,7 @@ class TempoHandler
       return _source == TEMPO_SOURCE_INTERNAL;
     }
   private:
+    synth_parameters& synth_params;
     Tempo tempo;
     elapsedMillis syncStart;
     void (*tTempoCallback)();

@@ -101,7 +101,7 @@ NoteStack<10> note_stack;
 
 
 #include "TempoHandler.h"
-TempoHandler tempo_handler;
+TempoHandler tempo_handler(synth);
 
 #include "Sequencer.h"
 #include "Leds.h"

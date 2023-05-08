@@ -1,5 +1,5 @@
 #ifndef SYNTH_PARAMS_H
-#define SYNTH_PARAMS_HSYNTH_PARAMS_H
+#define SYNTH_PARAMS_H
 
 // 10 bit representation of full scale parameters
 typedef struct {
@@ -17,4 +17,4 @@ typedef struct {
   int gateLength;
 } synth_parameters;
 
-#endif /* end of include guard: SYNTH_PARAMS_HSYNTH_PARAMS_H */
+#endif /* end of include guard: SYNTH_PARAMS_H */

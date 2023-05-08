@@ -30,7 +30,12 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 #include "lib/sync.h"
 #include "lib/elapsedMillis.h"
 #include "firmware/TempoHandler.h"
-TempoHandler tempo_handler;
+TempoHandler tempo_handler(synth);
+
+void midi_send_realtime(const midi::MidiType message){
+    MIDI.sendRealTime(message);
+    usbMIDI.sendRealTime(message);
+}
 
 #include "buttons.h"
 #include "firmware/Sequencer.h"

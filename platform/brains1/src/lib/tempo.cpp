@@ -4,8 +4,7 @@
 #include "TempoHandler.h"
 #include "pinmap.h"
 
-void Tempo::update_internal(TempoHandler &handler) {
-  int potvalue = potRead(TEMPO_POT);
+void Tempo::update_internal(TempoHandler &handler, const int potvalue){
   int tbpm = 240; // 2 x beats per minute
 
   if (potvalue < 128) {

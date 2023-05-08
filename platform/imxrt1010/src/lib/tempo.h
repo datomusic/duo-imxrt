@@ -1,11 +1,13 @@
 #ifndef TEMPO_H
 #define TEMPO_H
 
+#include <cstdint>
+
 class TempoHandler;
 
 struct Tempo {
   void init();
-  void update_internal(TempoHandler &handler);
+  void update_internal(TempoHandler &handler, const int potvalue);
 
 private:
   uint32_t accum = 0;
