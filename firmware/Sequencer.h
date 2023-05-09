@@ -5,198 +5,198 @@
  Note timing is divided into 24 steps per quarter note
  */
 
+#include "firmware/note_stack.h"
+#include <cstdint>
+
+#define PULSES_PER_EIGHT_NOTE PULSES_PER_QUARTER_NOTE / 2
 const uint8_t SEQUENCER_NUM_STEPS = 8;
 
-//Initial sequencer values
-uint8_t step_note[] = { 1,0,6,9,0,4,0,5 };
-uint8_t step_enable[] = { 1,0,1,1,1,1,0,1 };
-uint8_t step_velocity[] = { 100,100,100,100,100,100,100,100 };
+// Initial sequencer values
+uint8_t step_note[SEQUENCER_NUM_STEPS] = {1, 0, 6, 9, 0, 4, 0, 5};
+uint8_t step_enable[SEQUENCER_NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
+uint8_t step_velocity[SEQUENCER_NUM_STEPS] = {100, 100, 100, 100,
+                                              100, 100, 100, 100};
 
-void sequencer_init();
-void sequencer_restart();
-void sequencer_start();
-void sequencer_stop();
-void sequencer_advance();
-void sequencer_tick_clock();
-void sequencer_reset();
-void sequencer_update();
-void keyboard_to_note();
-int keyboard_get_highest_note();
-int keyboard_get_latest_note();
-void sequencer_align_clock();
-
-static void sequencer_advance_without_play();
-static void sequencer_trigger_note();
-static void sequencer_untrigger_note();
 bool sequencer_is_running = false;
-bool note_is_done_playing = false;
-
-uint32_t next_step_time = 0;
-uint32_t gate_off_time = 0;
-uint32_t note_on_time;
 uint32_t previous_note_on_time;
-uint32_t note_off_time;
-
 static bool double_speed = false;
+uint32_t sequencer_clock = 0;
+uint8_t current_step = 0;
+uint8_t note_is_playing = 0;
+int random_offset = 0;
 
-void sequencer_init() {
-  note_stack.Init();
-
-  for(int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
-    step_note[i] = SCALE[random(9)];
-  }
-  tempo_handler.setHandleTempoEvent(sequencer_tick_clock);
-  tempo_handler.setHandleAlignEvent(sequencer_align_clock);
-  sequencer_stop();
-  current_step = SEQUENCER_NUM_STEPS - 1;
+namespace Sequencer {
+static bool note_is_done_playing = false;
+static uint32_t note_off_time = 0;
+static int gate_length_msec = 40;
+static bool random_flag = 0;
+static bool next_step_is_random = false;
   double_speed = false;
-}
 
-void sequencer_restart() {
-  MIDI.sendRealTime(midi::Start);
-  delay(1);
-  current_step = SEQUENCER_NUM_STEPS - 1;
-  sequencer_is_running = true;
-  tempo_handler.restart();
-}
+NoteStack<10> note_stack;
 
-void sequencer_align_clock() {
+void align_clock() {
   tempo_handler.align_clock();
 }
 
-void sequencer_reset_clock() {
-  tempo_handler.reset_clock();
-}
-
-void sequencer_start() {
-  MIDI.sendRealTime(midi::Continue);
-  usbMIDI.sendRealTime(midi::Continue);
-  tempo_handler.start();
-  sequencer_is_running = true;
-}
-
-void sequencer_stop() {
-  if(sequencer_is_running) {
-
-    usbMIDI.sendControlChange(123,0,MIDI_CHANNEL);
-    MIDI.sendControlChange(123,0,MIDI_CHANNEL);
-    usbMIDI.sendRealTime(midi::Stop);
-    MIDI.sendRealTime(midi::Stop);
-
-    sequencer_is_running = false;
-    sequencer_untrigger_note();
-  }
-  tempo_handler.stop();
-}
-
-void sequencer_toggle_start() {
-  if(sequencer_is_running) {
-    sequencer_stop();
-  } else {
-    sequencer_start();
-  }
-}
-
-void sequencer_tick_clock() {
-  const bool advance = tempo_handler.tick_clock(synth.speed, double_speed);
-  if(sequencer_is_running && advance){
-    sequencer_advance();
-  }
-}
-
-void sequencer_advance_without_play() {
-  static uint8_t arpeggio_index = 0;
-
-  if(!note_is_done_playing) {
-    sequencer_untrigger_note();
-  }
-  current_step++;
-  current_step%=SEQUENCER_NUM_STEPS;
-
-  if (!next_step_is_random && !random_flag) {
-    random_offset = 0;
-  } else {
-    random_flag = false;
-    random_offset = random(1,(SEQUENCER_NUM_STEPS - 2));
-    //current_step = ((current_step + random(2, SEQUENCER_NUM_STEPS))%SEQUENCER_NUM_STEPS);
-  }
-
-  // Sample keys
-  uint8_t n = note_stack.size();
-
-  if(arpeggio_index >= n) {
-    arpeggio_index = 0;
-  }
-
-  if(n > 0) {
-    if(!sequencer_is_running) {
-      step_note[current_step] = note_stack.most_recent_note().note;
-    } else {
-      step_note[current_step] = note_stack.sorted_note(arpeggio_index).note;
-      arpeggio_index++;
-    }
-    step_enable[current_step] = 1;
-    step_velocity[current_step] = INITIAL_VELOCITY; 
-  }
-}
-
-void sequencer_advance() {
-  sequencer_advance_without_play();
-  sequencer_trigger_note();
-}
-
-void sequencer_reset() {
-  current_step = SEQUENCER_NUM_STEPS;
-}
-
-void sequencer_update() {
-  gate_length_msec = map(synth.gateLength,0,1023,10,200);
-  tempo_handler.update(synth.speed);
-
-  if(!note_is_done_playing && millis() >= note_off_time && note_is_triggered) { 
-    sequencer_untrigger_note();
-  }
-}
-
-static void sequencer_trigger_note() {
+void sequencer_trigger_note() {
   note_is_triggered = true;
   note_is_done_playing = false;
   previous_note_on_time = millis();
   note_off_time = previous_note_on_time + gate_length_msec;
 
   step_velocity[current_step] = INITIAL_VELOCITY;
-
-  note_on(step_note[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]+transpose, step_velocity[((current_step+random_offset)%SEQUENCER_NUM_STEPS)], step_enable[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]);
-}
-
-static void sequencer_untrigger_note() {
   note_is_done_playing = true;
   note_off();
   note_is_triggered = false;
-  note_off_time = millis() + tempo_interval - gate_length_msec; // Set note off time to sometime in the future
+  note_off_time =
+      millis() + tempo_interval -
+      gate_length_msec; // Set note off time to sometime in the future
 }
 
+static uint8_t arpeggio_index = 0;
+void sequencer_advance_without_play() {
 
-void keyboard_set_note(uint8_t note) {
-  note_stack.NoteOn(note, INITIAL_VELOCITY);
+  if (!note_is_done_playing) {
+    sequencer_untrigger_note();
+  }
+  current_step++;
+  current_step %= SEQUENCER_NUM_STEPS;
+
+  if (!next_step_is_random && !random_flag) {
+    random_offset = 0;
+  } else {
+    random_flag = false;
+    random_offset = random(1, (SEQUENCER_NUM_STEPS - 2));
+  }
+
+  // Sample keys
+  uint8_t n = note_stack.size();
+
+  if (arpeggio_index >= n) {
+    arpeggio_index = 0;
+  }
+
+  if (n > 0) {
+    if (!sequencer_is_running) {
+      step_note[current_step] = note_stack.most_recent_note().note;
+    } else {
+      step_note[current_step] = note_stack.sorted_note(arpeggio_index).note;
+      arpeggio_index++;
+    }
+    step_enable[current_step] = 1;
+    step_velocity[current_step] = INITIAL_VELOCITY;
+  }
 }
 
-void keyboard_unset_note(uint8_t note) {
-  note_stack.NoteOff(note);
+void advance() {
+  sequencer_advance_without_play();
+  sequencer_trigger_note();
 }
+
+void tick_clock() {
+  uint8_t sequencer_divider = PULSES_PER_EIGHT_NOTE;
+  if (double_speed) {
+    sequencer_divider = PULSES_PER_EIGHT_NOTE / 2;
+  }
+
+  if (!tempo_handler.is_clock_source_internal()) {
+    int potvalue = synth.speed;
+    if (potvalue > 900) {
+      sequencer_divider /= 2;
+    } else if (potvalue < 127) {
+      sequencer_divider *= 2;
+    }
+  }
+
+  if (sequencer_is_running && (sequencer_clock % sequencer_divider) == 0) {
+    advance();
+  }
+  sequencer_clock++;
+}
+
+void stop() {
+  if (sequencer_is_running) {
+
+    usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
+    MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
+    usbMIDI.sendRealTime(midi::Stop);
+    MIDI.sendRealTime(midi::Stop);
+
+    sequencer_is_running = false;
+    sequencer_untrigger_note();
+  }
+  midi_clock = 0;
+}
+
+void init() {
+  note_stack.Init();
+  for (int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
+    step_note[i] = SCALE[random(9)];
+  }
+  tempo_handler.setHandleTempoEvent(tick_clock);
+  tempo_handler.setHandleAlignEvent(align_clock);
+  tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
+  stop();
+  current_step = SEQUENCER_NUM_STEPS - 1;
+}
+
+void reset_midi_clock() {
+  midi_clock = 0;
+  tempo_handler.midi_clock_reset();
+}
+
+void restart() {
+  MIDI.sendRealTime(midi::Start);
+  delay(1);
+  current_step = SEQUENCER_NUM_STEPS - 1;
+  reset_midi_clock();
+  sequencer_is_running = true;
+  sequencer_clock = 0;
+}
+
+void sequencer_start() {
+  MIDI.sendRealTime(midi::Continue);
+  usbMIDI.sendRealTime(midi::Continue);
+  reset_midi_clock();
+  sequencer_is_running = true;
+}
+
+void toggle_running() {
+  if (sequencer_is_running) {
+    stop();
+  } else {
+    sequencer_start();
+  }
+}
+
+void update() {
+  gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
+  tempo_handler.update(midi_clock);
+
+  if (!note_is_done_playing && millis() >= note_off_time && note_is_triggered) {
+    sequencer_untrigger_note();
+  }
+}
+
+void set_note(uint8_t note, uint8_t velocity) {
+  note_stack.NoteOn(note, velocity);
+}
+
+void unset_note(uint8_t note) { note_stack.NoteOff(note); }
+
+static uint8_t n = 255;
+static uint8_t s = 255;
 
 void keyboard_to_note() {
-  static uint8_t n = 255;
-  static uint8_t s = 255;
-
-  if(!sequencer_is_running) {
-    if(note_stack.size() != s) {
+  if (!sequencer_is_running) {
+    if (note_stack.size() != s) {
       s = note_stack.size();
-      if(s > 0) {
-        uint8_t k = note_stack.most_recent_note().note;
-        if(k != n) {
+      if (s > 0) {
+        const uint8_t k = note_stack.most_recent_note().note;
+        if (k != n) {
           sequencer_advance_without_play();
-          note_on(k+transpose, INITIAL_VELOCITY, true);
+          note_on(k + transpose, INITIAL_VELOCITY, true);
           n = k;
         }
       } else {
@@ -205,6 +205,46 @@ void keyboard_to_note() {
       }
     }
   }
+}
+
+void clear_all() {
+  note_off();
+  note_stack.Clear();
+}
+
+}; // namespace Sequencer
+
+// Publically used:
+void sequencer_init() { Sequencer::init(); }
+void sequencer_restart() { Sequencer::restart(); }
+void sequencer_stop() { Sequencer::stop(); }
+void sequencer_update() { Sequencer::update(); }
+void sequencer_toggle_start() { Sequencer::toggle_running(); }
+void keyboard_set_note(uint8_t note) {
+  Sequencer::set_note(note, INITIAL_VELOCITY);
+}
+void keyboard_set_note(uint8_t note, uint8_t velocity) {
+  Sequencer::set_note(note, velocity);
+}
+void keyboard_unset_note(uint8_t note) { Sequencer::unset_note(note); }
+void keyboard_to_note() { Sequencer::keyboard_to_note(); }
+void sequencer_clear_all() { Sequencer::clear_all(); }
+void sequencer_set_double_speed(bool val) {
+  if (val && !sequencer_is_running) {
+    Sequencer::advance();
+  }
+
+  double_speed = val;
+}
+
+void sequencer_set_random(bool val) {
+  Sequencer::next_step_is_random = val;
+
+  if (val && !sequencer_is_running) {
+    Sequencer::advance();
+  }
+
+  Sequencer::random_flag = val;
 }
 
 #endif

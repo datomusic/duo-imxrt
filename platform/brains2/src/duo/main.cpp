@@ -26,6 +26,9 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 #define SIM_UIDL 0
 
 #define MIDI_SYSEX_DATA_TYPE byte
+void sequencer_clear_all();
+void keyboard_set_note(uint8_t note, uint8_t velocity);
+void keyboard_unset_note(uint8_t note);
 #include "firmware/MidiFunctions.h"
 
 void midi_usb_sysex_callback(byte *data, unsigned length) {
@@ -263,10 +266,7 @@ void process_key(const char k, const char state) {
         }
         step_velocity[k - STEP_1] = INITIAL_VELOCITY;
       } else if (k == BTN_SEQ2) {
-        if (!sequencer_is_running) {
-          sequencer_advance();
-        }
-        double_speed = true;
+        sequencer_set_double_speed(true);
       } else if (k == BTN_DOWN) {
         transpose--;
         if (transpose < -12) {
@@ -278,11 +278,7 @@ void process_key(const char k, const char state) {
           transpose = 24;
         }
       } else if (k == BTN_SEQ1) {
-        next_step_is_random = true;
-        if (!sequencer_is_running) {
-          sequencer_advance();
-        }
-        random_flag = true;
+        sequencer_set_random(true);
       } else if (k == SEQ_START) {
         sequencer_toggle_start();
       }
@@ -311,7 +307,7 @@ void process_key(const char k, const char state) {
       if (k <= KEYB_9 && k >= KEYB_0) {
         keyboard_unset_note(SCALE[k - KEYB_0]);
       } else if (k == BTN_SEQ2) {
-        double_speed = false;
+        sequencer_set_double_speed(false);
       } else if (k == BTN_DOWN) {
         if (transpose < -12) {
           transpose = -12;
@@ -327,8 +323,7 @@ void process_key(const char k, const char state) {
           transpose = 12;
         }
       } else if (k == BTN_SEQ1) {
-        next_step_is_random = false;
-        random_flag = false;
+        sequencer_set_random(false);
       } else if (k == SEQ_START) {
 #ifdef DEV_MODE
         if (dfu_flag == 1) {
