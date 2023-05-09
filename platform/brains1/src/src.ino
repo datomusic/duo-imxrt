@@ -185,6 +185,10 @@ void setup() {
   headphone_enable();
 
   in_setup = false;
+
+  // For some reason we need to reset double_speed here again,
+  // otherwise it will be active until boost button is pressed for the first time.
+  double_speed = false;
 }
 
 void loop() {
@@ -366,7 +370,7 @@ void keys_scan() {
 
 void pots_read() {
   synth.speed = potRead(TEMPO_POT);
-  gate_length_msec = map(potRead(GATE_POT),0,1023,10,200);
+  synth.gateLength = map(potRead(GATE_POT),0,1023,10,200);
   
   synth.detune = potRead(OSC_DETUNE_POT);
   synth.release = potRead(AMP_ENV_POT);
@@ -374,11 +378,12 @@ void pots_read() {
   synth.amplitude = potRead(AMP_POT);
   synth.pulseWidth = potRead(OSC_PW_POT);
   synth.resonance = potRead(FILTER_RES_POT);
+  synth.accent = !digitalRead(ACCENT_PIN);
 }
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
-  if(!digitalRead(ACCENT_PIN)) {
+  if(synth.accent) {
     velocity = 127;
   }
 

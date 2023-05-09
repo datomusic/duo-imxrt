@@ -39,10 +39,11 @@ uint32_t note_on_time;
 uint32_t previous_note_on_time;
 uint32_t note_off_time;
 
-bool double_speed = false;
+static bool double_speed = false;
 
 void sequencer_init() {
   note_stack.Init();
+
   for(int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
     step_note[i] = SCALE[random(9)];
   }
@@ -51,6 +52,7 @@ void sequencer_init() {
   tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
   sequencer_stop();
   current_step = SEQUENCER_NUM_STEPS - 1;
+  double_speed = false;
 }
 
 static void reset_midi_clock(){
