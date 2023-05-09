@@ -260,8 +260,8 @@ void process_key(const char k, const char state) {
           keyboard_set_note(SCALE[k - KEYB_0]);
         }
       } else if (k <= STEP_8 && k >= STEP_1) {
-        sequencer_toggle_step(k - STEP_1);
-        if (!step_enable[k - STEP_1]) {
+        ;
+        if (!sequencer_toggle_step(k - STEP_1)) {
           leds(k - STEP_1) = CRGB::Black;
         }
       } else if (k == BTN_SEQ2) {

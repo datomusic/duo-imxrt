@@ -12,10 +12,6 @@
 const uint8_t SEQUENCER_NUM_STEPS = 8;
 
 // Initial sequencer values
-uint8_t step_note[SEQUENCER_NUM_STEPS] = {1, 0, 6, 9, 0, 4, 0, 5};
-uint8_t step_enable[SEQUENCER_NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
-uint8_t step_velocity[SEQUENCER_NUM_STEPS] = {100, 100, 100, 100,
-                                              100, 100, 100, 100};
 
 uint32_t previous_note_on_time;
 static bool double_speed = false;
@@ -26,6 +22,10 @@ int random_offset = 0;
 
 namespace Sequencer {
 static const uint8_t INITIAL_VELOCITY = 100;
+uint8_t step_enable[SEQUENCER_NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
+uint8_t step_note[SEQUENCER_NUM_STEPS] = {1, 0, 6, 9, 0, 4, 0, 5};
+uint8_t step_velocity[SEQUENCER_NUM_STEPS] = {100, 100, 100, 100,
+                                              100, 100, 100, 100};
 
 static bool note_is_done_playing = false;
 static uint32_t note_off_time = 0;
@@ -251,8 +251,16 @@ void sequencer_set_random(bool val) {
 }
 
 bool sequencer_is_running() { return Sequencer::running; }
-void sequencer_toggle_step(const uint8_t step) {
-  step_enable[step] = 1 - step_enable[step];
-  step_velocity[step] = Sequencer::INITIAL_VELOCITY;
+bool sequencer_toggle_step(const uint8_t step) {
+  Sequencer::step_enable[step] = 1 - Sequencer::step_enable[step];
+  Sequencer::step_velocity[step] = Sequencer::INITIAL_VELOCITY;
+  return Sequencer::step_enable[step];
+}
+
+bool sequencer_step_enabled(const uint8_t index) {
+  return Sequencer::step_enable[index];
+}
+const uint8_t sequencer_step_note(const uint8_t index) {
+  return Sequencer::step_note[index];
 }
 #endif
