@@ -34,6 +34,7 @@ static bool random_flag = 0;
 static bool next_step_is_random = false;
 static bool running = false;
 static bool double_speed = false;
+static int last_pressed_note = -1;
 
 NoteStack<10> note_stack;
 
@@ -130,7 +131,6 @@ void tick_clock() {
   sequencer_clock++;
 }
 
-static uint8_t arpeggio_index = 0;
 void sequencer_advance_without_play() {
   if (!note_is_done_playing) {
     sequencer_untrigger_note();
@@ -148,18 +148,18 @@ void sequencer_advance_without_play() {
   // Sample keys
   const uint8_t note_count = note_stack.size();
 
-  if (arpeggio_index >= note_count) {
-    arpeggio_index = 0;
+  int new_note = -1;
+  if (note_count > 0) {
+    new_note = note_stack.most_recent_note().note;
+  } else if (last_pressed_note >= 0) {
+    new_note = last_pressed_note;
   }
 
-  if (note_count > 0) {
-    if (!running) {
-      step_note[current_step] = note_stack.most_recent_note().note;
-    } else {
-      step_note[current_step] = note_stack.sorted_note(arpeggio_index).note;
-      arpeggio_index++;
-    }
-    step_enable[current_step] = 1;
+  last_pressed_note = -1;
+
+  if (new_note >= 0) {
+    step_note[current_step] = new_note;
+    step_enable[current_step] = true;
     step_velocity[current_step] = INITIAL_VELOCITY;
   }
 }
@@ -203,6 +203,7 @@ void sequencer_untrigger_note() {
 
 void set_note(uint8_t note, uint8_t velocity) {
   note_stack.NoteOn(note, velocity);
+  last_pressed_note = note;
 }
 
 void unset_note(uint8_t note) { note_stack.NoteOff(note); }
@@ -211,20 +212,21 @@ static uint8_t last_note = 255;
 static uint8_t last_stack_size = 255;
 
 void keyboard_to_note() {
-  if (!running) {
-    if (note_stack.size() != last_stack_size) {
-      last_stack_size = note_stack.size();
-      if (last_stack_size > 0) {
-        const uint8_t k = note_stack.most_recent_note().note;
-        if (k != last_note) {
+  const uint8_t k = note_stack.most_recent_note().note;
+
+  if (note_stack.size() != last_stack_size) {
+    last_stack_size = note_stack.size();
+    if (last_stack_size > 0) {
+      if (k != last_note) {
+        if (!running) {
           sequencer_advance_without_play();
-          note_on(k + transpose, INITIAL_VELOCITY, true);
-          last_note = k;
         }
-      } else {
-        note_off();
-        last_note = 255; // Make sure this is a non existing note in the scale
+        note_on(k + transpose, INITIAL_VELOCITY, true);
+        last_note = k;
       }
+    } else {
+      note_off();
+      last_note = 255; // Make sure this is a non existing note in the scale
     }
   }
 }
