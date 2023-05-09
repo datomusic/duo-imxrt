@@ -14,7 +14,6 @@ const uint8_t SEQUENCER_NUM_STEPS = 8;
 // Initial sequencer values
 
 uint32_t previous_note_on_time;
-static bool double_speed = false;
 uint32_t sequencer_clock = 0;
 uint8_t current_step = 0;
 uint8_t note_is_playing = 0;
@@ -28,10 +27,13 @@ uint8_t step_velocity[SEQUENCER_NUM_STEPS] = {100, 100, 100, 100,
                                               100, 100, 100, 100};
 
 static bool note_is_done_playing = false;
+static bool note_is_triggered = false;
 static uint32_t note_off_time = 0;
 static int gate_length_msec = 40;
 static bool random_flag = 0;
 static bool next_step_is_random = false;
+static bool running = false;
+static bool double_speed = false;
 
 NoteStack<10> note_stack;
 
@@ -237,7 +239,7 @@ void sequencer_set_double_speed(bool val) {
     Sequencer::advance();
   }
 
-  double_speed = val;
+  Sequencer::double_speed = val;
 }
 
 void sequencer_set_random(bool val) {
