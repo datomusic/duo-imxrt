@@ -12,8 +12,6 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 #define HIGH_SAMPLE_RATE 44100.0f
 #define LOW_SAMPLE_RATE 2489.0f
 
-#define INITIAL_VELOCITY 100
-
 #define EEPROM_MIDI_CHANNEL 0
 
 // Globals that should not be globals
