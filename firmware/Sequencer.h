@@ -18,7 +18,6 @@ uint8_t step_enable[SEQUENCER_NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
 uint8_t step_velocity[SEQUENCER_NUM_STEPS] = {100, 100, 100, 100,
                                               100, 100, 100, 100};
 
-bool sequencer_is_running = false;
 uint32_t previous_note_on_time;
 static bool double_speed = false;
 uint32_t sequencer_clock = 0;
@@ -27,12 +26,13 @@ uint8_t note_is_playing = 0;
 int random_offset = 0;
 
 namespace Sequencer {
+static const uint8_t INITIAL_VELOCITY = 100;
+
 static bool note_is_done_playing = false;
 static uint32_t note_off_time = 0;
 static int gate_length_msec = 40;
 static bool random_flag = 0;
 static bool next_step_is_random = false;
-  double_speed = false;
 
 NoteStack<10> note_stack;
 
@@ -92,7 +92,7 @@ void sequencer_advance_without_play() {
   }
 
   if (n > 0) {
-    if (!sequencer_is_running) {
+    if (!running) {
       step_note[current_step] = note_stack.most_recent_note().note;
     } else {
       step_note[current_step] = note_stack.sorted_note(arpeggio_index).note;
@@ -123,21 +123,21 @@ void tick_clock() {
     }
   }
 
-  if (sequencer_is_running && (sequencer_clock % sequencer_divider) == 0) {
+  if (running && (sequencer_clock % sequencer_divider) == 0) {
     advance();
   }
   sequencer_clock++;
 }
 
 void stop() {
-  if (sequencer_is_running) {
+  if (running) {
 
     usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
     MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
     usbMIDI.sendRealTime(midi::Stop);
     MIDI.sendRealTime(midi::Stop);
 
-    sequencer_is_running = false;
+    running = false;
     sequencer_untrigger_note();
   }
   midi_clock = 0;
@@ -165,7 +165,7 @@ void restart() {
   delay(1);
   current_step = SEQUENCER_NUM_STEPS - 1;
   reset_midi_clock();
-  sequencer_is_running = true;
+  running = true;
   sequencer_clock = 0;
 }
 
@@ -173,11 +173,11 @@ void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
   reset_midi_clock();
-  sequencer_is_running = true;
+  running = true;
 }
 
 void toggle_running() {
-  if (sequencer_is_running) {
+  if (running) {
     stop();
   } else {
     sequencer_start();
@@ -203,13 +203,16 @@ static uint8_t n = 255;
 static uint8_t s = 255;
 
 void keyboard_to_note() {
-  if (!sequencer_is_running) {
+  const uint8_t k = note_stack.most_recent_note().note;
+
+  if (true) {
     if (note_stack.size() != s) {
       s = note_stack.size();
       if (s > 0) {
-        const uint8_t k = note_stack.most_recent_note().note;
         if (k != n) {
-          sequencer_advance_without_play();
+          if (!running) {
+            sequencer_advance_without_play();
+          }
           note_on(k + transpose, INITIAL_VELOCITY, true);
           n = k;
         }
@@ -235,7 +238,7 @@ void sequencer_stop() { Sequencer::stop(); }
 void sequencer_update() { Sequencer::update(); }
 void sequencer_toggle_start() { Sequencer::toggle_running(); }
 void keyboard_set_note(uint8_t note) {
-  Sequencer::set_note(note, INITIAL_VELOCITY);
+  Sequencer::set_note(note, Sequencer::INITIAL_VELOCITY);
 }
 void keyboard_set_note(uint8_t note, uint8_t velocity) {
   Sequencer::set_note(note, velocity);
@@ -244,7 +247,7 @@ void keyboard_unset_note(uint8_t note) { Sequencer::unset_note(note); }
 void keyboard_to_note() { Sequencer::keyboard_to_note(); }
 void sequencer_clear_all() { Sequencer::clear_all(); }
 void sequencer_set_double_speed(bool val) {
-  if (val && !sequencer_is_running) {
+  if (val && !Sequencer::running) {
     Sequencer::advance();
   }
 
@@ -254,11 +257,16 @@ void sequencer_set_double_speed(bool val) {
 void sequencer_set_random(bool val) {
   Sequencer::next_step_is_random = val;
 
-  if (val && !sequencer_is_running) {
+  if (val && !Sequencer::running) {
     Sequencer::advance();
   }
 
   Sequencer::random_flag = val;
 }
 
+bool sequencer_is_running() { return Sequencer::running; }
+void sequencer_toggle_step(const uint8_t step) {
+  step_enable[step] = 1 - step_enable[step];
+  step_velocity[step] = Sequencer::INITIAL_VELOCITY;
+}
 #endif

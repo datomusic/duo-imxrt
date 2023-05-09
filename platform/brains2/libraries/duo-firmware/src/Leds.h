@@ -124,7 +124,7 @@ void led_update() {
         leds(((current_step+random_offset)%SEQUENCER_NUM_STEPS)) = CRGB::Black;
       }
 
-      if(!sequencer_is_running) {
+      if(!sequencer_is_running()) {
         if(((sequencer_clock % 24) < 12)) {
           if(step_enable[next_step]) {
             leds(next_step) = COLORS[step_note[next_step]%24];
