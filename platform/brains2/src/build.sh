@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-SCRIPT_PATH=$(dirname "$(realpath -s $0)")
+SCRIPT_PATH=$(dirname "$(realpath $0)")
 APP_PATH="$SCRIPT_PATH/$1"
 
 shift

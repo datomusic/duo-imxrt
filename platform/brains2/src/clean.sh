@@ -3,7 +3,7 @@ set -e
 
 # Make sure the directory we're cleaning is a child of where this script is located
 # to avoid accidents like deleting '/'.
-SCRIPT_PATH=$(dirname $(realpath -s $0))
+SCRIPT_PATH=$(dirname $(realpath $0))
 APP_PATH="$SCRIPT_PATH/$1"
 
 if [[ -e "$APP_PATH" ]]; then

@@ -33,7 +33,7 @@
 #define PIN_COL_5           GPIO_SD_13
 #define PIN_COL_6           GPIO_AD_05
 
-static int muxAnalogRead(const uint8_t channel) {
+int muxAnalogRead(const uint8_t channel) {
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
   digitalWrite(PIN_SYN_ADDR2, bitRead(channel, 2));
@@ -42,7 +42,7 @@ static int muxAnalogRead(const uint8_t channel) {
   return analogRead(PIN_SYN_MUX_IO);
 }
 
-static uint8_t muxDigitalRead(const uint8_t channel) {
+uint8_t muxDigitalRead(const uint8_t channel) {
   pinMode(PIN_SYN_MUX_IO, INPUT_PULLUP);
   digitalWrite(PIN_SYN_ADDR0, bitRead(channel, 0));
   digitalWrite(PIN_SYN_ADDR1, bitRead(channel, 1));
