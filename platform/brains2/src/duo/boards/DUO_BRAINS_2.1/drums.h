@@ -17,39 +17,44 @@ void init() {
 }
 
 void update() {
-  hat_l = pinRead(HAT_PAD_L_PIN);
-  hat_m = pinRead(HAT_PAD_M_PIN);
-  hat_r = pinRead(HAT_PAD_R_PIN);
-  //TODO: debounce the release
-  kick_l = pinRead(KICK_PAD_L_PIN);
-  kick_m = pinRead(KICK_PAD_M_PIN);
-  kick_r = pinRead(KICK_PAD_R_PIN);
+  static unsigned long update_time = millis() + 10;
 
-  if (hat_playing) {
-    if (!hat_l && !hat_r && !hat_m) {
-      hat_noteoff();
-    }
-  } else {
-    if (hat_l) {
-      hat_noteon(0);
-    } else if (hat_r) {
-      hat_noteon(127);
-    } else if (hat_m) {
-      hat_noteon(64);
-    }
-  }
+  if(millis() > update_time) {
+    update_time = millis() + 10;
+    hat_l = pinRead(HAT_PAD_L_PIN);
+    hat_m = pinRead(HAT_PAD_M_PIN);
+    hat_r = pinRead(HAT_PAD_R_PIN);
+    //TODO: debounce the release
+    kick_l = pinRead(KICK_PAD_L_PIN);
+    kick_m = pinRead(KICK_PAD_M_PIN);
+    kick_r = pinRead(KICK_PAD_R_PIN);
 
-  if (kick_playing) {
-    if (!kick_l && !kick_r && !kick_m) {
-      kick_noteoff();
+    if (hat_playing) {
+      if (!hat_l && !hat_r && !hat_m) {
+        hat_noteoff();
+      }
+    } else {
+      if (hat_r) {
+        hat_noteon(127);
+      } else if (hat_l) {
+        hat_noteon(0);
+      } else if (hat_m) {
+        hat_noteon(64);
+      }
     }
-  } else {
-    if (kick_l) {
-      kick_noteon(0);
-    } else if (kick_r) {
-      kick_noteon(127);
-    } else if (kick_m) {
-      kick_noteon(64);
+
+    if (kick_playing) {
+      if (!kick_l && !kick_r && !kick_m) {
+        kick_noteoff();
+      }
+    } else {
+      if (kick_l) {
+        kick_noteon(0);
+      } else if (kick_r) {
+        kick_noteon(127);
+      } else if (kick_m) {
+        kick_noteon(64);
+      }
     }
   }
  }
