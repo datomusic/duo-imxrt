@@ -135,6 +135,7 @@ void pots_read() {
   synth.glide = pinRead(GLIDE_PIN);
   synth.crush = pinRead(BITC_PIN);
   synth.accent = pinRead(ACCENT_PIN);
+  synth.delay = pinRead(DELAY_PIN);
 }
 
 bool power_check() { return true; }
