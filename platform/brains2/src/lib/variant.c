@@ -45,7 +45,7 @@ const PinDescription g_APinDescription[] =
           IOMUXC_GPIO_03_GPIOMUX_IO03
       },
       .PWM = PWM1,
-      .pwm_submodule = kPWM_Module_0,
+      .pwm_submodule = kPWM_Module_1,
       .pwm_channel = kPWM_PwmB,
       .FUN_PWM = {
           IOMUXC_GPIO_03_FLEXPWM1_PWM1_B
