@@ -16,7 +16,6 @@ const uint8_t SEQUENCER_NUM_STEPS = 8;
 uint32_t previous_note_on_time;
 uint32_t sequencer_clock = 0;
 uint8_t current_step = 0;
-uint8_t note_is_playing = 0;
 int random_offset = 0;
 
 namespace Sequencer {
