@@ -46,14 +46,7 @@ void process_key(const char k, const char state) {
         }
       } else if (k == SEQ_START) {
 #ifdef DEV_MODE
-        sequencer_stop();
-        FastLED.clear();
-        FastLED.show();
-        delay(1);
-        physical_leds[0] = CRGB::Blue;
-        FastLED.show();
-        dfu_flag = 1;
-        BOARD_EnterROMBootloader();
+        trigger_bootloader();
 #else
         power_off();
 #endif
