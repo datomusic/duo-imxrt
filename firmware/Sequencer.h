@@ -205,16 +205,13 @@ static uint8_t n = 255;
 static uint8_t s = 255;
 
 void keyboard_to_note() {
-  const uint8_t k = note_stack.most_recent_note().note;
-
-  if (true) {
+  if (!running) {
     if (note_stack.size() != s) {
       s = note_stack.size();
       if (s > 0) {
+        const uint8_t k = note_stack.most_recent_note().note;
         if (k != n) {
-          if (!running) {
-            sequencer_advance_without_play();
-          }
+          sequencer_advance_without_play();
           note_on(k + transpose, INITIAL_VELOCITY, true);
           n = k;
         }
