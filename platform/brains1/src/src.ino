@@ -77,7 +77,6 @@ void drum_init();
 void drum_read();
 void print_log();
 
-void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
 
 void keyboard_to_note();
@@ -320,36 +319,6 @@ void pots_read() {
   synth.pulseWidth = potRead(OSC_PW_POT);
   synth.resonance = potRead(FILTER_RES_POT);
   synth.accent = !digitalRead(ACCENT_PIN);
-}
-
-void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
-  // Override velocity if button on the synth is pressed
-  if(synth.accent) {
-    velocity = 127;
-  }
-
-  note_is_playing = midi_note;
-
-  if(enabled) {
-    AudioNoInterrupts();
-
-    dc1.amplitude(velocity / 127.); // DC amplitude controls filter env amount.
-    osc_pulse_midi_note = midi_note;
-    osc_pulse_target_frequency = (int)midi_note_to_frequency(midi_note);
-    osc_pulse.frequency(osc_pulse_frequency);
-    // Detune OSC2
-    osc_saw.frequency(detune(osc_pulse_midi_note,detune_amount));
-
-    AudioInterrupts(); 
-
-    MIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
-    usbMIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
-    envelope1.noteOn();
-    envelope2.noteOn();
-  } else {
-    leds((current_step+random_offset)%SEQUENCER_NUM_STEPS) = LED_WHITE;
-
-  }
 }
 
 void note_off() {
