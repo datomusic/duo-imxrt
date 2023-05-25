@@ -78,34 +78,6 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 
 void headphone_jack_check();
 
-void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
-  // Override velocity if button on the synth is pressed
-  if (synth.accent) {
-    velocity = 127;
-  }
-
-  note_is_playing = midi_note;
-
-  if (enabled) {
-    AudioNoInterrupts();
-
-    dc1.amplitude(velocity / 127.); // DC amplitude controls filter env amount.
-    osc_pulse_midi_note = midi_note;
-    osc_pulse_target_frequency = (int)midi_note_to_frequency(midi_note);
-    // Detune OSC2
-    osc_saw.frequency(detune(osc_pulse_midi_note, detune_amount));
-
-    AudioInterrupts();
-
-    MIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
-    usbMIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
-    envelope1.noteOn();
-    envelope2.noteOn();
-  } else {
-    leds((current_step + random_offset) % SEQUENCER_NUM_STEPS) = LED_WHITE;
-  }
-}
-
 void note_off() {
   if (note_is_playing) {
     MIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
