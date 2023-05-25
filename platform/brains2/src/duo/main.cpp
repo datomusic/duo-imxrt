@@ -247,6 +247,19 @@ int main(void) {
   }
 }
 
+#ifdef DEV_MODE
+void trigger_bootloader(){
+    sequencer_stop();
+    FastLED.clear();
+    FastLED.show();
+    delay(1);
+    physical_leds[0] = CRGB::Blue;
+    FastLED.show();
+    dfu_flag = 1;
+    BOARD_EnterROMBootloader();
+}
+#endif
+
 #include "firmware/shared_main.h"
 
 inline void keys_scan() {
