@@ -1,4 +1,10 @@
 
+/*
+NOTE: Not actually a proper header. This is included directly into 
+      main files for each platform as an initial step to share some 
+      of the functionality.
+*/
+
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
   if (synth.accent) {
