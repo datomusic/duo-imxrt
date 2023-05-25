@@ -36,6 +36,7 @@ void drum_init();
 void drum_read();
 void print_log();
 
+uint8_t note_is_playing = 0;
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
 
