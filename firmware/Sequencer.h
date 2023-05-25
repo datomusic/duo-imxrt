@@ -14,7 +14,7 @@ const uint8_t SEQUENCER_NUM_STEPS = 8;
 
 // Initial sequencer values
 
-uint32_t previous_note_on_time;
+uint32_t previous_note_on_time = 0;
 uint32_t sequencer_clock = 0;
 uint8_t current_step = 0;
 int random_offset = 0;
@@ -146,13 +146,13 @@ void sequencer_advance_without_play() {
   }
 
   // Sample keys
-  uint8_t n = note_stack.size();
+  const uint8_t note_count = note_stack.size();
 
-  if (arpeggio_index >= n) {
+  if (arpeggio_index >= note_count) {
     arpeggio_index = 0;
   }
 
-  if (n > 0) {
+  if (note_count > 0) {
     if (!running) {
       step_note[current_step] = note_stack.most_recent_note().note;
     } else {
@@ -207,23 +207,23 @@ void set_note(uint8_t note, uint8_t velocity) {
 
 void unset_note(uint8_t note) { note_stack.NoteOff(note); }
 
-static uint8_t n = 255;
-static uint8_t s = 255;
+static uint8_t last_note = 255;
+static uint8_t last_stack_size = 255;
 
 void keyboard_to_note() {
   if (!running) {
-    if (note_stack.size() != s) {
-      s = note_stack.size();
-      if (s > 0) {
+    if (note_stack.size() != last_stack_size) {
+      last_stack_size = note_stack.size();
+      if (last_stack_size > 0) {
         const uint8_t k = note_stack.most_recent_note().note;
-        if (k != n) {
+        if (k != last_note) {
           sequencer_advance_without_play();
           note_on(k + transpose, INITIAL_VELOCITY, true);
-          n = k;
+          last_note = k;
         }
       } else {
         note_off();
-        n = 255; // Make sure this is a non existing note in the scale
+        last_note = 255; // Make sure this is a non existing note in the scale
       }
     }
   }
@@ -279,6 +279,7 @@ bool sequencer_toggle_step(const uint8_t step) {
 bool sequencer_step_enabled(const uint8_t index) {
   return Sequencer::step_enable[index];
 }
+
 const uint8_t sequencer_step_note(const uint8_t index) {
   return Sequencer::step_note[index];
 }
