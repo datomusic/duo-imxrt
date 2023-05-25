@@ -38,6 +38,40 @@ static bool double_speed = false;
 
 NoteStack<10> note_stack;
 
+void tick_clock();
+void align_clock();
+void stop();
+void reset_midi_clock();
+void advance();
+void sequencer_trigger_note();
+void sequencer_untrigger_note();
+
+void init() {
+  note_stack.Init();
+  for (int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
+    step_note[i] = SCALE[random(9)];
+  }
+  tempo_handler.setHandleTempoEvent(tick_clock);
+  tempo_handler.setHandleAlignEvent(align_clock);
+  tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
+  stop();
+  current_step = SEQUENCER_NUM_STEPS - 1;
+}
+
+void reset_midi_clock() {
+  midi_clock = 0;
+  tempo_handler.midi_clock_reset();
+}
+
+void restart() {
+  MIDI.sendRealTime(midi::Start);
+  delay(1);
+  current_step = SEQUENCER_NUM_STEPS - 1;
+  reset_midi_clock();
+  running = true;
+  sequencer_clock = 0;
+}
+
 void align_clock() {
   // round sequencer_clock to the nearest 12
   if (sequencer_clock % 12 > 6) {
@@ -47,32 +81,58 @@ void align_clock() {
   }
 }
 
-void sequencer_trigger_note() {
-  note_is_triggered = true;
-  note_is_done_playing = false;
-  previous_note_on_time = millis();
-  note_off_time = previous_note_on_time + gate_length_msec;
-
-  step_velocity[current_step] = INITIAL_VELOCITY;
-
-  note_on(step_note[((current_step + random_offset) % SEQUENCER_NUM_STEPS)] +
-              transpose,
-          step_velocity[((current_step + random_offset) % SEQUENCER_NUM_STEPS)],
-          step_enable[((current_step + random_offset) % SEQUENCER_NUM_STEPS)]);
+void sequencer_start() {
+  MIDI.sendRealTime(midi::Continue);
+  usbMIDI.sendRealTime(midi::Continue);
+  reset_midi_clock();
+  running = true;
 }
 
-void sequencer_untrigger_note() {
-  note_is_done_playing = true;
-  note_off();
-  note_is_triggered = false;
-  note_off_time =
-      millis() + tempo_interval -
-      gate_length_msec; // Set note off time to sometime in the future
+void stop() {
+  if (running) {
+
+    usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
+    MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
+    usbMIDI.sendRealTime(midi::Stop);
+    MIDI.sendRealTime(midi::Stop);
+
+    running = false;
+    sequencer_untrigger_note();
+  }
+  midi_clock = 0;
+}
+
+void toggle_running() {
+  if (running) {
+    stop();
+  } else {
+    sequencer_start();
+  }
+}
+
+void tick_clock() {
+  uint8_t sequencer_divider = PULSES_PER_EIGHT_NOTE;
+  if (double_speed) {
+    sequencer_divider = PULSES_PER_EIGHT_NOTE / 2;
+  }
+
+  if (!tempo_handler.is_clock_source_internal()) {
+    int potvalue = synth.speed;
+    if (potvalue > 900) {
+      sequencer_divider /= 2;
+    } else if (potvalue < 127) {
+      sequencer_divider *= 2;
+    }
+  }
+
+  if (running && (sequencer_clock % sequencer_divider) == 0) {
+    advance();
+  }
+  sequencer_clock++;
 }
 
 static uint8_t arpeggio_index = 0;
 void sequencer_advance_without_play() {
-
   if (!note_is_done_playing) {
     sequencer_untrigger_note();
   }
@@ -110,82 +170,6 @@ void advance() {
   sequencer_trigger_note();
 }
 
-void tick_clock() {
-  uint8_t sequencer_divider = PULSES_PER_EIGHT_NOTE;
-  if (double_speed) {
-    sequencer_divider = PULSES_PER_EIGHT_NOTE / 2;
-  }
-
-  if (!tempo_handler.is_clock_source_internal()) {
-    int potvalue = synth.speed;
-    if (potvalue > 900) {
-      sequencer_divider /= 2;
-    } else if (potvalue < 127) {
-      sequencer_divider *= 2;
-    }
-  }
-
-  if (running && (sequencer_clock % sequencer_divider) == 0) {
-    advance();
-  }
-  sequencer_clock++;
-}
-
-void stop() {
-  if (running) {
-
-    usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
-    MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
-    usbMIDI.sendRealTime(midi::Stop);
-    MIDI.sendRealTime(midi::Stop);
-
-    running = false;
-    sequencer_untrigger_note();
-  }
-  midi_clock = 0;
-}
-
-void init() {
-  note_stack.Init();
-  for (int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
-    step_note[i] = SCALE[random(9)];
-  }
-  tempo_handler.setHandleTempoEvent(tick_clock);
-  tempo_handler.setHandleAlignEvent(align_clock);
-  tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
-  stop();
-  current_step = SEQUENCER_NUM_STEPS - 1;
-}
-
-void reset_midi_clock() {
-  midi_clock = 0;
-  tempo_handler.midi_clock_reset();
-}
-
-void restart() {
-  MIDI.sendRealTime(midi::Start);
-  delay(1);
-  current_step = SEQUENCER_NUM_STEPS - 1;
-  reset_midi_clock();
-  running = true;
-  sequencer_clock = 0;
-}
-
-void sequencer_start() {
-  MIDI.sendRealTime(midi::Continue);
-  usbMIDI.sendRealTime(midi::Continue);
-  reset_midi_clock();
-  running = true;
-}
-
-void toggle_running() {
-  if (running) {
-    stop();
-  } else {
-    sequencer_start();
-  }
-}
-
 void update() {
   gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
@@ -193,6 +177,29 @@ void update() {
   if (!note_is_done_playing && millis() >= note_off_time && note_is_triggered) {
     sequencer_untrigger_note();
   }
+}
+
+void sequencer_trigger_note() {
+  note_is_triggered = true;
+  note_is_done_playing = false;
+  previous_note_on_time = millis();
+  note_off_time = previous_note_on_time + gate_length_msec;
+
+  step_velocity[current_step] = INITIAL_VELOCITY;
+
+  note_on(step_note[((current_step + random_offset) % SEQUENCER_NUM_STEPS)] +
+              transpose,
+          step_velocity[((current_step + random_offset) % SEQUENCER_NUM_STEPS)],
+          step_enable[((current_step + random_offset) % SEQUENCER_NUM_STEPS)]);
+}
+
+void sequencer_untrigger_note() {
+  note_is_done_playing = true;
+  note_off();
+  note_is_triggered = false;
+  note_off_time =
+      millis() + tempo_interval -
+      gate_length_msec; // Set note off time to sometime in the future
 }
 
 void set_note(uint8_t note, uint8_t velocity) {
