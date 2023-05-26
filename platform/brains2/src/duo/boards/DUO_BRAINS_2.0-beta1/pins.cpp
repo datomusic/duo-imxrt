@@ -52,7 +52,7 @@ uint8_t muxDigitalRead(const uint8_t channel) {
   return digitalRead(PIN_SYN_MUX_IO);
 }
 
-int potRead(const Pot pot) {
+uint32_t potRead(const Pot pot) {
   switch (pot) {
     case FILTER_RES_POT:
       return muxAnalogRead(0);

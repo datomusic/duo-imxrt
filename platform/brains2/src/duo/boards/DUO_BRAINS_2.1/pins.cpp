@@ -16,7 +16,7 @@
 
 #define PIN_LED_1            GPIO_08
 #define PIN_LED_2            GPIO_05
-#define PIN_LED_3            GPIO_01
+#define PIN_LED_3            GPIO_03
 
 #define ENV_LED              PIN_LED_3
 #define OSC_LED              PIN_LED_1
@@ -48,7 +48,7 @@ uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinMode mod
   return digitalRead(mux_pin);
 }
 
-int potRead(const Pot pot) {
+uint32_t potRead(const Pot pot) {
   switch (pot) {
     case FILTER_RES_POT:
       return muxAnalogRead(0, PIN_SYN_MUX_IO);

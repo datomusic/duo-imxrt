@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #define SEQ_1_2
+
 
 #define LED_DATA 32
 #define LED_CLK 25
@@ -32,7 +34,7 @@ enum Pot {
   AMP_ENV_POT
 };
 
-int potRead(const Pot pot);
+uint32_t potRead(const Pot pot);
 bool pinRead(const Pin pin);
 void pins_init();
 

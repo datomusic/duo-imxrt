@@ -47,7 +47,7 @@ static uint8_t muxDigitalRead(const uint8_t channel, const uint8_t mux_pin, PinM
   return digitalRead(mux_pin);
 }
 
-int potRead(const Pot pot) {
+uint32_t potRead(const Pot pot) {
   switch (pot) {
     case FILTER_RES_POT:
       return muxAnalogRead(0, PIN_SYN_MUX_IO);
@@ -95,7 +95,6 @@ bool pinRead(const Pin pin) {
 void pins_init() {
   pinMode(PIN_HP_ENABLE, OUTPUT);
   pinMode(PIN_AMP_MUTE, OUTPUT);
-
 
   pinMode(PIN_SYN_ADDR0, OUTPUT);
   pinMode(PIN_SYN_ADDR1, OUTPUT);
