@@ -97,10 +97,10 @@ void led_init() {
   FastLED.show();
   delay(100);
 
-  for(int i = 0; i < 10; i++) {
-    /* analogWrite(ENV_LED,i*8); */
-    /* analogWrite(FILTER_LED,i*8); */
-    /* analogWrite(OSC_LED,i*8); */
+  for(uint16_t i = 0; i < 10; i++) {
+    analogWrite(ENV_LED,i*8);
+    analogWrite(FILTER_LED,i*8);
+    analogWrite(OSC_LED,i*8);
 
     physical_leds[i+9] = COLORS[SCALE[i]%24];
     delay(20);
@@ -149,9 +149,9 @@ void led_update() {
   }
   FastLED.show();
 
-  /* analogWrite(ENV_LED, (peak1.read()*254.0f) + 1); */
-  /* analogWrite(FILTER_LED, 1 + ((synth.filter*synth.filter) >> 13)); */
-  /* analogWrite(OSC_LED, 128 - ((synth.pulseWidth) >> 3)); */
+  analogWrite(ENV_LED, 254 - (uint16_t)(peak1.read()*254.0f));
+  analogWrite(FILTER_LED, 254 - (uint16_t)((synth.filter*synth.filter)/4128));
+  analogWrite(OSC_LED, (uint16_t)(synth.pulseWidth/4.03f) + 1);
 }
 
 #endif
