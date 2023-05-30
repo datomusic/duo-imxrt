@@ -110,6 +110,10 @@ void led_init() {
 
 // Updates the LED colour and brightness to match the stored sequence
 void led_update() {
+  for(uint16_t i = 0; i < 10; i++) {
+    physical_leds[i+9] = COLORS[SCALE[i]%24];
+  }
+
   for (int l = 0; l < SEQUENCER_NUM_STEPS; l++) {
     if (step_enable[l]) {
       leds(l) = COLORS[step_note[l]%24];
