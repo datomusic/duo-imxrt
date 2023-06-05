@@ -1,0 +1,10 @@
+*.sublime-workspace
+*.pyc
+logs/
+build/
+.vscode/.cmaketools.json
+src/.DS_Store
+examples/.DS_Store
+.DS_Store
+test/xcode
+.development
