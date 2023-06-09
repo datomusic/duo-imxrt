@@ -46,7 +46,6 @@ public:
         tempo.reset();
 
 
-  void reset_clock_source();
   bool tick_clock(const bool double_speed);
   void restart();
   void stop();

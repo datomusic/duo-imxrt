@@ -96,11 +96,6 @@ void TempoHandler::update_midi() {
   }
 }
 
-void TempoHandler::reset_clock_source() {
-  _midi_clock_received_flag = 0;
-  _source = TEMPO_SOURCE_INTERNAL;
-}
-
 void TempoHandler::midi_clock_received() {
   _midi_clock_received_flag = 1;
   midi_clock++;
