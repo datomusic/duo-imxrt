@@ -10,3 +10,6 @@
 [submodule "platform/brains1/libraries/MIDI"]
 	path = platform/brains1/libraries/MIDI
 	url = https://github.com/FortySevenEffects/arduino_midi_library
+[submodule "platform/brains2/libraries/I2C_EEPROM"]
+	path = platform/brains2/libraries/I2C_EEPROM
+	url = https://github.com/RobTillaart/I2C_EEPROM
