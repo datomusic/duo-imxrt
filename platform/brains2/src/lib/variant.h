@@ -97,16 +97,16 @@ extern "C"
 #define UART1_IRQn        LPUART1_IRQn
 #define UART1_HANDLER     LPUART1_IRQHandler
 
-#define I2C1    LPI2C1
-#define I2C1_SCL   
-#define I2C1_SDA   
+#define I2C1              LPI2C1
+#define I2C1_SCL          GPIO_02   
+#define I2C1_SDA          GPIO_01  
 
 #define SCL I2C1_SCL
 #define SDA I2C1_SDA
 
 #define I2C2   
-#define I2C2_SCL 
-#define I2C2_SDA 
+#define I2C2_SCL
+#define I2C2_SDA
 
 // default SPI PORT
 #define SPI1_MOSI
