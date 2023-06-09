@@ -129,21 +129,21 @@ void led_update() {
       }
 
       if(!sequencer_is_running) {
-        if(((sequencer_clock % 24) < 12)) {
+        if(((tempo_handler.clock() % 24) < 12)) {
           if(step_enable[next_step]) {
             leds(next_step) = COLORS[step_note[next_step]%24];
           } else {
             leds(next_step) = CRGB::Black;
           }
           led_play = LED_WHITE;
-          led_play.fadeLightBy((sequencer_clock % 12)*16);
+          led_play.fadeLightBy((tempo_handler.clock() % 12)*16);
         } else {
           led_play = CRGB::Black;
           if(step_enable[next_step]) {
-            leds(next_step) = blend(LED_WHITE, COLORS[step_note[next_step]%24], (sequencer_clock % 12)*16);
+            leds(next_step) = blend(LED_WHITE, COLORS[step_note[next_step]%24], (tempo_handler.clock() % 12)*16);
           } else {
             leds(next_step) = LED_WHITE;
-            leds(next_step) = leds(next_step).fadeLightBy((sequencer_clock % 12)*16);
+            leds(next_step) = leds(next_step).fadeLightBy((tempo_handler.clock() % 12)*16);
           }
         }
       } else {

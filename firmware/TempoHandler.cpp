@@ -1,5 +1,6 @@
 #include "TempoHandler.h"
 #include "lib/sync.h"
+#include <cstdint>
 
 #define TEMPO_SOURCE_INTERNAL 0
 #define TEMPO_SOURCE_MIDI 1
@@ -9,7 +10,7 @@
 
 TempoHandler::TempoHandler() { tempo.init(); }
 
-void TempoHandler::update(const uint32_t midi_clock, const int speed) {
+void TempoHandler::update(const int speed) {
   // Determine which source is selected for tempo
   if (Sync::detect()) {
     if (_source != TEMPO_SOURCE_SYNC) {
@@ -31,7 +32,7 @@ void TempoHandler::update(const uint32_t midi_clock, const int speed) {
     tempo.update_internal(*this, speed);
     break;
   case TEMPO_SOURCE_MIDI:
-    update_midi(midi_clock);
+    update_midi();
     break;
   case TEMPO_SOURCE_SYNC:
     update_sync();
@@ -87,7 +88,7 @@ void TempoHandler::trigger() {
   _clock++;
 }
 
-void TempoHandler::update_midi(const uint32_t midi_clock) {
+void TempoHandler::update_midi() {
   if (midi_clock != _previous_midi_clock) {
     _previous_midi_clock = midi_clock;
     _previous_clock_time = micros();
@@ -100,13 +101,10 @@ void TempoHandler::reset_clock_source() {
   _source = TEMPO_SOURCE_INTERNAL;
 }
 
-bool TempoHandler::is_clock_source_internal() {
-  return _source == TEMPO_SOURCE_INTERNAL;
+void TempoHandler::midi_clock_received() {
+  _midi_clock_received_flag = 1;
+  midi_clock++;
 }
-
-void TempoHandler::midi_clock_reset() { _previous_midi_clock = 0; }
-
-void TempoHandler::midi_clock_received() { _midi_clock_received_flag = 1; }
 
 void TempoHandler::setHandleAlignEvent(void (*fptr)()) {
   tAlignCallback = fptr;
@@ -114,4 +112,41 @@ void TempoHandler::setHandleAlignEvent(void (*fptr)()) {
 
 void TempoHandler::setHandleTempoEvent(void (*fptr)()) {
   tTempoCallback = fptr;
+}
+
+bool TempoHandler::tick_clock(const bool double_speed) {
+  uint8_t sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE;
+  if (double_speed) {
+    sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE / 2;
+  }
+
+  /*
+   * TODO: Handle doubling and halving of external tempo.
+  if (_source != TEMPO_SOURCE_INTERNAL) {
+    int potvalue = synth.speed;
+    if (potvalue > 900) {
+      sequencer_divider /= 2;
+    } else if (potvalue < 127) {
+      sequencer_divider *= 2;
+    }
+  }
+  */
+
+  const bool ret = (sequencer_clock % sequencer_divider) == 0;
+  sequencer_clock++;
+
+  return ret;
+}
+
+void TempoHandler::midi_clock_reset() {
+  _previous_midi_clock = 0;
+  midi_clock = 0;
+}
+
+void TempoHandler::stop() { midi_clock_reset(); }
+void TempoHandler::start() { midi_clock_reset(); }
+
+void TempoHandler::restart() {
+  sequencer_clock = 0;
+  midi_clock_reset();
 }

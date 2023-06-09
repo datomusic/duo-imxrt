@@ -52,37 +52,26 @@ void sequencer_init() {
   double_speed = false;
 }
 
-static void reset_midi_clock(){
-  midi_clock = 0;
-  tempo_handler.midi_clock_reset();
-}
-
 void sequencer_restart() {
   MIDI.sendRealTime(midi::Start);
   delay(1);
   current_step = SEQUENCER_NUM_STEPS - 1;
-  reset_midi_clock();
   sequencer_is_running = true;
-  sequencer_clock = 0;
+  tempo_handler.restart();
 }
 
 void sequencer_align_clock() {
-  //round sequencer_clock to the nearest 12
-  if(sequencer_clock%12 > 6) {
-    sequencer_clock += 12-(sequencer_clock%12);
-  } else {
-    sequencer_clock -= (sequencer_clock%12);
-  }
+  tempo_handler.align_clock();
 }
 
 void sequencer_reset_clock() {
-  sequencer_clock = 0;
+  tempo_handler.reset_clock();
 }
 
 void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
-  reset_midi_clock();
+  tempo_handler.start();
   sequencer_is_running = true;
 }
 
@@ -97,7 +86,7 @@ void sequencer_stop() {
     sequencer_is_running = false;
     sequencer_untrigger_note();
   }
-  midi_clock = 0;
+  tempo_handler.stop();
 }
 
 void sequencer_toggle_start() {
@@ -109,24 +98,10 @@ void sequencer_toggle_start() {
 }
 
 void sequencer_tick_clock() {
-  uint8_t sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE;
-  if(double_speed) {
-    sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE / 2;
-  }
-
-  if(!tempo_handler.is_clock_source_internal()) {
-    int potvalue = synth.speed;
-    if(potvalue > 900) {
-      sequencer_divider /= 2;
-    } else if(potvalue < 127) {
-      sequencer_divider *= 2;
-    }
-  }
-
-  if(sequencer_is_running && (sequencer_clock % sequencer_divider)==0) {
+  const bool advance = tempo_handler.tick_clock(double_speed);
+  if(sequencer_is_running && advance){
     sequencer_advance();
-  } 
-  sequencer_clock++;
+  }
 }
 
 void sequencer_advance_without_play() {
@@ -176,7 +151,7 @@ void sequencer_reset() {
 
 void sequencer_update() {
   gate_length_msec = map(synth.gateLength,0,1023,10,200);
-  tempo_handler.update(midi_clock, synth.speed);
+  tempo_handler.update(synth.speed);
 
   if(!note_is_done_playing && millis() >= note_off_time && note_is_triggered) { 
     sequencer_untrigger_note();
