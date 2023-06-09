@@ -127,10 +127,8 @@ bool TempoHandler::tick_clock(const bool double_speed) {
   }
   */
 
-  const bool ret = (sequencer_clock % sequencer_divider) == 0;
   sequencer_clock++;
-
-  return ret;
+  return (sequencer_clock % sequencer_divider) == 0;
 }
 
 void TempoHandler::midi_clock_reset() {
