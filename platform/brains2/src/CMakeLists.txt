@@ -8,7 +8,7 @@ ENABLE_LANGUAGE(ASM)
 set(EXECUTABLE_NAME duo-imxrt.elf)
 
 if(NOT DEFINED BOARD)
-    set(BOARD "DUO_BRAINS_2.0-rc1")
+    set(BOARD "DUO_BRAINS_2.0")
 endif(NOT DEFINED BOARD)
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/duo/main.cpp
