@@ -48,7 +48,6 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 // Globals that should not be globals
 int gate_length_msec = 40;
 
-uint32_t sequencer_clock = 0;
 // Sequencer settings
 uint8_t current_step;
 int tempo = 0;
@@ -68,7 +67,6 @@ bool dfu_flag = 0;
 bool in_setup = true;
 
 int random_offset = 0;
-uint32_t midi_clock = 0;
 uint16_t audio_peak_values = 0UL;
 
 void keys_scan();
@@ -128,7 +126,7 @@ uint8_t midi_get_channel() {
 
 
 #include "TempoHandler.h"
-TempoHandler tempo_handler(synth);
+TempoHandler tempo_handler;
 
 #include "Sequencer.h"
 #include "Leds.h"
@@ -237,7 +235,6 @@ void loop() {
 
 void midi_handle_clock() {
   tempo_handler.midi_clock_received();
-  midi_clock++;
 }
 
 void midi_handle_realtime(uint8_t type) {

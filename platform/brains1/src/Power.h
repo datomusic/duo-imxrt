@@ -113,7 +113,6 @@ void amp_disable() {
 
 void power_on() {
   amp_disable();
-  midi_clock = 0;
   in_setup = true;
   // Clear note stack
   note_stack.Clear();
