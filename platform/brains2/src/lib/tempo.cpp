@@ -28,8 +28,9 @@ void Tempo::update_internal(TempoHandler &handler, const int potvalue) {
   accum += (cur - last_millis) * 1000;
   last_millis = cur;
 
-  while (accum >= scaled_millis_per_beat) {
-    accum -= scaled_millis_per_beat;
+  if (accum >= scaled_millis_per_beat) {
+    /* accum -= scaled_millis_per_beat; */
+    accum = 0;
     handler._previous_clock_time = micros();
     handler.trigger();
   }
