@@ -5,8 +5,6 @@
  Note timing is divided into 24 steps per quarter note
  */
 
-#define PULSES_PER_QUARTER_NOTE 24
-#define PULSES_PER_EIGHT_NOTE   PULSES_PER_QUARTER_NOTE / 2
 const uint8_t SEQUENCER_NUM_STEPS = 8;
 
 //Initial sequencer values
@@ -49,7 +47,6 @@ void sequencer_init() {
   }
   tempo_handler.setHandleTempoEvent(sequencer_tick_clock);
   tempo_handler.setHandleAlignEvent(sequencer_align_clock);
-  tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
   sequencer_stop();
   current_step = SEQUENCER_NUM_STEPS - 1;
   double_speed = false;
@@ -112,9 +109,9 @@ void sequencer_toggle_start() {
 }
 
 void sequencer_tick_clock() {
-  uint8_t sequencer_divider = PULSES_PER_EIGHT_NOTE;
+  uint8_t sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE;
   if(double_speed) {
-    sequencer_divider = PULSES_PER_EIGHT_NOTE / 2;
+    sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE / 2;
   }
 
   if(!tempo_handler.is_clock_source_internal()) {
@@ -179,7 +176,7 @@ void sequencer_reset() {
 
 void sequencer_update() {
   gate_length_msec = map(synth.gateLength,0,1023,10,200);
-  tempo_handler.update(midi_clock);
+  tempo_handler.update(midi_clock, synth.speed);
 
   if(!note_is_done_playing && millis() >= note_off_time && note_is_triggered) { 
     sequencer_untrigger_note();

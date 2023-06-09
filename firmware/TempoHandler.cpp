@@ -1,6 +1,15 @@
 #include "TempoHandler.h"
+#include "lib/sync.h"
 
-void TempoHandler::update(const uint32_t midi_clock) {
+#define TEMPO_SOURCE_INTERNAL 0
+#define TEMPO_SOURCE_MIDI 1
+#define TEMPO_SOURCE_SYNC 2
+#define TEMPO_SYNC_DIVIDER 12
+#define TEMPO_SYNC_PULSE_MS 12
+
+TempoHandler::TempoHandler() { tempo.init(); }
+
+void TempoHandler::update(const uint32_t midi_clock, const int speed) {
   // Determine which source is selected for tempo
   if (Sync::detect()) {
     if (_source != TEMPO_SOURCE_SYNC) {
@@ -19,7 +28,7 @@ void TempoHandler::update(const uint32_t midi_clock) {
 
   switch (_source) {
   case TEMPO_SOURCE_INTERNAL:
-    tempo.update_internal(*this, synth_params.speed);
+    tempo.update_internal(*this, speed);
     break;
   case TEMPO_SOURCE_MIDI:
     update_midi(midi_clock);
@@ -65,7 +74,7 @@ void TempoHandler::update_sync() {
 void TempoHandler::trigger() {
   midi_send_realtime(midi::Clock);
 
-  if ((_clock % _ppqn) == 0) {
+  if ((_clock % PPQN) == 0) {
     _clock = 0;
   }
   if ((_clock % TEMPO_SYNC_DIVIDER) == 0) {
@@ -89,4 +98,20 @@ void TempoHandler::update_midi(const uint32_t midi_clock) {
 void TempoHandler::reset_clock_source() {
   _midi_clock_received_flag = 0;
   _source = TEMPO_SOURCE_INTERNAL;
+}
+
+bool TempoHandler::is_clock_source_internal() {
+  return _source == TEMPO_SOURCE_INTERNAL;
+}
+
+void TempoHandler::midi_clock_reset() { _previous_midi_clock = 0; }
+
+void TempoHandler::midi_clock_received() { _midi_clock_received_flag = 1; }
+
+void TempoHandler::setHandleAlignEvent(void (*fptr)()) {
+  tAlignCallback = fptr;
+}
+
+void TempoHandler::setHandleTempoEvent(void (*fptr)()) {
+  tTempoCallback = fptr;
 }
