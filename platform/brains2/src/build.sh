@@ -3,6 +3,7 @@ set -e
 
 SCRIPT_PATH=$(dirname "$(realpath $0)")
 APP_PATH="$SCRIPT_PATH/$1"
+TOOLCHAIN_FILE=${TOOLCHAIN_FILE:-"$SCRIPT_PATH/../armgcc/arm-none-eabi-gcc.cmake"}
 
 shift
 
@@ -11,7 +12,6 @@ CMAKE_ARGS=$*
 BUILD_TYPE="release"
 
 if [[ -e "$APP_PATH" ]]; then
-  TOOLCHAIN_FILE="$(pwd)/../armgcc/arm-none-eabi-gcc.cmake"
   pushd "$APP_PATH"
   cmake -DTOOLCHAIN_DIR="$TOOLCHAIN_DIR" -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=flexspi_nor_$BUILD_TYPE  $CMAKE_ARGS -S . -B build
   pushd build
