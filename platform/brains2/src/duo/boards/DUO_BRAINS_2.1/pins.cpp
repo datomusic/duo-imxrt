@@ -113,9 +113,9 @@ void pins_init() {
   pinMode(PIN_SYN_ADDR1, OUTPUT);
   pinMode(PIN_SYN_ADDR2, OUTPUT);
 
-  pinMode(PIN_LED_1, OUTPUT);
-  pinMode(PIN_LED_2, OUTPUT);
-  pinMode(PIN_LED_3, OUTPUT);
+  // pinMode(PIN_LED_1, OUTPUT);
+  // pinMode(PIN_LED_2, OUTPUT);
+  // pinMode(PIN_LED_3, OUTPUT);
 
   // These pins are available as benchmarking pins
   pinMode(GPIO_SD_13, OUTPUT);
