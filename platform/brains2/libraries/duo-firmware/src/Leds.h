@@ -5,7 +5,7 @@
 
 #define PIN_LED_1            GPIO_08
 #define PIN_LED_2            GPIO_05
-#define PIN_LED_3            GPIO_03
+#define PIN_LED_3            GPIO_01
 
 #define ENV_LED              PIN_LED_3
 #define OSC_LED              PIN_LED_1
@@ -98,9 +98,9 @@ void led_init() {
   delay(100);
 
   for(int i = 0; i < 10; i++) {
-    /* analogWrite(ENV_LED,i*8); */
-    /* analogWrite(FILTER_LED,i*8); */
-    /* analogWrite(OSC_LED,i*8); */
+    analogWrite(ENV_LED,i*8);
+    analogWrite(FILTER_LED,i*8);
+    analogWrite(OSC_LED,i*8);
 
     physical_leds[i+9] = COLORS[SCALE[i]%24];
     delay(20);
@@ -110,10 +110,6 @@ void led_init() {
 
 // Updates the LED colour and brightness to match the stored sequence
 void led_update() {
-  for(uint16_t i = 0; i < 10; i++) {
-    physical_leds[i+9] = COLORS[SCALE[i]%24];
-  }
-
   for (int l = 0; l < SEQUENCER_NUM_STEPS; l++) {
     if (step_enable[l]) {
       leds(l) = COLORS[step_note[l]%24];
@@ -153,9 +149,9 @@ void led_update() {
   }
   FastLED.show();
 
-  /* analogWrite(ENV_LED, (peak1.read()*254.0f) + 1); */
-  /* analogWrite(FILTER_LED, 1 + ((synth.filter*synth.filter) >> 13)); */
-  /* analogWrite(OSC_LED, 128 - ((synth.pulseWidth) >> 3)); */
+  analogWrite(ENV_LED, (peak1.read()*254.0f) + 1);
+  analogWrite(FILTER_LED, 1 + ((synth.filter*synth.filter) >> 13));
+  analogWrite(OSC_LED, 128 - ((synth.pulseWidth) >> 3));
 }
 
 #endif
