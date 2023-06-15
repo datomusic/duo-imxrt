@@ -4,7 +4,7 @@
 class TempoHandler;
 
 struct Tempo {
-  void init(){}
+  void reset(){}
   void update_internal(TempoHandler &handler, const int potvalue);
 };
 

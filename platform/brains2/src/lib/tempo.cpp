@@ -5,8 +5,6 @@
 
 #include "firmware/TempoHandler.h"
 
-void Tempo::init() { last_millis = millis(); }
-
 void Tempo::update_internal(TempoHandler &handler, const int potvalue) {
   uint32_t scaled_millis_per_beat; // 2 x beats per minute
 
@@ -33,4 +31,9 @@ void Tempo::update_internal(TempoHandler &handler, const int potvalue) {
     handler._previous_clock_time = micros();
     handler.trigger();
   }
+}
+
+void Tempo::reset() {
+  accum = 0;
+  last_millis = millis();
 }
