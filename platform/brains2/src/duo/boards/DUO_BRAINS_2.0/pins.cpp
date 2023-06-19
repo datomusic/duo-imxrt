@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
+#include "led_pins.h"
 
 #define PIN_AMP_MUTE	       GPIO_AD_11
 #define PIN_HP_ENABLE	       GPIO_AD_11
@@ -12,14 +13,6 @@
 #define PIN_SYN_ADDR0        GPIO_SD_00
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
-
-#define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_05
-#define PIN_LED_3            GPIO_01
-
-#define ENV_LED              PIN_LED_3
-#define OSC_LED              PIN_LED_1
-#define FILTER_LED           PIN_LED_2
 
 #define BENCHMARK_PIN        GPIO_SD_13
 

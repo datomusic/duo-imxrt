@@ -13,14 +13,6 @@
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
 
-#define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_07
-#define PIN_LED_3            GPIO_06
-
-#define ENV_LED              GPIO_06
-#define OSC_LED              GPIO_08
-#define FILTER_LED           GPIO_07
-
 #define PIN_ROW_1            GPIO_13
 #define PIN_ROW_2            GPIO_12
 #define PIN_ROW_3            GPIO_SD_04
