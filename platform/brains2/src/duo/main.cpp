@@ -135,7 +135,6 @@ void pots_read() {
   synth.glide = pinRead(GLIDE_PIN);
   synth.crush = pinRead(BITC_PIN);
   synth.accent = pinRead(ACCENT_PIN);
-  synth.delay = pinRead(DELAY_PIN);
 }
 
 bool power_check() { return true; }
@@ -347,7 +346,6 @@ void process_key(const char k, const char state) {
 }
 
 inline void keys_scan() {
-  AudioNoInterrupts();
   if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
     delay_fader.fadeOut(3*440);
@@ -359,7 +357,6 @@ inline void keys_scan() {
     mixer_delay.gain(0, 0.5f); // Delay input
     mixer_delay.gain(3, 0.4f); // Hat delay input
   }
-  AudioInterrupts();
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {
