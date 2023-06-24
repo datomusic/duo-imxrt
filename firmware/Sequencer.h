@@ -98,7 +98,7 @@ void sequencer_toggle_start() {
 }
 
 void sequencer_tick_clock() {
-  const bool advance = tempo_handler.tick_clock(double_speed);
+  const bool advance = tempo_handler.tick_clock(synth.speed, double_speed);
   if(sequencer_is_running && advance){
     sequencer_advance();
   }

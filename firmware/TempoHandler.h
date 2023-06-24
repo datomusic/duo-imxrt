@@ -37,29 +37,13 @@ public:
   void update(const int speed);
   void midi_clock_received();
   void reset_clock() { sequencer_clock = 0; }
-      uint8_t new_source = _source;
-
-
-      if (new_source != _source) {
-        _source = new_source;
-        _midi_clock_received_flag = 0;
-        tempo.reset();
-
-
-  bool tick_clock(const bool double_speed);
+  bool tick_clock(const int speed, const bool double_speed);
   void restart();
   void stop();
   void start();
   uint32_t clock() { return sequencer_clock; }
-
-  void align_clock() {
-    // round sequencer_clock to the nearest 12
-    if (sequencer_clock % 12 > 6) {
-      sequencer_clock += 12 - (sequencer_clock % 12);
-    } else {
-      sequencer_clock -= (sequencer_clock % 12);
-    }
-  }
+  void align_clock();
+  void reset_clock_source();
 
   static const int PPQN = 24;
   static const int PULSES_PER_EIGHT_NOTE = (PPQN / 2);

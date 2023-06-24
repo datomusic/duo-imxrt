@@ -8,7 +8,7 @@
 #define TEMPO_SYNC_DIVIDER 12
 #define TEMPO_SYNC_PULSE_MS 12
 
-TempoHandler::TempoHandler() { tempo.init(); }
+TempoHandler::TempoHandler() { tempo.reset(); }
 
 void TempoHandler::update(const int speed) {
   // Determine which source is selected for tempo
@@ -109,23 +109,19 @@ void TempoHandler::setHandleTempoEvent(void (*fptr)()) {
   tTempoCallback = fptr;
 }
 
-bool TempoHandler::tick_clock(const bool double_speed) {
+bool TempoHandler::tick_clock(const int speed, const bool double_speed) {
   uint8_t sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE;
   if (double_speed) {
     sequencer_divider = TempoHandler::PULSES_PER_EIGHT_NOTE / 2;
   }
 
-  /*
-   * TODO: Handle doubling and halving of external tempo.
   if (_source != TEMPO_SOURCE_INTERNAL) {
-    int potvalue = synth.speed;
-    if (potvalue > 900) {
+    if (speed > 900) {
       sequencer_divider /= 2;
-    } else if (potvalue < 127) {
+    } else if (speed < 127) {
       sequencer_divider *= 2;
     }
   }
-  */
 
   sequencer_clock++;
   return (sequencer_clock % sequencer_divider) == 0;
@@ -139,7 +135,21 @@ void TempoHandler::midi_clock_reset() {
 void TempoHandler::stop() { midi_clock_reset(); }
 void TempoHandler::start() { midi_clock_reset(); }
 
+void TempoHandler::align_clock() {
+  // round sequencer_clock to the nearest 12
+  if (sequencer_clock % 12 > 6) {
+    sequencer_clock += 12 - (sequencer_clock % 12);
+  } else {
+    sequencer_clock -= (sequencer_clock % 12);
+  }
+}
+
 void TempoHandler::restart() {
   sequencer_clock = 0;
   midi_clock_reset();
+}
+
+void TempoHandler::reset_clock_source() {
+  _midi_clock_received_flag = 0;
+  _source = TEMPO_SOURCE_INTERNAL;
 }
