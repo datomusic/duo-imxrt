@@ -41,15 +41,11 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 #define HIGH_SAMPLE_RATE 44100
 #define LOW_SAMPLE_RATE 2489
 
-#define INITIAL_VELOCITY 100
-
 #define EEPROM_MIDI_CHANNEL 0
 
 // Globals that should not be globals
-int gate_length_msec = 40;
 
 // Sequencer settings
-uint8_t current_step;
 int tempo = 0;
 uint8_t set_key = 9;
 float osc_saw_frequency = 0.;
@@ -58,15 +54,11 @@ float osc_pulse_target_frequency = 0.;
 float osc_saw_target_frequency = 0.;
 uint8_t osc_pulse_midi_note = 0;
 uint8_t note_is_playing = 0;
-bool note_is_triggered = false;
 int transpose = 0;
-bool next_step_is_random = false;
 int tempo_interval;
-bool random_flag = 0;
 bool dfu_flag = 0;
 bool in_setup = true;
 
-int random_offset = 0;
 uint16_t audio_peak_values = 0UL;
 
 void keys_scan();
@@ -93,6 +85,9 @@ NoteStack<10> note_stack;
 
 #include "pinmap.h"
 
+void sequencer_clear_all();
+void keyboard_set_note(uint8_t note, uint8_t velocity);
+void keyboard_unset_note(uint8_t note);
 #define MIDI_SYSEX_DATA_TYPE const uint8_t
 #include "MidiFunctions.h"
 
@@ -167,8 +162,6 @@ void setup() {
   MIDI.setHandleContinue(sequencer_restart);
   MIDI.setHandleStop(sequencer_stop);
 
-  previous_note_on_time = millis();
-
   #ifdef DEV_MODE
     Serial.begin(57600);
     Serial.print("Dato DUO firmware ");
@@ -186,7 +179,7 @@ void setup() {
 
   // For some reason we need to reset double_speed here again,
   // otherwise it will be active until boost button is pressed for the first time.
-  double_speed = false;
+  sequencer_set_double_speed(false);
 }
 
 void loop() {
@@ -243,7 +236,7 @@ void midi_handle_realtime(uint8_t type) {
         midi_handle_clock();
         break;
       case 0xFA: // Start
-        sequencer_reset_clock();
+        tempo_handler.reset_clock();
         sequencer_start();
         break;
       case 0xFC: // Stop
@@ -286,14 +279,11 @@ void keys_scan() {
                     keyboard_set_note(SCALE[k - KEYB_0]);
                   }
                 } else if (k <= STEP_8 && k >= STEP_1) {
-                  step_enable[k-STEP_1] = 1-step_enable[k-STEP_1];
-                  if(!step_enable[k-STEP_1]) { leds(k-STEP_1) = CRGB::Black; }
-                  step_velocity[k-STEP_1] = INITIAL_VELOCITY;
-                } else if (k == BTN_SEQ2) {
-                  if(!sequencer_is_running) {
-                    sequencer_advance();
+                  if (!sequencer_toggle_step(k - STEP_1)) {
+                    leds(k - STEP_1) = CRGB::Black;
                   }
-                  double_speed = true;
+                } else if (k == BTN_SEQ2) {
+                  sequencer_set_double_speed(true);
                 } else if (k == BTN_DOWN) {
                   transpose--;
                   if(transpose<-12){transpose = -24;}
@@ -301,11 +291,7 @@ void keys_scan() {
                   transpose++;
                   if(transpose>12){transpose = 24;}
                 } else if (k == BTN_SEQ1) {
-                  next_step_is_random = true;
-                  if(!sequencer_is_running) {
-                    sequencer_advance();
-                  }
-                  random_flag = true;
+                  sequencer_set_random(true);
                 } else if (k == SEQ_START) {
                   sequencer_toggle_start();
                 }
@@ -336,7 +322,7 @@ void keys_scan() {
                 if (k <= KEYB_9 && k >= KEYB_0) {
                   keyboard_unset_note(SCALE[k - KEYB_0]);
                 } else if (k == BTN_SEQ2) {
-                  double_speed = false;
+                  sequencer_set_double_speed(false);
                 } else if (k == BTN_DOWN) {
                   if(transpose<-12){transpose = -12;}
                   if(transpose>12){transpose = 12;}
@@ -344,8 +330,7 @@ void keys_scan() {
                   if(transpose<-12){transpose = -12;}
                   if(transpose>12){transpose = 12;}
                 } else if (k == BTN_SEQ1) {
-                  next_step_is_random = false;
-                  random_flag = false;
+                  sequencer_set_random(false);
                 } else if (k == SEQ_START) {
                   #ifdef DEV_MODE
                     if(dfu_flag == 1) {
@@ -412,7 +397,7 @@ void note_off() {
   if (note_is_playing) {
     MIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
     usbMIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
-    if(!step_enable[current_step]) {
+    if(!sequencer_step_enabled(current_step)) {
       leds(current_step) = CRGB::Black;
     } else {
       envelope1.noteOff();

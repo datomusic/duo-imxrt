@@ -65,7 +65,7 @@ void align_clock() {
   tempo_handler.align_clock();
 }
 
-void sequencer_start() {
+void start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
   tempo_handler.start();
@@ -90,7 +90,7 @@ void toggle_running() {
   if (running) {
     stop();
   } else {
-    sequencer_start();
+    start();
   }
 }
 
@@ -210,6 +210,7 @@ void clear_all() {
 // Publically used:
 void sequencer_init() { Sequencer::init(); }
 void sequencer_restart() { Sequencer::restart(); }
+void sequencer_start() { Sequencer::start(); }
 void sequencer_stop() { Sequencer::stop(); }
 void sequencer_update() { Sequencer::update(); }
 void sequencer_toggle_start() { Sequencer::toggle_running(); }
@@ -240,7 +241,6 @@ void sequencer_set_random(bool val) {
   Sequencer::random_flag = val;
 }
 
-bool sequencer_is_running() { return Sequencer::running; }
 bool sequencer_toggle_step(const uint8_t step) {
   Sequencer::step_enable[step] = 1 - Sequencer::step_enable[step];
   Sequencer::step_velocity[step] = Sequencer::INITIAL_VELOCITY;
