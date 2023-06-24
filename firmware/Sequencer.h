@@ -8,7 +8,6 @@
 #include "firmware/note_stack.h"
 #include <cstdint>
 
-#define PULSES_PER_EIGHT_NOTE PULSES_PER_QUARTER_NOTE / 2
 const uint8_t SEQUENCER_NUM_STEPS = 8;
 
 // Initial sequencer values
@@ -39,7 +38,6 @@ NoteStack<10> note_stack;
 void tick_clock();
 void align_clock();
 void stop();
-void reset_midi_clock();
 void advance();
 void sequencer_trigger_note();
 void sequencer_untrigger_note();
@@ -51,23 +49,16 @@ void init() {
   }
   tempo_handler.setHandleTempoEvent(tick_clock);
   tempo_handler.setHandleAlignEvent(align_clock);
-  tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
   stop();
   current_step = SEQUENCER_NUM_STEPS - 1;
-}
-
-void reset_midi_clock() {
-  midi_clock = 0;
-  tempo_handler.midi_clock_reset();
 }
 
 void restart() {
   MIDI.sendRealTime(midi::Start);
   delay(1);
   current_step = SEQUENCER_NUM_STEPS - 1;
-  reset_midi_clock();
   running = true;
-  sequencer_clock = 0;
+  tempo_handler.restart();
 }
 
 void align_clock() {
@@ -77,17 +68,25 @@ void align_clock() {
 void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
-  reset_midi_clock();
+  tempo_handler.start();
   running = true;
 }
 
 void stop() {
   if (running) {
 
+    usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
+    MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
+    usbMIDI.sendRealTime(midi::Stop);
+    MIDI.sendRealTime(midi::Stop);
+
     running = false;
     sequencer_untrigger_note();
   }
-  midi_clock = 0;
+  tempo_handler.stop();
+}
+
+void toggle_running() {
   if (running) {
     stop();
   } else {
@@ -96,24 +95,10 @@ void stop() {
 }
 
 void tick_clock() {
-  uint8_t sequencer_divider = PULSES_PER_EIGHT_NOTE;
-  if (double_speed) {
-    sequencer_divider = PULSES_PER_EIGHT_NOTE / 2;
-  }
-
-  if (!tempo_handler.is_clock_source_internal()) {
-    int potvalue = synth.speed;
-    if (potvalue > 900) {
-      sequencer_divider /= 2;
-    } else if (potvalue < 127) {
-      sequencer_divider *= 2;
-    }
-  }
-
-  if (running && (sequencer_clock % sequencer_divider) == 0) {
+  const bool should_advance = tempo_handler.tick_clock(synth.speed, double_speed);
+  if(running && should_advance){
     advance();
   }
-  sequencer_clock++;
 }
 
 static uint8_t arpeggio_index = 0;
@@ -157,7 +142,7 @@ void advance() {
 
 void update() {
   gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
-  tempo_handler.update(midi_clock);
+  tempo_handler.update(synth.speed);
 
   if (!note_is_done_playing && millis() >= note_off_time && note_is_triggered) {
     sequencer_untrigger_note();
