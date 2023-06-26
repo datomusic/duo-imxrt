@@ -9,10 +9,10 @@
 #define PULSES_PER_EIGHT_NOTE   PULSES_PER_QUARTER_NOTE / 2
 const uint8_t SEQUENCER_NUM_STEPS = 8;
 
+
 //Initial sequencer values
 uint8_t step_note[] = { 1,0,6,9,0,4,0,5 };
 uint8_t step_enable[] = { 1,0,1,1,1,1,0,1 };
-uint8_t step_velocity[] = { 100,100,100,100,100,100,100,100 };
 
 void sequencer_init();
 void sequencer_restart();
@@ -35,7 +35,6 @@ namespace Sequencer{
   void record_note(const uint8_t note){
     step_note[current_step] = note;
     step_enable[current_step] = true;
-    step_velocity[current_step] = INITIAL_VELOCITY;
   }
 }
 
@@ -205,10 +204,9 @@ static void Sequencer::trigger_current_note() {
   previous_note_on_time = millis();
   note_off_time = previous_note_on_time + gate_length_msec;
 
-  step_velocity[current_step] = INITIAL_VELOCITY;
 
   note_on(step_note[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]+transpose,
-      step_velocity[((current_step+random_offset)%SEQUENCER_NUM_STEPS)],
+      INITIAL_VELOCITY,
       step_enable[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]);
 }
 
