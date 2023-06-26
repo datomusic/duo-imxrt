@@ -2,14 +2,7 @@
 #define Leds_h
 
 #include <FastLED.h>
-
-#define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_05
-#define PIN_LED_3            GPIO_03
-
-#define ENV_LED              PIN_LED_3
-#define OSC_LED              PIN_LED_1
-#define FILTER_LED           PIN_LED_2
+#include "led_pins.h"
 
 #define COLOR_ORDER GRB
 
@@ -98,9 +91,9 @@ void led_init() {
   delay(100);
 
   for(uint16_t i = 0; i < 10; i++) {
-    analogWrite(ENV_LED,i*8);
-    analogWrite(FILTER_LED,i*8);
-    analogWrite(OSC_LED,i*8);
+    write_env_led(i*8);
+    write_filter_led(i*8);
+    write_osc_led(i*8);
 
     physical_leds[i+9] = COLORS[SCALE[i]%24];
     delay(20);
@@ -153,9 +146,9 @@ void led_update() {
   }
   FastLED.show();
 
-  analogWrite(ENV_LED, 254 - (uint16_t)(peak1.read()*254.0f));
-  analogWrite(FILTER_LED, 254 - (uint16_t)((synth.filter*synth.filter)/4128));
-  analogWrite(OSC_LED, (uint16_t)(synth.pulseWidth/4.03f) + 1);
+  write_env_led(peak1.read());
+  write_filter_led(synth.filter);
+  write_osc_led(synth.pulseWidth);
 }
 
 #endif

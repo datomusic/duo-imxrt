@@ -14,14 +14,6 @@
 #define PIN_SYN_ADDR1        GPIO_SD_01
 #define PIN_SYN_ADDR2        GPIO_SD_02
 
-#define PIN_LED_1            GPIO_08
-#define PIN_LED_2            GPIO_05
-#define PIN_LED_3            GPIO_03
-
-#define ENV_LED              PIN_LED_3
-#define OSC_LED              PIN_LED_1
-#define FILTER_LED           PIN_LED_2
-
 #define BENCHMARK_PIN        GPIO_SD_13
 
 // Channel 0 of BRN_MUX is connected to a resistor that goes nowhere
@@ -112,10 +104,6 @@ void pins_init() {
   pinMode(PIN_SYN_ADDR0, OUTPUT);
   pinMode(PIN_SYN_ADDR1, OUTPUT);
   pinMode(PIN_SYN_ADDR2, OUTPUT);
-
-  /* pinMode(PIN_LED_1, OUTPUT); */
-  /* pinMode(PIN_LED_2, OUTPUT); */
-  /* pinMode(PIN_LED_3, OUTPUT); */
 
   // These pins are available as benchmarking pins
   pinMode(GPIO_SD_13, OUTPUT);
