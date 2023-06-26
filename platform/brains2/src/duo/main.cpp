@@ -206,9 +206,7 @@ int main(void) {
 
   in_setup = false;  
   
-
   bool pinState = LOW;
-
   while (true) {
     digitalWrite(GPIO_SD_13, pinState);
     pinState = !pinState;
@@ -361,6 +359,7 @@ inline void keys_scan() {
     mixer_delay.gain(0, 0.5f); // Delay input
     mixer_delay.gain(3, 0.4f); // Hat delay input
   }
+  AudioInterrupts();
 
   // scan all the keys and then process them
   if (button_matrix.getKeys()) {
@@ -372,7 +371,6 @@ inline void keys_scan() {
       }
     }
   }
-  AudioInterrupts();
 }
 
 void enter_dfu() {
