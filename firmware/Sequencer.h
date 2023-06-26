@@ -27,11 +27,19 @@ int keyboard_get_highest_note();
 int keyboard_get_latest_note();
 void sequencer_align_clock();
 
-static void sequencer_advance_without_play();
-static void sequencer_trigger_note();
-static void sequencer_untrigger_note();
+namespace Sequencer{
+  static void trigger_current_note();
+  static void untrigger_note();
+  static void advance_without_play();
+
+  void record_note(const uint8_t note){
+    step_note[current_step] = note;
+    step_enable[current_step] = true;
+    step_velocity[current_step] = INITIAL_VELOCITY;
+  }
+}
+
 bool sequencer_is_running = false;
-bool note_is_done_playing = false;
 
 uint32_t next_step_time = 0;
 uint32_t gate_off_time = 0;
@@ -40,6 +48,13 @@ uint32_t previous_note_on_time;
 uint32_t note_off_time;
 
 static bool double_speed = false;
+
+enum NoteState{
+  Idle,
+  Playing
+};
+
+NoteState note_state = Idle;
 
 void sequencer_init() {
   note_stack.Init();
@@ -98,7 +113,7 @@ void sequencer_stop() {
     MIDI.sendRealTime(midi::Stop);
 
     sequencer_is_running = false;
-    sequencer_untrigger_note();
+    Sequencer::untrigger_note();
   }
   midi_clock = 0;
 }
@@ -132,17 +147,12 @@ void sequencer_tick_clock() {
   sequencer_clock++;
 }
 
-void record_note(uint8_t note){
-  step_note[current_step] = note;
-  step_enable[current_step] = true;
-  step_velocity[current_step] = INITIAL_VELOCITY;
-}
 
-void sequencer_advance_without_play() {
+void Sequencer::advance_without_play() {
   static uint8_t arpeggio_index = 0;
 
-  if(!note_is_done_playing) {
-    sequencer_untrigger_note();
+  if(note_state == Playing) {
+    Sequencer::untrigger_note();
   }
   current_step++;
   current_step%=SEQUENCER_NUM_STEPS;
@@ -164,19 +174,17 @@ void sequencer_advance_without_play() {
 
   if(note_count > 0) {
     if(!sequencer_is_running) {
-      record_note(note_stack.most_recent_note().note);
+      Sequencer::record_note(note_stack.most_recent_note().note);
     } else {
-      record_note(note_stack.sorted_note(arpeggio_index).note);
+      Sequencer::record_note(note_stack.sorted_note(arpeggio_index).note);
       arpeggio_index++;
     }
   }
 }
 
-
-
 void sequencer_advance() {
-  sequencer_advance_without_play();
-  sequencer_trigger_note();
+  Sequencer::advance_without_play();
+  Sequencer::trigger_current_note();
 }
 
 void sequencer_reset() {
@@ -187,26 +195,26 @@ void sequencer_update() {
   gate_length_msec = map(synth.gateLength,0,1023,10,200);
   tempo_handler.update(midi_clock);
 
-  if(!note_is_done_playing && millis() >= note_off_time && note_is_triggered) { 
-    sequencer_untrigger_note();
+  if(note_state == Playing && millis() >= note_off_time) { 
+    Sequencer::untrigger_note();
   }
 }
 
-static void sequencer_trigger_note() {
-  note_is_triggered = true;
-  note_is_done_playing = false;
+static void Sequencer::trigger_current_note() {
+  note_state = Playing;
   previous_note_on_time = millis();
   note_off_time = previous_note_on_time + gate_length_msec;
 
   step_velocity[current_step] = INITIAL_VELOCITY;
 
-  note_on(step_note[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]+transpose, step_velocity[((current_step+random_offset)%SEQUENCER_NUM_STEPS)], step_enable[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]);
+  note_on(step_note[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]+transpose,
+      step_velocity[((current_step+random_offset)%SEQUENCER_NUM_STEPS)],
+      step_enable[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]);
 }
 
-static void sequencer_untrigger_note() {
-  note_is_done_playing = true;
+static void Sequencer::untrigger_note() {
+  note_state = Idle;
   note_off();
-  note_is_triggered = false;
   note_off_time = millis() + tempo_interval - gate_length_msec; // Set note off time to sometime in the future
 }
 
@@ -231,11 +239,11 @@ void keyboard_to_note() {
     if (stack_size > 0) {
       if (recent_note != last_note) {
         if (!sequencer_is_running) {
-          sequencer_advance_without_play();
+          Sequencer::advance_without_play();
         }
 
-        record_note(recent_note);
-        sequencer_trigger_note();
+        Sequencer::record_note(recent_note);
+        Sequencer::trigger_current_note();
         last_note = recent_note;
       }
     } else {
