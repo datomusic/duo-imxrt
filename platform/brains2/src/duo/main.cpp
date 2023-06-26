@@ -152,7 +152,6 @@ static void process_key(const char k, const char state) {
         if (!step_enable[k - STEP_1]) {
           leds(k - STEP_1) = CRGB::Black;
         }
-        step_velocity[k - STEP_1] = INITIAL_VELOCITY;
       } else if (k == BTN_SEQ2) {
         if (!sequencer_is_running) {
           sequencer_advance();
