@@ -6,13 +6,13 @@
 #define PIN_LED_3            GPIO_01
 
 #define write_osc_led(value) \
-  analogWrite(PIN_LED_1, value);
+  analogWrite(PIN_LED_1, 255-value);
 
 #define write_filter_led(value) \
-  analogWrite(PIN_LED_2, value);
+  analogWrite(PIN_LED_2, 255-value);
 
 #define write_env_led(value) \
-  analogWrite(PIN_LED_3, value);
+  analogWrite(PIN_LED_3, 255-value);
 
 
 #endif /* end of include guard: LED_PINS_H_ZSKLTGQH */
