@@ -90,7 +90,7 @@ void led_init() {
   FastLED.show();
   delay(100);
 
-  for(int i = 0; i < 10; i++) {
+  for(uint16_t i = 0; i < 10; i++) {
     write_env_led(i*8);
     write_filter_led(i*8);
     write_osc_led(i*8);
@@ -103,6 +103,10 @@ void led_init() {
 
 // Updates the LED colour and brightness to match the stored sequence
 void led_update() {
+  for(uint16_t i = 0; i < 10; i++) {
+    physical_leds[i+9] = COLORS[SCALE[i]%24];
+  }
+
   for (int l = 0; l < SEQUENCER_NUM_STEPS; l++) {
     if (step_enable[l]) {
       leds(l) = COLORS[step_note[l]%24];
@@ -142,9 +146,9 @@ void led_update() {
   }
   FastLED.show();
 
-  write_env_led((peak1.read()*254.0f) + 1);
-  write_filter_led(1 + ((synth.filter*synth.filter) >> 13));
-  write_osc_led(128 - ((synth.pulseWidth) >> 3));
+  write_env_led(254 - (uint16_t)(peak1.read()*254.0f));
+  write_filter_led(254 - (uint16_t)((synth.filter*synth.filter)/4128));
+  write_osc_led((uint16_t)(synth.pulseWidth/4.03f) + 1);
 }
 
 #endif

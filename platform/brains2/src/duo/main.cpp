@@ -349,6 +349,7 @@ void process_key(const char k, const char state) {
 }
 
 inline void keys_scan() {
+  AudioNoInterrupts();
   if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
     delay_fader.fadeOut(3*440);
@@ -371,6 +372,7 @@ inline void keys_scan() {
       }
     }
   }
+  AudioInterrupts();
 }
 
 void enter_dfu() {
