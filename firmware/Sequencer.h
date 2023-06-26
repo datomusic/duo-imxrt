@@ -28,23 +28,23 @@ int keyboard_get_latest_note();
 void sequencer_align_clock();
 
 namespace Sequencer{
-  static void trigger_current_note();
+  static void trigger_step(int step);
   static void untrigger_note();
   static void advance_without_play();
 
-  void record_note(const uint8_t note){
-    step_note[current_step] = note;
-    step_enable[current_step] = true;
+  void record_note(const int step, const uint8_t note){
+    step_note[step] = note;
+    step_enable[step] = true;
   }
 }
 
+uint64_t sequencer_clock = 0;
 bool sequencer_is_running = false;
 
 uint32_t next_step_time = 0;
 uint32_t gate_off_time = 0;
 uint32_t note_on_time;
 uint32_t previous_note_on_time;
-uint32_t note_off_time;
 
 static bool double_speed = false;
 
@@ -150,9 +150,6 @@ void sequencer_tick_clock() {
 void Sequencer::advance_without_play() {
   static uint8_t arpeggio_index = 0;
 
-  if(note_state == Playing) {
-    Sequencer::untrigger_note();
-  }
   current_step++;
   current_step%=SEQUENCER_NUM_STEPS;
 
@@ -171,19 +168,15 @@ void Sequencer::advance_without_play() {
     arpeggio_index = 0;
   }
 
-  if(note_count > 0) {
-    if(!sequencer_is_running) {
-      Sequencer::record_note(note_stack.most_recent_note().note);
-    } else {
-      Sequencer::record_note(note_stack.sorted_note(arpeggio_index).note);
-      arpeggio_index++;
-    }
+  if(note_count > 0 && sequencer_is_running) {
+    Sequencer::record_note(current_step, note_stack.sorted_note(arpeggio_index).note);
+    arpeggio_index++;
   }
 }
 
 void sequencer_advance() {
   Sequencer::advance_without_play();
-  Sequencer::trigger_current_note();
+  Sequencer::trigger_step(current_step);
 }
 
 void sequencer_reset() {
@@ -194,26 +187,27 @@ void sequencer_update() {
   gate_length_msec = map(synth.gateLength,0,1023,10,200);
   tempo_handler.update(midi_clock);
 
-  if(note_state == Playing && millis() >= note_off_time) { 
-    Sequencer::untrigger_note();
+  if(sequencer_is_running) { 
+    const uint32_t note_off_time = previous_note_on_time + gate_length_msec;
+    const bool note_active = note_state == Playing && millis() >= note_off_time;
+    if (note_active) {
+      Sequencer::untrigger_note();
+    }
   }
 }
 
-static void Sequencer::trigger_current_note() {
+static void Sequencer::trigger_step(const int step) {
   note_state = Playing;
   previous_note_on_time = millis();
-  note_off_time = previous_note_on_time + gate_length_msec;
 
-
-  note_on(step_note[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]+transpose,
+  note_on(step_note[((step+random_offset)%SEQUENCER_NUM_STEPS)]+transpose,
       INITIAL_VELOCITY,
-      step_enable[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]);
+      step_enable[((step+random_offset)%SEQUENCER_NUM_STEPS)]);
 }
 
 static void Sequencer::untrigger_note() {
   note_state = Idle;
   note_off();
-  note_off_time = millis() + tempo_interval - gate_length_msec; // Set note off time to sometime in the future
 }
 
 
@@ -230,18 +224,26 @@ void keyboard_to_note() {
   static uint8_t last_stack_size = 255;
 
   const uint8_t recent_note = note_stack.most_recent_note().note;
-
   const auto stack_size = note_stack.size();
+
   if (stack_size != last_stack_size) {
-    last_stack_size = stack_size;
     if (stack_size > 0) {
       if (recent_note != last_note) {
         if (!sequencer_is_running) {
           Sequencer::advance_without_play();
         }
 
-        Sequencer::record_note(recent_note);
-        Sequencer::trigger_current_note();
+        const bool single_note = stack_size == 1 && last_stack_size == 0;
+        int step = current_step;
+        if (sequencer_is_running && (sequencer_clock % PULSES_PER_EIGHT_NOTE >= PULSES_PER_EIGHT_NOTE / 2)) {
+          step = (current_step + 1) % SEQUENCER_NUM_STEPS;
+        }
+
+        if (!sequencer_is_running || single_note) {
+          Sequencer::record_note(step, recent_note);
+          Sequencer::trigger_step(step);
+        }
+
         last_note = recent_note;
       }
     } else {
@@ -249,6 +251,8 @@ void keyboard_to_note() {
       last_note = 255; // Make sure this is a non existing note in the scale
     }
   }
+
+  last_stack_size = stack_size;
 }
 
 #endif
