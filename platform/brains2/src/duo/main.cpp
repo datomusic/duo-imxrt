@@ -135,6 +135,7 @@ void pots_read() {
   synth.glide = pinRead(GLIDE_PIN);
   synth.crush = pinRead(BITC_PIN);
   synth.accent = pinRead(ACCENT_PIN);
+  synth.delay = pinRead(DELAY_PIN);
 }
 
 bool power_check() { return true; }
@@ -205,7 +206,9 @@ int main(void) {
 
   in_setup = false;  
   
+
   bool pinState = LOW;
+
   while (true) {
     digitalWrite(GPIO_SD_13, pinState);
     pinState = !pinState;
