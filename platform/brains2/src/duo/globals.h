@@ -29,7 +29,6 @@ float osc_pulse_target_frequency = 0.;
 float osc_saw_target_frequency = 0.;
 uint8_t osc_pulse_midi_note = 0;
 uint8_t note_is_playing = 0;
-bool note_is_triggered = false;
 int transpose = 0;
 bool next_step_is_random = false;
 int tempo_interval = 0;
