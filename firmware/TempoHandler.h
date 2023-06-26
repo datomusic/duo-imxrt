@@ -40,7 +40,7 @@ class TempoHandler
 
   public:
     TempoHandler(synth_parameters &synth_params): synth_params(synth_params){
-      tempo.init();
+      tempo.reset();
     }
 
     inline void setHandleTempoEvent(void (*fptr)()) {
@@ -54,20 +54,22 @@ class TempoHandler
     }
     void update(const uint32_t midi_clock) {
       // Determine which source is selected for tempo
+      uint8_t new_source = _source;
+
       if(Sync::detect()) {
-        if(_source != TEMPO_SOURCE_SYNC) {
-          _source = TEMPO_SOURCE_SYNC;
-        }
-        _midi_clock_received_flag = 0;
+        new_source = TEMPO_SOURCE_SYNC;
       } else if (_midi_clock_received_flag) { 
-        if(_source != TEMPO_SOURCE_MIDI) {
-          _source = TEMPO_SOURCE_MIDI;
-        }
+        new_source = TEMPO_SOURCE_MIDI;
       } else {
-        if(_source != TEMPO_SOURCE_INTERNAL) {
-          _source = TEMPO_SOURCE_INTERNAL;
-        }
+        new_source = TEMPO_SOURCE_INTERNAL;
       }
+
+      if (new_source != _source) {
+        _source = new_source;
+        _midi_clock_received_flag = 0;
+        tempo.reset();
+      }
+
 
       switch(_source) {
         case TEMPO_SOURCE_INTERNAL:
@@ -85,6 +87,7 @@ class TempoHandler
         Sync::write(LOW);
       }
     }
+
     void midi_clock_received() {
       _midi_clock_received_flag = 1;
     }

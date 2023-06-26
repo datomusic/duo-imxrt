@@ -22,7 +22,6 @@ int gate_length_msec = 40;
 uint32_t sequencer_clock = 0;
 // Sequencer settings
 uint8_t current_step;
-int tempo = 0;
 uint8_t set_key = 9;
 float osc_saw_frequency = 0.;
 float osc_pulse_frequency = 0.;

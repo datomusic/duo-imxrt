@@ -6,8 +6,8 @@
 class TempoHandler;
 
 struct Tempo {
-  void init();
   void update_internal(TempoHandler &handler, const int potvalue);
+  void reset();
 
 private:
   uint32_t accum = 0;
