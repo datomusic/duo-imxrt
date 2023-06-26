@@ -146,9 +146,9 @@ void led_update() {
   }
   FastLED.show();
 
-  write_env_led(254 - (uint16_t)(peak1.read()*254.0f));
-  write_filter_led(254 - (uint16_t)((synth.filter*synth.filter)/4128));
-  write_osc_led((uint16_t)(synth.pulseWidth/4.03f) + 1);
+  write_env_led(peak1.read());
+  write_filter_led(synth.filter);
+  write_osc_led(synth.pulseWidth);
 }
 
 #endif
