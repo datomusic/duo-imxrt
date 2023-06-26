@@ -9,6 +9,7 @@
 #include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
+#include <Wire.h>
 
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
@@ -165,6 +166,7 @@ int main(void) {
   AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
+  Wire.begin();
   // Read the MIDI channel from EEPROM. Lowest four bits
   // const uint8_t stored_midi_channel =
   //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
