@@ -132,6 +132,12 @@ void sequencer_tick_clock() {
   sequencer_clock++;
 }
 
+void record_note(uint8_t note){
+  step_note[current_step] = note;
+  step_enable[current_step] = true;
+  step_velocity[current_step] = INITIAL_VELOCITY;
+}
+
 void sequencer_advance_without_play() {
   static uint8_t arpeggio_index = 0;
 
@@ -150,23 +156,23 @@ void sequencer_advance_without_play() {
   }
 
   // Sample keys
-  uint8_t n = note_stack.size();
+  const uint8_t note_count = note_stack.size();
 
-  if(arpeggio_index >= n) {
+  if(arpeggio_index >= note_count) {
     arpeggio_index = 0;
   }
 
-  if(n > 0) {
+  if(note_count > 0) {
     if(!sequencer_is_running) {
-      step_note[current_step] = note_stack.most_recent_note().note;
+      record_note(note_stack.most_recent_note().note);
     } else {
-      step_note[current_step] = note_stack.sorted_note(arpeggio_index).note;
+      record_note(note_stack.sorted_note(arpeggio_index).note);
       arpeggio_index++;
     }
-    step_enable[current_step] = 1;
-    step_velocity[current_step] = INITIAL_VELOCITY; 
   }
 }
+
+
 
 void sequencer_advance() {
   sequencer_advance_without_play();
@@ -214,23 +220,27 @@ void keyboard_unset_note(uint8_t note) {
 }
 
 void keyboard_to_note() {
-  static uint8_t n = 255;
-  static uint8_t s = 255;
+  static uint8_t last_note = 255;
+  static uint8_t last_stack_size = 255;
 
-  if(!sequencer_is_running) {
-    if(note_stack.size() != s) {
-      s = note_stack.size();
-      if(s > 0) {
-        uint8_t k = note_stack.most_recent_note().note;
-        if(k != n) {
+  const uint8_t recent_note = note_stack.most_recent_note().note;
+
+  const auto stack_size = note_stack.size();
+  if (stack_size != last_stack_size) {
+    last_stack_size = stack_size;
+    if (stack_size > 0) {
+      if (recent_note != last_note) {
+        if (!sequencer_is_running) {
           sequencer_advance_without_play();
-          note_on(k+transpose, INITIAL_VELOCITY, true);
-          n = k;
         }
-      } else {
-        note_off();
-        n = 255; // Make sure this is a non existing note in the scale
+
+        record_note(recent_note);
+        sequencer_trigger_note();
+        last_note = recent_note;
       }
+    } else {
+      note_off();
+      last_note = 255; // Make sure this is a non existing note in the scale
     }
   }
 }
