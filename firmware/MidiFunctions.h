@@ -178,7 +178,7 @@ void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value) {
         break;
       case 123: // All notes off
         note_off();
-        note_stack.Clear();
+        sequencer.deactive_all_notes();
         break;
       default:
         break;
@@ -197,11 +197,11 @@ float midi_note_to_frequency(int x) {
 }
 
 void midi_note_on(uint8_t channel, uint8_t note, uint8_t velocity) {
-  note_stack.NoteOn(note, velocity);
+  sequencer.activate_note(note, velocity);
 }
 
 void midi_note_off(uint8_t channel, uint8_t note, uint8_t velocity) {
-  note_stack.NoteOff(note);
+  sequencer.deactivate_note(note);
 }
 
 void midi_usb_sysex(MIDI_SYSEX_DATA_TYPE *data, unsigned length) {
