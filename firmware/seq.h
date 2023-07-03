@@ -10,7 +10,12 @@
 #define SEQUENCER_NUM_STEPS 8
 
 struct Seq {
-  Seq();
+  struct Callbacks {
+    void (*note_on)(uint8_t midi_note, uint8_t velocity, bool enabled);
+    void (*note_off)(void);
+  };
+
+  Seq(Callbacks callbacks);
   void start();
   void restart();
   void stop();
@@ -35,6 +40,7 @@ private:
   void record_note(int step, uint8_t note);
   void untrigger_note();
 
+  Callbacks callbacks;
   NoteStack<10> active_notes;
   int transpose = 0;
   uint32_t previous_note_on_time;

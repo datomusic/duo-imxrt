@@ -15,7 +15,6 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 #define EEPROM_MIDI_CHANNEL 0
 
 // Globals that should not be globals
-int gate_length_msec = 40;
 
 // Sequencer settings
 uint8_t current_step;
@@ -45,5 +44,5 @@ void enter_dfu();
 synth_parameters synth;
 
 #include "firmware/seq.h"
-Seq sequencer;
+Seq sequencer(Seq::Callbacks{.note_on = note_on, .note_off = note_off});
 
