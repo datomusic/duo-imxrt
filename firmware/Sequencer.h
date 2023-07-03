@@ -5,7 +5,6 @@
  Note timing is divided into 24 steps per quarter note
  */
 
-
 uint8_t *step_note = sequencer.step_note;
 uint8_t *step_enable = sequencer.step_enable;
 
@@ -21,9 +20,6 @@ void keyboard_to_note();
 int keyboard_get_highest_note();
 int keyboard_get_latest_note();
 void sequencer_align_clock();
-
-uint64_t sequencer_clock = 0;
-bool sequencer_is_running = false;
 
 uint32_t next_step_time = 0;
 uint32_t gate_off_time = 0;
@@ -41,7 +37,6 @@ void sequencer_init() {
   tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
   sequencer_stop();
   double_speed = false;
-  current_step = sequencer.current_step;
 }
 
 static void reset_midi_clock() {
@@ -54,27 +49,14 @@ void sequencer_restart() {
   delay(1);
   reset_midi_clock();
   sequencer.restart();
-  sequencer_clock = sequencer.clock;
-  sequencer_is_running = sequencer.running;
 }
 
-void sequencer_align_clock() {
-  // round sequencer_clock to the nearest 12
-  if (sequencer_clock % 12 > 6) {
-    sequencer_clock += 12 - (sequencer_clock % 12);
-  } else {
-    sequencer_clock -= (sequencer_clock % 12);
-  }
-  sequencer.clock = sequencer_clock;
-}
-
-void sequencer_reset_clock() { sequencer.clock = sequencer_clock = 0; }
+void sequencer_align_clock() { sequencer.align_clock(); }
 
 void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
   reset_midi_clock();
-  sequencer_is_running = true;
   sequencer.start();
 }
 
@@ -87,7 +69,6 @@ void sequencer_stop() {
   }
 
   sequencer.stop();
-  sequencer_is_running = sequencer.running;
   midi_clock = 0;
 }
 
@@ -114,11 +95,12 @@ void sequencer_tick_clock() {
     }
   }
 
-  if (sequencer_is_running && (sequencer_clock % sequencer_divider) == 0) {
+  const auto seq_clock = sequencer.get_clock();
+  if (sequencer.is_running() && (seq_clock % sequencer_divider) == 0) {
     sequencer_advance();
   }
-  sequencer_clock++;
-  sequencer.clock = sequencer_clock;
+
+  sequencer.inc_clock();
 }
 
 void sequencer_advance() {
@@ -138,7 +120,6 @@ void sequencer_update() {
   tempo_handler.update(midi_clock);
 
   sequencer.update(millis(), gate_length_msec);
-  sequencer_is_running = sequencer.running;
 }
 
 void keyboard_set_note(uint8_t note) { sequencer.activate_note(note); }

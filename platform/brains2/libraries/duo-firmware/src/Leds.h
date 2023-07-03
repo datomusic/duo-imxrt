@@ -12,7 +12,6 @@
 #define LED_WHITE CRGB(230,255,150)
 
 #define leds(A) physical_leds[led_order[A]]
-#define next_step ((current_step+1)%SEQUENCER_NUM_STEPS)
 
 CRGB physical_leds[NUM_LEDS];
 #define led_play physical_leds[0]
@@ -130,29 +129,33 @@ void led_update() {
       leds(l) = CRGB::Black;
     }
      
+    const auto cur_seq_step = sequencer.get_cur_step();
     if(note_is_playing) {
-      leds(((current_step+random_offset)%SEQUENCER_NUM_STEPS)) = LED_WHITE;
+      leds(((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)) = LED_WHITE;
     } else {
-      if(!step_enable[((current_step+random_offset)%SEQUENCER_NUM_STEPS)]) {
-        leds(((current_step+random_offset)%SEQUENCER_NUM_STEPS)) = CRGB::Black;
+      if(!step_enable[((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)]) {
+        leds(((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)) = CRGB::Black;
       }
 
-      if(!sequencer_is_running) {
-        if(((sequencer_clock % 24) < 12)) {
+      const auto seq_clock = sequencer.get_clock();
+      const auto next_step = ((cur_seq_step+1)%SEQUENCER_NUM_STEPS);
+
+      if(!sequencer.is_running()) {
+        if(((seq_clock % 24) < 12)) {
           if(step_enable[next_step]) {
             leds(next_step) = COLORS[step_note[next_step]%24];
           } else {
             leds(next_step) = CRGB::Black;
           }
           led_play = LED_WHITE;
-          led_play.fadeLightBy((sequencer_clock % 12)*16);
+          led_play.fadeLightBy((seq_clock % 12)*16);
         } else {
           led_play = CRGB::Black;
           if(step_enable[next_step]) {
-            leds(next_step) = blend(LED_WHITE, COLORS[step_note[next_step]%24], (sequencer_clock % 12)*16);
+            leds(next_step) = blend(LED_WHITE, COLORS[step_note[next_step]%24], (seq_clock % 12)*16);
           } else {
             leds(next_step) = LED_WHITE;
-            leds(next_step) = leds(next_step).fadeLightBy((sequencer_clock % 12)*16);
+            leds(next_step) = leds(next_step).fadeLightBy((seq_clock % 12)*16);
           }
         }
       } else {
