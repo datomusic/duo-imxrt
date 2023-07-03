@@ -15,6 +15,7 @@ add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/duo/tempo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/adapters/fast_led/FastLED.cpp
     ${CMAKE_CURRENT_LIST_DIR}/../../../firmware/effect_custom_envelope.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/../../../firmware/seq.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/duo/boards/${BOARD}/pins.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/duo/boards/${BOARD}/audio.cpp
 )
