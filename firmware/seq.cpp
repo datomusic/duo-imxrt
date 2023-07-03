@@ -2,10 +2,11 @@
 
 #define INITIAL_VELOCITY 100
 
-Seq::Seq() { active_notes.Init(); }
+Seq::Seq(Callbacks callbacks) : callbacks(callbacks) { active_notes.Init(); }
 
 void Seq::start() { running = true; }
-void Seq::restart() { running = true;
+void Seq::restart() {
+  running = true;
   current_step = SEQUENCER_NUM_STEPS - 1;
   clock = 0;
 }
@@ -41,8 +42,8 @@ void Seq::keyboard_to_note(const uint32_t current_millis) {
 
         const bool single_note = stack_size == 1 && last_stack_size == 0;
         int step = current_step;
-        if (running && (clock % PULSES_PER_EIGHT_NOTE >=
-                        PULSES_PER_EIGHT_NOTE / 2)) {
+        if (running &&
+            (clock % PULSES_PER_EIGHT_NOTE >= PULSES_PER_EIGHT_NOTE / 2)) {
           step = (current_step + 1) % SEQUENCER_NUM_STEPS;
         }
 
@@ -54,7 +55,7 @@ void Seq::keyboard_to_note(const uint32_t current_millis) {
         last_note = recent_note;
       }
     } else {
-      note_off();
+      callbacks.note_off();
       last_note = 255; // Make sure this is a non existing note in the scale
     }
   }
@@ -64,7 +65,7 @@ void Seq::keyboard_to_note(const uint32_t current_millis) {
 
 void Seq::untrigger_note() {
   note_state = Idle;
-  note_off();
+  callbacks.note_off();
 }
 
 void Seq::advance(const uint32_t current_millis) {
@@ -95,14 +96,18 @@ void Seq::trigger_step(const int step, const uint32_t current_millis) {
   note_state = Playing;
   previous_note_on_time = current_millis;
 
-  note_on(step_note[((step + random_offset) % SEQUENCER_NUM_STEPS)] + transpose,
-          INITIAL_VELOCITY,
-          step_enable[((step + random_offset) % SEQUENCER_NUM_STEPS)]);
+  callbacks.note_on(
+      step_note[((step + random_offset) % SEQUENCER_NUM_STEPS)] + transpose,
+      INITIAL_VELOCITY,
+      step_enable[((step + random_offset) % SEQUENCER_NUM_STEPS)]);
 }
 
 void Seq::activate_note(uint8_t note, uint8_t velocity) {
   active_notes.NoteOn(note, velocity);
 }
+
+void Seq::activate_note(uint8_t note) { activate_note(note, INITIAL_VELOCITY); }
+
 void Seq::deactivate_note(uint8_t note) { active_notes.NoteOff(note); }
 
 void Seq::record_note(const int step, const uint8_t note) {

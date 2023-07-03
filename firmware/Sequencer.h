@@ -5,12 +5,9 @@
  Note timing is divided into 24 steps per quarter note
  */
 
-#include "seq.h"
 
-Seq seq;
-
-uint8_t *step_note = seq.step_note;
-uint8_t *step_enable = seq.step_enable;
+uint8_t *step_note = sequencer.step_note;
+uint8_t *step_enable = sequencer.step_enable;
 
 void sequencer_init();
 void sequencer_restart();
