@@ -97,7 +97,7 @@ void Seq::trigger_step(const int step, const uint32_t current_millis) {
   previous_note_on_time = current_millis;
 
   callbacks.note_on(
-      step_note[((step + random_offset) % SEQUENCER_NUM_STEPS)] + transpose,
+      step_note[((step + random_offset) % SEQUENCER_NUM_STEPS)],
       INITIAL_VELOCITY,
       step_enable[((step + random_offset) % SEQUENCER_NUM_STEPS)]);
 }
@@ -115,7 +115,7 @@ void Seq::record_note(const int step, const uint8_t note) {
   step_enable[step] = true;
 }
 
-void Seq::align_clock(){
+void Seq::align_clock() {
   // round sequencer_clock to the nearest 12
   if (clock % 12 > 6) {
     clock += 12 - (clock % 12);

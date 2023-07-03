@@ -42,6 +42,10 @@ void enter_dfu();
 #include "firmware/synth_params.h"
 synth_parameters synth;
 
+
+void sequencer_note_on(uint8_t midi_note, uint8_t velocity, bool enabled){
+  note_on(midi_note + transpose, velocity, enabled);
+}
 #include "firmware/seq.h"
-Seq sequencer(Seq::Callbacks{.note_on = note_on, .note_off = note_off});
+Seq sequencer(Seq::Callbacks{.note_on = sequencer_note_on, .note_off = note_off});
 

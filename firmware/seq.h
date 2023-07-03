@@ -46,7 +46,6 @@ private:
 
   Callbacks callbacks;
   NoteStack<10> active_notes;
-  int transpose = 0;
   uint32_t previous_note_on_time;
   uint64_t clock = 0;
   uint8_t current_step = SEQUENCER_NUM_STEPS - 1;
