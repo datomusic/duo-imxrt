@@ -6,18 +6,22 @@ add_library(unity_framework
   ${CMAKE_CURRENT_LIST_DIR}/unity/unity.c
 )
 
+target_include_directories(unity_framework PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/unity
+)
+
 add_library(firmware
   ${CMAKE_CURRENT_LIST_DIR}/../firmware/seq.cpp
+)
+
+target_include_directories(firmware PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/../
 )
 
 add_executable(tests 
   ${CMAKE_CURRENT_LIST_DIR}/runner.cpp
 )
 target_link_libraries(tests PRIVATE unity_framework firmware)
-target_include_directories(tests PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/../
-  ${CMAKE_CURRENT_LIST_DIR}/unity
-)
 
 add_test(
   NAME tests
