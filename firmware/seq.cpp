@@ -29,7 +29,8 @@ void Seq::update(const uint32_t current_millis, const int gate_length_msec) {
   }
 }
 
-void Seq::keyboard_to_note(const uint32_t current_millis) {
+void Seq::keyboard_to_note(const uint32_t current_millis,
+                           const uint8_t step_offset) {
   const uint8_t recent_note = active_notes.most_recent_note().note;
   const auto stack_size = active_notes.size();
 
@@ -41,7 +42,7 @@ void Seq::keyboard_to_note(const uint32_t current_millis) {
         }
 
         const bool single_note = stack_size == 1 && last_stack_size == 0;
-        int step = current_step;
+        uint8_t step = current_step;
         if (running &&
             (clock % PULSES_PER_EIGHT_NOTE >= PULSES_PER_EIGHT_NOTE / 2)) {
           step = (current_step + 1) % SEQUENCER_NUM_STEPS;
@@ -49,7 +50,7 @@ void Seq::keyboard_to_note(const uint32_t current_millis) {
 
         if (!running || single_note) {
           record_note(step, recent_note);
-          trigger_step(step, current_millis);
+          trigger_step(step + step_offset, current_millis);
         }
 
         last_note = recent_note;
@@ -68,9 +69,9 @@ void Seq::untrigger_note() {
   callbacks.note_off();
 }
 
-void Seq::advance(const uint32_t current_millis) {
+void Seq::advance(const uint32_t current_millis, const uint8_t step_offset) {
   advance_without_play();
-  trigger_step(current_step, current_millis);
+  trigger_step(current_step + step_offset, current_millis);
 }
 
 void Seq::advance_without_play() {
@@ -92,14 +93,12 @@ void Seq::advance_without_play() {
   }
 }
 
-void Seq::trigger_step(const int step, const uint32_t current_millis) {
+void Seq::trigger_step(const uint8_t step, const uint32_t current_millis) {
   note_state = Playing;
   previous_note_on_time = current_millis;
 
-  callbacks.note_on(
-      step_note[((step + random_offset) % SEQUENCER_NUM_STEPS)],
-      INITIAL_VELOCITY,
-      step_enable[((step + random_offset) % SEQUENCER_NUM_STEPS)]);
+  callbacks.note_on(step_note[((step) % SEQUENCER_NUM_STEPS)], INITIAL_VELOCITY,
+                    step_enable[((step) % SEQUENCER_NUM_STEPS)]);
 }
 
 void Seq::activate_note(uint8_t note, uint8_t velocity) {
@@ -110,7 +109,7 @@ void Seq::activate_note(uint8_t note) { activate_note(note, INITIAL_VELOCITY); }
 
 void Seq::deactivate_note(uint8_t note) { active_notes.NoteOff(note); }
 
-void Seq::record_note(const int step, const uint8_t note) {
+void Seq::record_note(const uint8_t step, const uint8_t note) {
   step_note[step] = note;
   step_enable[step] = true;
 }

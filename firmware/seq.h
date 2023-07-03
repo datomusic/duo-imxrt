@@ -20,8 +20,8 @@ struct Seq {
   void restart();
   void stop();
   void update(uint32_t current_millis, int gate_length_msec);
-  void keyboard_to_note(uint32_t current_millis);
-  void advance(uint32_t current_millis);
+  void keyboard_to_note(uint32_t current_millis, uint8_t step_offset);
+  void advance(uint32_t current_millis, uint8_t step_offset);
   void activate_note(uint8_t note);
   void activate_note(uint8_t note, uint8_t velocity);
   void deactivate_note(uint8_t note);
@@ -33,19 +33,18 @@ struct Seq {
   inline uint64_t get_clock() { return clock; }
   inline void inc_clock() { clock++; }
 
-  bool running = false;
-  int random_offset = 0;
   uint8_t step_note[SEQUENCER_NUM_STEPS] = {1, 0, 6, 9, 0, 4, 0, 5};
   uint8_t step_enable[SEQUENCER_NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
 
 private:
   void advance_without_play();
-  void trigger_step(int step, uint32_t current_millis);
-  void record_note(int step, uint8_t note);
+  void trigger_step(uint8_t step, uint32_t current_millis);
+  void record_note(uint8_t step, uint8_t note);
   void untrigger_note();
 
   Callbacks callbacks;
   NoteStack<10> active_notes;
+  bool running = false;
   uint32_t previous_note_on_time;
   uint64_t clock = 0;
   uint8_t current_step = SEQUENCER_NUM_STEPS - 1;
