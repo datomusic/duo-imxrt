@@ -46,6 +46,7 @@
 #define STMLIB_ALGORITHMS_NOTE_STACK_H_
 
 #include <cstring>
+#include <cstdint>
 
 enum NoteStackFlags {
   NOTE_STACK_PRIORITY_LAST,
