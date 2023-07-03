@@ -61,7 +61,7 @@ void sequencer_start() {
 }
 
 void sequencer_stop() {
-  if (sequencer.running) {
+  if (sequencer.is_running()) {
     usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
     MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
     usbMIDI.sendRealTime(midi::Stop);
@@ -73,7 +73,7 @@ void sequencer_stop() {
 }
 
 void sequencer_toggle_start() {
-  if (sequencer.running) {
+  if (sequencer.is_running()) {
     sequencer_stop();
   } else {
     sequencer_start();
@@ -111,8 +111,7 @@ void sequencer_advance() {
     random_offset = random(1, (SEQUENCER_NUM_STEPS - 2));
   }
 
-  sequencer.random_offset = random_offset;
-  sequencer.advance(millis());
+  sequencer.advance(millis(), random_offset);
 }
 
 void sequencer_update() {
@@ -126,6 +125,6 @@ void keyboard_set_note(uint8_t note) { sequencer.activate_note(note); }
 
 void keyboard_unset_note(uint8_t note) { sequencer.deactivate_note(note); }
 
-void keyboard_to_note() { sequencer.keyboard_to_note(millis()); }
+void keyboard_to_note() { sequencer.keyboard_to_note(millis(), random_offset); }
 
 #endif

@@ -32,7 +32,7 @@ bool random_flag = 0;
 bool dfu_flag = 0;
 bool in_setup = true;
 
-int random_offset = 0;
+uint8_t random_offset = 0;
 uint32_t midi_clock = 0;
 uint16_t audio_peak_values = 0UL;
 
