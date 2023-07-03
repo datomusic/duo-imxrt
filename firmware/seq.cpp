@@ -32,7 +32,7 @@ void Seq::update(const uint32_t current_millis, const int gate_length_msec) {
 void Seq::keyboard_to_note(const uint32_t current_millis,
                            const uint8_t step_offset) {
   const uint8_t recent_note = active_notes.most_recent_note().note;
-  const auto stack_size = active_notes.size();
+  const uint8_t stack_size = active_notes.size();
 
   if (stack_size != last_stack_size) {
     if (stack_size > 0) {

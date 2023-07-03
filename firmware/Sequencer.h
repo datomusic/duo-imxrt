@@ -113,7 +113,6 @@ void sequencer_advance() {
 void sequencer_update() {
   const int gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
-
   sequencer.update(millis(), gate_length_msec);
 }
 
