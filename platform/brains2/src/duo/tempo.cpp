@@ -1,4 +1,4 @@
-#include "lib/tempo.h"
+#include "tempo.h"
 #include <Arduino.h>
 
 #define BPM_TO_MILLIS(bpm) (2500000 / bpm)
