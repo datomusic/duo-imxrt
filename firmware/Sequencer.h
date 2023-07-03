@@ -24,6 +24,10 @@ void sequencer_align_clock();
 static bool double_speed = false;
 
 void sequencer_init() {
+  for (int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
+    step_note[i] = SCALE[random(9)];
+  }
+
   tempo_handler.setHandleTempoEvent(sequencer_tick_clock);
   tempo_handler.setHandleAlignEvent(sequencer_align_clock);
   tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
