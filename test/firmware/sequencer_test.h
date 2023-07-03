@@ -6,7 +6,7 @@ void note_off(void) {}
 
 // TODO: Dummy test
 void test_Seq_start() {
-  Seq seq(Seq::Callbacks{note_on, note_off});
+  Sequencer seq(Sequencer::Callbacks{note_on, note_off});
   seq.start();
 }
 

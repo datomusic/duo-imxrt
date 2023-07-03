@@ -9,13 +9,13 @@
 
 #define SEQUENCER_NUM_STEPS 8
 
-struct Seq {
+struct Sequencer {
   struct Callbacks {
     void (*note_on)(uint8_t midi_note, uint8_t velocity, bool enabled);
     void (*note_off)(void);
   };
 
-  Seq(Callbacks callbacks);
+  Sequencer(Callbacks callbacks);
   void start();
   void restart();
   void stop();
