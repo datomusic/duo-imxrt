@@ -99,7 +99,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
-    leds((current_step + random_offset) % SEQUENCER_NUM_STEPS) = LED_WHITE;
+    leds((sequencer.get_cur_step() + random_offset) % SEQUENCER_NUM_STEPS) = LED_WHITE;
   }
 }
 
@@ -153,7 +153,7 @@ static void process_key(const char k, const char state) {
           leds(k - STEP_1) = CRGB::Black;
         }
       } else if (k == BTN_SEQ2) {
-        if (!sequencer_is_running) {
+        if (!sequencer.is_running()) {
           sequencer_advance();
         }
         double_speed = true;
@@ -169,7 +169,7 @@ static void process_key(const char k, const char state) {
         }
       } else if (k == BTN_SEQ1) {
         next_step_is_random = true;
-        if (!sequencer_is_running) {
+        if (!sequencer.is_running()) {
           sequencer_advance();
         }
         random_flag = true;

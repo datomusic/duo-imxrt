@@ -114,3 +114,12 @@ void Seq::record_note(const int step, const uint8_t note) {
   step_note[step] = note;
   step_enable[step] = true;
 }
+
+void Seq::align_clock(){
+  // round sequencer_clock to the nearest 12
+  if (clock % 12 > 6) {
+    clock += 12 - (clock % 12);
+  } else {
+    clock -= (clock % 12);
+  }
+}
