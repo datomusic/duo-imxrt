@@ -11,8 +11,10 @@
 
 struct Sequencer {
   struct Callbacks {
-    void (*note_on)(uint8_t midi_note, uint8_t velocity, bool enabled);
-    void (*note_off)(void);
+    typedef void (&NoteOn)(uint8_t midi_note, uint8_t velocity, bool enabled);
+    typedef void (&NoteOff)(void);
+    NoteOn note_on;
+    NoteOff note_off;
   };
 
   Sequencer(Callbacks callbacks);
