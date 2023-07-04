@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 cmake -Bbuild -H.
-pushd build && make && make test
+pushd build && make && ctest --output-on-failure
