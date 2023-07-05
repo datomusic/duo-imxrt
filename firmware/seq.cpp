@@ -79,8 +79,6 @@ void Sequencer::advance(const uint32_t current_millis,
 }
 
 void Sequencer::advance_without_play() {
-  static uint8_t arpeggio_index = 0;
-
   current_step++;
   current_step %= SEQUENCER_NUM_STEPS;
 
