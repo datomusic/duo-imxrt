@@ -50,6 +50,7 @@ private:
   uint32_t previous_note_on_time;
   uint64_t clock = 0;
   uint8_t current_step = SEQUENCER_NUM_STEPS - 1;
+  uint8_t arpeggio_index = 0;
 
   uint8_t last_note = 255;
   uint8_t last_stack_size = 255;
