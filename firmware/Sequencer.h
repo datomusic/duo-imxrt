@@ -116,9 +116,9 @@ void sequencer_update() {
   sequencer.update(millis(), gate_length_msec);
 }
 
-void keyboard_set_note(uint8_t note) { sequencer.activate_note(note); }
+void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }
 
-void keyboard_unset_note(uint8_t note) { sequencer.deactivate_note(note); }
+void keyboard_unset_note(uint8_t note) { sequencer.release_note(note); }
 
 void keyboard_to_note() { sequencer.keyboard_to_note(millis(), random_offset); }
 
