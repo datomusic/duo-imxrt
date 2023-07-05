@@ -42,7 +42,7 @@ void update() {
       } else if (hat_r) {
         hat_noteon(127);
       } else if (hat_m) {
-        hat_noteon(63);
+        hat_noteon(64);
       }
     } 
 
