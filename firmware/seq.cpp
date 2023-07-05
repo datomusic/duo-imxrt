@@ -1,9 +1,7 @@
 #include "seq.h"
 
-#define INITIAL_VELOCITY 100
-
 Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
-  active_notes.Init();
+  held_notes.Init();
 }
 
 void Sequencer::start() { running = true; }
@@ -20,22 +18,27 @@ void Sequencer::stop() {
   }
 }
 
+void Sequencer::handle_active_note(const uint32_t current_millis,
+                                   const int gate_length_msec) {
+  const uint32_t note_off_time = previous_note_on_time + gate_length_msec;
+  const bool note_active =
+      note_state == Playing && current_millis >= note_off_time;
+  if (note_active) {
+    untrigger_note();
+  }
+}
+
 void Sequencer::update(const uint32_t current_millis,
                        const int gate_length_msec) {
   if (running) {
-    const uint32_t note_off_time = previous_note_on_time + gate_length_msec;
-    const bool note_active =
-        note_state == Playing && current_millis >= note_off_time;
-    if (note_active) {
-      untrigger_note();
-    }
+    handle_active_note(current_millis, gate_length_msec);
   }
 }
 
 void Sequencer::keyboard_to_note(const uint32_t current_millis,
                                  const uint8_t step_offset) {
-  const uint8_t recent_note = active_notes.most_recent_note().note;
-  const uint8_t stack_size = active_notes.size();
+  const uint8_t recent_note = held_notes.most_recent_note().note;
+  const uint8_t stack_size = held_notes.size();
 
   if (stack_size != last_stack_size) {
     if (stack_size > 0) {
@@ -83,14 +86,14 @@ void Sequencer::advance_without_play() {
   current_step %= SEQUENCER_NUM_STEPS;
 
   // Sample keys
-  const uint8_t note_count = active_notes.size();
+  const uint8_t note_count = held_notes.size();
 
   if (arpeggio_index >= note_count) {
     arpeggio_index = 0;
   }
 
   if (note_count > 0 && running) {
-    record_note(current_step, active_notes.sorted_note(arpeggio_index).note);
+    record_note(current_step, held_notes.sorted_note(arpeggio_index).note);
     arpeggio_index++;
   }
 }
@@ -103,16 +106,6 @@ void Sequencer::trigger_step(const uint8_t step,
   callbacks.note_on(step_note[((step) % SEQUENCER_NUM_STEPS)], INITIAL_VELOCITY,
                     step_enable[((step) % SEQUENCER_NUM_STEPS)]);
 }
-
-void Sequencer::activate_note(uint8_t note, uint8_t velocity) {
-  active_notes.NoteOn(note, velocity);
-}
-
-void Sequencer::activate_note(uint8_t note) {
-  activate_note(note, INITIAL_VELOCITY);
-}
-
-void Sequencer::deactivate_note(uint8_t note) { active_notes.NoteOff(note); }
 
 void Sequencer::record_note(const uint8_t step, const uint8_t note) {
   step_note[step] = note;

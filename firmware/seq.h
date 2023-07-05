@@ -10,6 +10,8 @@
 #define SEQUENCER_NUM_STEPS 8
 
 struct Sequencer {
+  static const int INITIAL_VELOCITY = 100;
+
   struct Callbacks {
     typedef void (&NoteOn)(uint8_t midi_note, uint8_t velocity, bool enabled);
     typedef void (&NoteOff)(void);
@@ -24,12 +26,13 @@ struct Sequencer {
   void update(uint32_t current_millis, int gate_length_msec);
   void keyboard_to_note(uint32_t current_millis, uint8_t step_offset);
   void advance(uint32_t current_millis, uint8_t step_offset);
-  void activate_note(uint8_t note);
-  void activate_note(uint8_t note, uint8_t velocity);
-  void deactivate_note(uint8_t note);
-  void deactive_all_notes() { active_notes.Clear(); };
   void align_clock();
-
+  inline void hold_note(uint8_t note, uint8_t velocity) {
+    held_notes.NoteOn(note, velocity);
+  }
+  inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
+  inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
+  inline void release_all_notes() { held_notes.Clear(); };
   inline bool is_running() { return running; }
   inline uint8_t get_cur_step() { return current_step; }
   inline uint64_t get_clock() { return clock; }
@@ -42,10 +45,11 @@ private:
   void advance_without_play();
   void trigger_step(uint8_t step, uint32_t current_millis);
   void record_note(uint8_t step, uint8_t note);
+  void handle_active_note(uint32_t current_millis, int gate_length_msec);
   void untrigger_note();
 
   Callbacks callbacks;
-  NoteStack<10> active_notes;
+  NoteStack<10> held_notes;
   bool running = false;
   uint32_t previous_note_on_time;
   uint64_t clock = 0;

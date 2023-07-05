@@ -46,14 +46,14 @@ void test_Seq_records_note() {
 
   clear_steps(seq);
   ASSERT_EQ(count_enabled_steps(seq), 0);
-  seq.activate_note(1);
+  seq.hold_note(1);
   const int gate_len = 100;
   const int offset = 0;
   uint32_t millis = 0;
 
   seq.keyboard_to_note(millis, offset);
   ASSERT_EQ(count_enabled_steps(seq), 1);
-  seq.deactivate_note(1);
+  seq.release_note(1);
   seq.keyboard_to_note(millis, offset);
   ASSERT_EQ(count_enabled_steps(seq), 1);
 }
