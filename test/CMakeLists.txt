@@ -1,4 +1,5 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.13.0)
+project(duo-tests)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 
