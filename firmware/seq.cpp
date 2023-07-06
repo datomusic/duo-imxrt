@@ -101,7 +101,6 @@ void Sequencer::untrigger_note() {
   callbacks.note_off();
 }
 
-
 void Sequencer::record_note(const uint8_t step, const uint8_t note) {
   step_note[step] = note;
   step_enable[step] = true;

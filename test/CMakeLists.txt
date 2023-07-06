@@ -19,11 +19,11 @@ target_include_directories(firmware PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/../
 )
 
-add_executable(tests 
-  ${CMAKE_CURRENT_LIST_DIR}/runner.cpp
+add_executable(sequencer_test 
+  ${CMAKE_CURRENT_LIST_DIR}/firmware/sequencer_test.cpp
 )
-target_link_libraries(tests PRIVATE unity_framework firmware)
+target_link_libraries(sequencer_test PRIVATE unity_framework firmware)
 
 add_test(
-  NAME tests
-  COMMAND $<TARGET_FILE:tests>)
+  NAME sequencer_test
+  COMMAND $<TARGET_FILE:sequencer_test>)

@@ -1,3 +1,6 @@
+#ifndef SEQUENCER_HELPERS_H_VRO3THZL
+#define SEQUENCER_HELPERS_H_VRO3THZL
+
 #include "firmware/seq.h"
 #include "unity.h"
 
@@ -5,11 +8,11 @@
 #define ASSERT TEST_ASSERT
 #define ASSERT_EQ TEST_ASSERT_EQUAL
 
-#define each_step(seq, body)                                                  \
+#define each_step(seq, body)                                                   \
   for (int i = 0; i < SEQUENCER_NUM_STEPS; ++i) {                              \
     const uint8_t note = seq.step_note[i];                                     \
     const uint8_t step_enabled = seq.step_enable[i];                           \
-    body                                                                      \
+    body                                                                       \
   }
 
 uint8_t get_step_enabled(Sequencer &seq, int index) {
@@ -38,24 +41,4 @@ int count_enabled_steps(Sequencer &seq) {
   return count;
 }
 
-void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {}
-void note_off(void) {}
-
-void test_Seq_records_note() {
-  Sequencer seq(Sequencer::Callbacks{note_on, note_off});
-
-  clear_steps(seq);
-  ASSERT_EQ(count_enabled_steps(seq), 0);
-  seq.hold_note(1);
-  const int gate_len = 100;
-  const int offset = 0;
-  uint32_t millis = 0;
-
-  seq.keyboard_to_note(millis, offset);
-  ASSERT_EQ(count_enabled_steps(seq), 1);
-  seq.release_note(1);
-  seq.keyboard_to_note(millis, offset);
-  ASSERT_EQ(count_enabled_steps(seq), 1);
-}
-
-void Sequencer_run_tests() { RUN_TEST(test_Seq_records_note); }
+#endif /* end of include guard: SEQUENCER_HELPERS_H_VRO3THZL */
