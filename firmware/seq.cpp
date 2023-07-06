@@ -73,6 +73,10 @@ void Sequencer::advance(const uint8_t step_offset) {
 }
 
 void Sequencer::advance_without_play() {
+  if (note_state == Playing) {
+    Sequencer::untrigger_note();
+  }
+
   current_step++;
   current_step %= SEQUENCER_NUM_STEPS;
 
