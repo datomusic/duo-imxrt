@@ -28,11 +28,9 @@ void Sequencer::handle_active_note(const uint32_t delta_millis,
   }
 }
 
-void Sequencer::update(const uint32_t delta_millis, const int note_len_millis) {
+void Sequencer::update_notes(const uint32_t delta_millis, const int note_len_millis, const uint8_t step_offset) {
   handle_active_note(delta_millis, note_len_millis);
-}
 
-void Sequencer::keyboard_to_note(const uint8_t step_offset) {
   const uint8_t recent_note = held_notes.most_recent_note().note;
   const uint8_t stack_size = held_notes.size();
 
@@ -51,7 +49,7 @@ void Sequencer::keyboard_to_note(const uint8_t step_offset) {
         }
 
         if (!running || single_note) {
-          record_note(step, recent_note);
+          record_note(step + step_offset, recent_note);
           trigger_note(step + step_offset);
         }
 

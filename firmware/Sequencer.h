@@ -119,14 +119,12 @@ void sequencer_update() {
 
   const uint32_t cur_millis = millis();
   const uint32_t delta = cur_millis - last_sequencer_update;
-  sequencer.update(delta, gate_length_msec);
+  sequencer.update_notes(delta, gate_length_msec, random_offset);
   last_sequencer_update = cur_millis;
 }
 
 void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }
 
 void keyboard_unset_note(uint8_t note) { sequencer.release_note(note); }
-
-void keyboard_to_note() { sequencer.keyboard_to_note(random_offset); }
 
 #endif
