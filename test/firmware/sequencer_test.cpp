@@ -27,28 +27,30 @@ namespace Tests {
 
 void holds_note_if_not_running() {
   Sequencer seq(NoteTracker::callbacks);
+  seq.gate_length_msec = 10;
   clear_steps(seq);
+
   ASSERT_EQ(seq.is_running(), false);
 
   seq.hold_note(1);
-  const uint8_t note_len = 10;
-  seq.update_notes(1, note_len, 0);
+  seq.update_notes(1, 0);
   ASSERT_EQ(1, NoteTracker::activation_count);
   ASSERT_TRUE(NoteTracker::note_active);
   const uint32_t long_delta = 1000000;
-  seq.update_notes(long_delta, note_len, 0);
+  seq.update_notes(long_delta, 0);
 
-  // Note should still be on after note_len has passed.
+  // Note should still be on after gate length has passed.
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::activation_count);
 
   seq.release_note(1);
-  seq.update_notes(0, long_delta, note_len);
+  seq.update_notes(long_delta, 0);
   ASSERT_EQ(false, NoteTracker::note_active);
 }
 
 void stops_playing_note_after_gate_duration() {
   Sequencer seq(NoteTracker::callbacks);
+  seq.gate_length_msec = 10;
   clear_steps(seq);
 
   seq.start();
@@ -59,11 +61,10 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::activation_count);
 
-  const auto note_len = 10;
-  seq.update_notes(note_len - 1, note_len, 0);
+  seq.update_notes(seq.gate_length_msec - 1, 0);
   ASSERT_TRUE(NoteTracker::note_active);
 
-  seq.update_notes(1, note_len, 0);
+  seq.update_notes(1, 0);
   ASSERT_EQ(1, NoteTracker::activation_count);
   ASSERT_EQ(NoteTracker::note_active, false);
 }
@@ -74,12 +75,12 @@ void records_notes_in_correct_step() {
   seq.start();
 
   seq.hold_note(0);
-  seq.update_notes(0, 1, 0);
+  seq.update_notes(0, 0);
   seq.release_note(0);
   ASSERT_TRUE(get_step_enabled(seq, 0));
   ASSERT_FALSE(get_step_enabled(seq, 1));
   clear_steps(seq);
-  seq.update_notes(0, 1, 0);
+  seq.update_notes(0, 0);
 
   for (int i = 0; i < Sequencer::TICKS_PER_STEP / 2; ++i) {
     seq.inc_clock();
@@ -87,7 +88,7 @@ void records_notes_in_correct_step() {
 
   ASSERT_EQ(0, seq.get_cur_step());
   seq.hold_note(0);
-  seq.update_notes(0, 1, 0);
+  seq.update_notes(0, 0);
   seq.release_note(0);
   ASSERT_FALSE(get_step_enabled(seq, 0));
   ASSERT_TRUE(get_step_enabled(seq, 1));
