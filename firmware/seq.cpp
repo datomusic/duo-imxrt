@@ -57,7 +57,7 @@ void Sequencer::update_notes(const uint32_t delta_millis,
         last_note = recent_note;
       }
     } else {
-      callbacks.note_off();
+      untrigger_note();
       last_note = 255; // Make sure this is a non existing note in the scale
     }
   }
@@ -92,18 +92,20 @@ void Sequencer::advance_without_play() {
 }
 
 void Sequencer::trigger_note(const uint8_t step) {
-  note_state = Playing;
   gate_dur = 0;
 
   const unsigned index = step % SEQUENCER_NUM_STEPS;
-  if (step_enable[index]) {
+  if (step_enable[index] && note_state == Idle) {
     callbacks.note_on(step_note[index], INITIAL_VELOCITY);
-  };
+  }
+  note_state = Playing;
 }
 
 void Sequencer::untrigger_note() {
+  if (note_state == Playing) {
+    callbacks.note_off();
+  }
   note_state = Idle;
-  callbacks.note_off();
 }
 
 void Sequencer::record_note(const uint8_t step, const uint8_t note) {

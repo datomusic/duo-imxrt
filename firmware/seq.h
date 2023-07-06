@@ -7,7 +7,6 @@
 #define SEQUENCER_NUM_STEPS 8
 
 struct Sequencer {
-
   static const unsigned PULSES_PER_QUARTER_NOTE = 24;
   static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
   static const unsigned INITIAL_VELOCITY = 100;
@@ -61,7 +60,7 @@ private:
 
   enum NoteState { Idle, Playing };
   NoteState note_state = Idle;
-  uint32_t gate_dur;
+  uint32_t gate_dur = 0;
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */
