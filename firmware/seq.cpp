@@ -18,12 +18,11 @@ void Sequencer::stop() {
   }
 }
 
-void Sequencer::handle_active_note(const uint32_t delta_millis,
-                                   const uint32_t note_len_millis) {
-  active_note_dur += delta_millis;
+void Sequencer::handle_active_note(const uint32_t delta_millis) {
+  gate_dur += delta_millis;
   if (running) {
     const bool note_is_over =
-        note_state == Playing && (active_note_dur >= note_len_millis);
+        note_state == Playing && (gate_dur >= gate_length_msec);
     if (note_is_over) {
       untrigger_note();
     }
@@ -31,9 +30,8 @@ void Sequencer::handle_active_note(const uint32_t delta_millis,
 }
 
 void Sequencer::update_notes(const uint32_t delta_millis,
-                             const uint32_t note_len_millis,
                              const uint8_t step_offset) {
-  handle_active_note(delta_millis, note_len_millis);
+  handle_active_note(delta_millis);
 
   const uint8_t recent_note = held_notes.most_recent_note().note;
   const uint8_t stack_size = held_notes.size();
@@ -95,7 +93,7 @@ void Sequencer::advance_without_play() {
 
 void Sequencer::trigger_note(const uint8_t step) {
   note_state = Playing;
-  active_note_dur = 0;
+  gate_dur = 0;
 
   const unsigned index = step % SEQUENCER_NUM_STEPS;
   if (step_enable[index]) {

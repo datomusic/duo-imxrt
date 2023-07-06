@@ -130,7 +130,7 @@ void led_update() {
     }
      
     const auto cur_seq_step = sequencer.get_cur_step();
-    if(note_is_playing) {
+    if(sequencer.gate_active()) {
       leds(((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)) = LED_WHITE;
     } else {
       if(!step_enable[((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)]) {
