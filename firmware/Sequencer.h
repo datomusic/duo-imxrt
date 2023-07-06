@@ -5,6 +5,8 @@
  Note timing is divided into 24 steps per quarter note
  */
 
+uint32_t last_sequencer_update;
+
 uint8_t *step_note = sequencer.step_note;
 uint8_t *step_enable = sequencer.step_enable;
 
@@ -24,6 +26,7 @@ void sequencer_align_clock();
 static bool double_speed = false;
 
 void sequencer_init() {
+  last_sequencer_update = millis();
   for (int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
     step_note[i] = SCALE[random(9)];
   }
@@ -107,19 +110,23 @@ void sequencer_advance() {
     random_offset = random(1, (SEQUENCER_NUM_STEPS - 2));
   }
 
-  sequencer.advance(millis(), random_offset);
+  sequencer.advance(random_offset);
 }
 
 void sequencer_update() {
   const int gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
-  sequencer.update(millis(), gate_length_msec);
+
+  const uint32_t cur_millis = millis();
+  const uint32_t delta = cur_millis - last_sequencer_update;
+  sequencer.update(delta, gate_length_msec);
+  last_sequencer_update = cur_millis;
 }
 
 void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }
 
 void keyboard_unset_note(uint8_t note) { sequencer.release_note(note); }
 
-void keyboard_to_note() { sequencer.keyboard_to_note(millis(), random_offset); }
+void keyboard_to_note() { sequencer.keyboard_to_note(random_offset); }
 
 #endif
