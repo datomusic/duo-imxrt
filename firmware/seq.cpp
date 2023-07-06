@@ -7,8 +7,8 @@ Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
 void Sequencer::start() { running = true; }
 void Sequencer::restart() {
   running = true;
-  current_step = SEQUENCER_NUM_STEPS - 1;
   clock = 0;
+  current_step = 0;
 }
 
 void Sequencer::stop() {
@@ -19,19 +19,19 @@ void Sequencer::stop() {
 }
 
 void Sequencer::handle_active_note(const uint32_t delta_millis,
-                                   const int note_len_millis) {
+                                   const uint32_t note_len_millis) {
   active_note_dur += delta_millis;
   if (running) {
-    const bool note_active =
+    const bool note_is_over =
         note_state == Playing && (active_note_dur >= note_len_millis);
-    if (note_active) {
+    if (note_is_over) {
       untrigger_note();
     }
   }
 }
 
 void Sequencer::update_notes(const uint32_t delta_millis,
-                             const int note_len_millis,
+                             const uint32_t note_len_millis,
                              const uint8_t step_offset) {
   handle_active_note(delta_millis, note_len_millis);
 
@@ -46,13 +46,12 @@ void Sequencer::update_notes(const uint32_t delta_millis,
         }
 
         const bool single_note = stack_size == 1 && last_stack_size == 0;
-        uint8_t step = current_step;
-        if (running &&
-            (clock % PULSES_PER_EIGHT_NOTE >= PULSES_PER_EIGHT_NOTE / 2)) {
-          step = (current_step + 1) % SEQUENCER_NUM_STEPS;
+        uint8_t step = get_cur_step();
+        if (running && (clock % TICKS_PER_STEP >= TICKS_PER_STEP / 2)) {
+          step = (step + 1) % SEQUENCER_NUM_STEPS;
         }
 
-        if (!running || single_note) {
+        if (single_note) {
           record_note(step + step_offset, recent_note);
           trigger_note(step + step_offset);
         }
@@ -70,7 +69,7 @@ void Sequencer::update_notes(const uint32_t delta_millis,
 
 void Sequencer::advance(const uint8_t step_offset) {
   advance_without_play();
-  trigger_note(current_step + step_offset);
+  trigger_note(get_cur_step() + step_offset);
 }
 
 void Sequencer::advance_without_play() {
