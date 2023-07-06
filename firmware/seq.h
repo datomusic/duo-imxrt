@@ -23,8 +23,7 @@ struct Sequencer {
   void start();
   void restart();
   void stop();
-  void update(uint32_t delta_millis, int gate_length_msec);
-  void keyboard_to_note(uint8_t step_offset);
+  void update_notes(uint32_t delta_millis, int note_len_millis, uint8_t step_offset);
   void advance(uint8_t step_offset);
   void align_clock();
   inline void hold_note(uint8_t note, uint8_t velocity) {
@@ -56,7 +55,7 @@ private:
   uint8_t arpeggio_index = 0;
 
   uint8_t last_note = 255;
-  uint8_t last_stack_size = 255;
+  uint8_t last_stack_size = 0;
 
   enum NoteState { Idle, Playing };
   NoteState note_state = Idle;
