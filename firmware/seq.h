@@ -4,13 +4,13 @@
 #include "note_stack.h"
 #include <cstdint>
 
-#define PULSES_PER_QUARTER_NOTE 24
-#define PULSES_PER_EIGHT_NOTE PULSES_PER_QUARTER_NOTE / 2
-
 #define SEQUENCER_NUM_STEPS 8
 
 struct Sequencer {
-  static const int INITIAL_VELOCITY = 100;
+
+  static const unsigned PULSES_PER_QUARTER_NOTE = 24;
+  static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
+  static const unsigned INITIAL_VELOCITY = 100;
 
   struct Callbacks {
     typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
@@ -23,7 +23,8 @@ struct Sequencer {
   void start();
   void restart();
   void stop();
-  void update_notes(uint32_t delta_millis, int note_len_millis, uint8_t step_offset);
+  void update_notes(uint32_t delta_millis, uint32_t note_len_millis,
+                    uint8_t step_offset);
   void advance(uint8_t step_offset);
   void align_clock();
   inline void hold_note(uint8_t note, uint8_t velocity) {
@@ -45,13 +46,13 @@ private:
   void trigger_note(uint8_t step);
   void untrigger_note();
   void record_note(uint8_t step, uint8_t note);
-  void handle_active_note(uint32_t delta_millis, int note_len_millis);
+  void handle_active_note(uint32_t delta_millis, uint32_t note_len_millis);
 
   Callbacks callbacks;
   NoteStack<10> held_notes;
   bool running = false;
+  uint8_t current_step = 0;
   uint64_t clock = 0;
-  uint8_t current_step = SEQUENCER_NUM_STEPS - 1;
   uint8_t arpeggio_index = 0;
 
   uint8_t last_note = 255;
@@ -59,7 +60,7 @@ private:
 
   enum NoteState { Idle, Playing };
   NoteState note_state = Idle;
-  int active_note_dur;
+  uint32_t active_note_dur;
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */

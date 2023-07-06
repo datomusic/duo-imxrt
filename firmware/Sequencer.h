@@ -33,7 +33,7 @@ void sequencer_init() {
 
   tempo_handler.setHandleTempoEvent(sequencer_tick_clock);
   tempo_handler.setHandleAlignEvent(sequencer_align_clock);
-  tempo_handler.setPPQN(PULSES_PER_QUARTER_NOTE);
+  tempo_handler.setPPQN(Sequencer::PULSES_PER_QUARTER_NOTE);
   sequencer_stop();
   double_speed = false;
 }
@@ -80,9 +80,9 @@ void sequencer_toggle_start() {
 }
 
 void sequencer_tick_clock() {
-  uint8_t sequencer_divider = PULSES_PER_EIGHT_NOTE;
+  uint8_t sequencer_divider = Sequencer::TICKS_PER_STEP;
   if (double_speed) {
-    sequencer_divider = PULSES_PER_EIGHT_NOTE / 2;
+    sequencer_divider = Sequencer::TICKS_PER_STEP / 2;
   }
 
   if (!tempo_handler.is_clock_source_internal()) {
@@ -114,13 +114,13 @@ void sequencer_advance() {
 }
 
 void sequencer_update() {
-  const int gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
+  const uint32_t gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
 
   const uint32_t cur_millis = millis();
   const uint32_t delta = cur_millis - last_sequencer_update;
-  sequencer.update_notes(delta, gate_length_msec, random_offset);
   last_sequencer_update = cur_millis;
+  sequencer.update_notes(delta, gate_length_msec, random_offset);
 }
 
 void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }
