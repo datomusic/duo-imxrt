@@ -18,25 +18,21 @@ void Sequencer::stop() {
   }
 }
 
-void Sequencer::handle_active_note(const uint32_t current_millis,
-                                   const int gate_length_msec) {
-  const uint32_t note_off_time = previous_note_on_time + gate_length_msec;
+void Sequencer::handle_active_note(const uint32_t delta_millis,
+                                   const int note_len_millis) {
+  active_note_dur += delta_millis;
   const bool note_active =
-      note_state == Playing && current_millis >= note_off_time;
+      note_state == Playing && (active_note_dur >= note_len_millis);
   if (note_active) {
     untrigger_note();
   }
 }
 
-void Sequencer::update(const uint32_t current_millis,
-                       const int gate_length_msec) {
-  if (running) {
-    handle_active_note(current_millis, gate_length_msec);
-  }
+void Sequencer::update(const uint32_t delta_millis, const int note_len_millis) {
+  handle_active_note(delta_millis, note_len_millis);
 }
 
-void Sequencer::keyboard_to_note(const uint32_t current_millis,
-                                 const uint8_t step_offset) {
+void Sequencer::keyboard_to_note(const uint8_t step_offset) {
   const uint8_t recent_note = held_notes.most_recent_note().note;
   const uint8_t stack_size = held_notes.size();
 
@@ -56,7 +52,7 @@ void Sequencer::keyboard_to_note(const uint32_t current_millis,
 
         if (!running || single_note) {
           record_note(step, recent_note);
-          trigger_step(step + step_offset, current_millis);
+          trigger_note(step + step_offset);
         }
 
         last_note = recent_note;
@@ -70,15 +66,9 @@ void Sequencer::keyboard_to_note(const uint32_t current_millis,
   last_stack_size = stack_size;
 }
 
-void Sequencer::untrigger_note() {
-  note_state = Idle;
-  callbacks.note_off();
-}
-
-void Sequencer::advance(const uint32_t current_millis,
-                        const uint8_t step_offset) {
+void Sequencer::advance(const uint8_t step_offset) {
   advance_without_play();
-  trigger_step(current_step + step_offset, current_millis);
+  trigger_note(current_step + step_offset);
 }
 
 void Sequencer::advance_without_play() {
@@ -98,14 +88,19 @@ void Sequencer::advance_without_play() {
   }
 }
 
-void Sequencer::trigger_step(const uint8_t step,
-                             const uint32_t current_millis) {
+void Sequencer::trigger_note(const uint8_t step) {
   note_state = Playing;
-  previous_note_on_time = current_millis;
+  active_note_dur = 0;
 
-  callbacks.note_on(step_note[((step) % SEQUENCER_NUM_STEPS)], INITIAL_VELOCITY,
-                    step_enable[((step) % SEQUENCER_NUM_STEPS)]);
+  const unsigned index = step % SEQUENCER_NUM_STEPS;
+  callbacks.note_on(step_note[index], INITIAL_VELOCITY, step_enable[index]);
 }
+
+void Sequencer::untrigger_note() {
+  note_state = Idle;
+  callbacks.note_off();
+}
+
 
 void Sequencer::record_note(const uint8_t step, const uint8_t note) {
   step_note[step] = note;

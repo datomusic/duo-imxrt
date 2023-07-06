@@ -23,9 +23,9 @@ struct Sequencer {
   void start();
   void restart();
   void stop();
-  void update(uint32_t current_millis, int gate_length_msec);
-  void keyboard_to_note(uint32_t current_millis, uint8_t step_offset);
-  void advance(uint32_t current_millis, uint8_t step_offset);
+  void update(uint32_t delta_millis, int gate_length_msec);
+  void keyboard_to_note(uint8_t step_offset);
+  void advance(uint8_t step_offset);
   void align_clock();
   inline void hold_note(uint8_t note, uint8_t velocity) {
     held_notes.NoteOn(note, velocity);
@@ -43,15 +43,14 @@ struct Sequencer {
 
 private:
   void advance_without_play();
-  void trigger_step(uint8_t step, uint32_t current_millis);
-  void record_note(uint8_t step, uint8_t note);
-  void handle_active_note(uint32_t current_millis, int gate_length_msec);
+  void trigger_note(uint8_t step);
   void untrigger_note();
+  void record_note(uint8_t step, uint8_t note);
+  void handle_active_note(uint32_t delta_millis, int note_len_millis);
 
   Callbacks callbacks;
   NoteStack<10> held_notes;
   bool running = false;
-  uint32_t previous_note_on_time;
   uint64_t clock = 0;
   uint8_t current_step = SEQUENCER_NUM_STEPS - 1;
   uint8_t arpeggio_index = 0;
@@ -61,6 +60,7 @@ private:
 
   enum NoteState { Idle, Playing };
   NoteState note_state = Idle;
+  int active_note_dur;
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */
