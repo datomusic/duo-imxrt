@@ -21,14 +21,18 @@ void Sequencer::stop() {
 void Sequencer::handle_active_note(const uint32_t delta_millis,
                                    const int note_len_millis) {
   active_note_dur += delta_millis;
-  const bool note_active =
-      note_state == Playing && (active_note_dur >= note_len_millis);
-  if (note_active) {
-    untrigger_note();
+  if (running) {
+    const bool note_active =
+        note_state == Playing && (active_note_dur >= note_len_millis);
+    if (note_active) {
+      untrigger_note();
+    }
   }
 }
 
-void Sequencer::update_notes(const uint32_t delta_millis, const int note_len_millis, const uint8_t step_offset) {
+void Sequencer::update_notes(const uint32_t delta_millis,
+                             const int note_len_millis,
+                             const uint8_t step_offset) {
   handle_active_note(delta_millis, note_len_millis);
 
   const uint8_t recent_note = held_notes.most_recent_note().note;

@@ -2,13 +2,40 @@
 
 namespace NoteTracker {
 static bool note_active = false;
-static void reset() { note_active = false; }
-static void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {}
-static void note_off(void) {}
+static int activation_count = 0;
+static void reset() {
+  note_active = false;
+  activation_count = 0;
+}
+static void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
+  activation_count++;
+  note_active = true;
+}
+static void note_off(void) { note_active = false; }
 static Sequencer::Callbacks callbacks{note_on, note_off};
 } // namespace NoteTracker
 
 namespace Tests {
+
+void holds_note_if_not_running() {
+  Sequencer seq(NoteTracker::callbacks);
+  clear_steps(seq);
+  ASSERT_EQ(seq.is_running(), false);
+
+  seq.hold_note(1);
+  const uint8_t note_len = 10;
+  seq.update_notes(1, note_len, 0);
+  ASSERT_EQ(NoteTracker::activation_count, 1);
+  ASSERT_EQ(NoteTracker::note_active, true);
+  const uint32_t long_delta = 1000000;
+  seq.update_notes(long_delta, note_len, 0);
+  ASSERT_EQ(NoteTracker::activation_count, 1);
+  // Note should still be on after note_len has passed.
+  ASSERT_EQ(NoteTracker::note_active, true);
+  seq.release_note(1);
+  seq.update_notes(long_delta, note_len, 0);
+  ASSERT_EQ(NoteTracker::note_active, false);
+}
 
 void stops_playing_note_after_gate_duration() {
   Sequencer seq(NoteTracker::callbacks);
@@ -27,25 +54,6 @@ void does_not_replay_active_note() {
   // Test that trigger_note does not call note_on for the same
   // held note unless note_off was called.
 }
-
-/*
-void test_Seq_records_note() {
-  Sequencer seq(Sequencer::Callbacks{note_on, note_off});
-
-  clear_steps(seq);
-  ASSERT_EQ(count_enabled_steps(seq), 0);
-  seq.hold_note(1);
-  const int gate_len = 100;
-  const int offset = 0;
-  uint32_t millis = 0;
-
-  seq.keyboard_to_note(millis, offset);
-  ASSERT_EQ(count_enabled_steps(seq), 1);
-  seq.release_note(1);
-  seq.keyboard_to_note(millis, offset);
-  ASSERT_EQ(count_enabled_steps(seq), 1);
-}
-*/
 } // namespace Tests
 
 void setUp(void) { NoteTracker::reset(); }
@@ -55,5 +63,6 @@ int main() {
   UNITY_BEGIN();
   RUN_TEST(Tests::stops_playing_note_after_gate_duration);
   RUN_TEST(Tests::does_not_replay_active_note);
+  RUN_TEST(Tests::holds_note_if_not_running);
   return UNITY_END();
 }
