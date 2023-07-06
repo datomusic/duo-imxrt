@@ -95,7 +95,9 @@ void Sequencer::trigger_note(const uint8_t step) {
   active_note_dur = 0;
 
   const unsigned index = step % SEQUENCER_NUM_STEPS;
-  callbacks.note_on(step_note[index], INITIAL_VELOCITY, step_enable[index]);
+  if (step_enable[index]) {
+    callbacks.note_on(step_note[index], INITIAL_VELOCITY);
+  };
 }
 
 void Sequencer::untrigger_note() {
