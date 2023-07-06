@@ -47,6 +47,7 @@ private:
   void untrigger_note();
   void record_note(uint8_t step, uint8_t note);
   void handle_active_note(uint32_t delta_millis);
+  uint8_t quantized_current_step();
 
   Callbacks callbacks;
   NoteStack<10> held_notes;

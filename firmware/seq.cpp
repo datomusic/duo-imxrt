@@ -29,6 +29,15 @@ void Sequencer::handle_active_note(const uint32_t delta_millis) {
   }
 }
 
+uint8_t Sequencer::quantized_current_step() {
+  if (!running ||
+      (clock % Sequencer::TICKS_PER_STEP < Sequencer::TICKS_PER_STEP / 2)) {
+    return current_step;
+  } else {
+    return (current_step + 1) % SEQUENCER_NUM_STEPS;
+  }
+}
+
 void Sequencer::update_notes(const uint32_t delta_millis,
                              const uint8_t step_offset) {
   handle_active_note(delta_millis);
@@ -44,14 +53,11 @@ void Sequencer::update_notes(const uint32_t delta_millis,
         }
 
         const bool single_note = stack_size == 1 && last_stack_size == 0;
-        uint8_t step = get_cur_step();
-        if (running && (clock % TICKS_PER_STEP >= TICKS_PER_STEP / 2)) {
-          step = (step + 1) % SEQUENCER_NUM_STEPS;
-        }
 
         if (single_note) {
-          record_note(step + step_offset, recent_note);
-          trigger_note(step + step_offset);
+          const uint8_t step = quantized_current_step() + step_offset;
+          record_note(step, recent_note);
+          trigger_note(step);
         }
 
         last_note = recent_note;
@@ -67,7 +73,7 @@ void Sequencer::update_notes(const uint32_t delta_millis,
 
 void Sequencer::advance(const uint8_t step_offset) {
   advance_without_play();
-  trigger_note(get_cur_step() + step_offset);
+  trigger_note(current_step + step_offset);
 }
 
 void Sequencer::advance_without_play() {
