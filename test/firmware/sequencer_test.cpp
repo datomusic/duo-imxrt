@@ -69,7 +69,7 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_EQ(NoteTracker::note_active, false);
 }
 
-void records_notes_in_correct_step() {
+void records_live_notes_in_correct_step() {
   Sequencer seq(NoteTracker::callbacks);
   clear_steps(seq);
   seq.start();
@@ -79,6 +79,8 @@ void records_notes_in_correct_step() {
   seq.release_note(0);
   ASSERT_TRUE(get_step_enabled(seq, 0));
   ASSERT_FALSE(get_step_enabled(seq, 1));
+  ASSERT_EQ(1, count_enabled_steps(seq));
+
   clear_steps(seq);
   seq.update_notes(0, 0);
 
@@ -92,15 +94,24 @@ void records_notes_in_correct_step() {
   seq.release_note(0);
   ASSERT_FALSE(get_step_enabled(seq, 0));
   ASSERT_TRUE(get_step_enabled(seq, 1));
+  ASSERT_EQ(1, count_enabled_steps(seq));
 }
 
-void does_not_replay_active_note() {
+void records_live_note_once() {
   Sequencer seq(NoteTracker::callbacks);
   clear_steps(seq);
+  seq.start();
 
-  // TODO:
-  // Test that trigger_note does not call note_on for the same
-  // held note unless note_off was called.
+  seq.hold_note(1);
+  seq.update_notes(1, 0);
+
+  ASSERT_TRUE(get_step_enabled(seq, 0));
+  ASSERT_EQ(1, count_enabled_steps(seq));
+  seq.release_note(1);
+  seq.advance(0);
+
+  ASSERT_FALSE(get_step_enabled(seq, 1));
+  ASSERT_EQ(1, count_enabled_steps(seq));
 }
 } // namespace Tests
 
@@ -114,8 +125,8 @@ int main() {
 #else
   RUN_TEST(Tests::holds_note_if_not_running);
   RUN_TEST(Tests::stops_playing_note_after_gate_duration);
-  RUN_TEST(Tests::records_notes_in_correct_step);
-  RUN_TEST(Tests::does_not_replay_active_note);
+  RUN_TEST(Tests::records_live_notes_in_correct_step);
+  RUN_TEST(Tests::records_live_note_once);
 #endif
   return UNITY_END();
 }
