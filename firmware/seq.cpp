@@ -20,9 +20,8 @@ void Sequencer::stop() {
 
 void Sequencer::handle_active_note(const uint32_t delta_millis) {
   gate_dur += delta_millis;
-  if (running) {
-    const bool note_is_over =
-        note_state == Playing && (gate_dur >= gate_length_msec);
+  if (running && note_state == Playing) {
+    const bool note_is_over = (gate_dur >= gate_length_msec);
     if (note_is_over) {
       untrigger_note();
     }
@@ -46,25 +45,21 @@ void Sequencer::update_notes(const uint32_t delta_millis,
   const uint8_t stack_size = held_notes.size();
 
   if (stack_size != last_stack_size) {
-    if (stack_size > 0) {
-      if (recent_note != last_note) {
-        if (!running) {
-          advance_without_play();
-        }
-
-        const bool single_note = stack_size == 1 && last_stack_size == 0;
-
-        if (single_note) {
-          const uint8_t step = quantized_current_step() + step_offset;
-          record_note(step, recent_note);
-          trigger_note(step);
-        }
-
-        last_note = recent_note;
-      }
-    } else {
+    if (stack_size == 0) {
       untrigger_note();
-      last_note = 255; // Make sure this is a non existing note in the scale
+    } else {
+
+      const bool single_note = stack_size == 1 && last_stack_size == 0;
+
+      if (single_note) {
+        const uint8_t step = quantized_current_step() + step_offset;
+        record_note(step, recent_note);
+        trigger_note(step);
+      }
+
+      if (!running) {
+        inc_current_step();
+      }
     }
   }
 
@@ -72,39 +67,45 @@ void Sequencer::update_notes(const uint32_t delta_millis,
 }
 
 void Sequencer::advance(const uint8_t step_offset) {
-  advance_without_play();
+  if (note_state == Playing) {
+    untrigger_note();
+  }
+
+  inc_current_step();
+
+  if (running) {
+    step_arpeggiator();
+  }
+
+  if (held_notes.size() > 0 && running) {
+    record_note(current_step, held_notes.sorted_note(arpeggio_index).note);
+  }
+
   trigger_note(current_step + step_offset);
 }
 
-void Sequencer::advance_without_play() {
-  if (note_state == Playing) {
-    Sequencer::untrigger_note();
-  }
-
+void Sequencer::inc_current_step() {
   current_step++;
   current_step %= SEQUENCER_NUM_STEPS;
+}
 
-  // Sample keys
-  const uint8_t note_count = held_notes.size();
-
-  if (arpeggio_index >= note_count) {
+void Sequencer::step_arpeggiator() {
+  arpeggio_index++;
+  if (arpeggio_index >= held_notes.size()) {
     arpeggio_index = 0;
-  }
-
-  if (note_count > 0 && running) {
-    record_note(current_step, held_notes.sorted_note(arpeggio_index).note);
-    arpeggio_index++;
   }
 }
 
 void Sequencer::trigger_note(const uint8_t step) {
-  gate_dur = 0;
+  if (note_state == Idle) {
+    const unsigned index = step % SEQUENCER_NUM_STEPS;
+    if (step_enable[index]) {
+      callbacks.note_on(step_note[index], INITIAL_VELOCITY);
+    }
 
-  const unsigned index = step % SEQUENCER_NUM_STEPS;
-  if (step_enable[index] && note_state == Idle) {
-    callbacks.note_on(step_note[index], INITIAL_VELOCITY);
+    note_state = Playing;
+    gate_dur = 0;
   }
-  note_state = Playing;
 }
 
 void Sequencer::untrigger_note() {
