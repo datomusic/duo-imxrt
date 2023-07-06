@@ -42,12 +42,13 @@ struct Sequencer {
   uint8_t step_enable[SEQUENCER_NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
 
 private:
-  void advance_without_play();
   void trigger_note(uint8_t step);
   void untrigger_note();
   void record_note(uint8_t step, uint8_t note);
   void handle_active_note(uint32_t delta_millis);
   uint8_t quantized_current_step();
+  void inc_current_step();
+  void step_arpeggiator();
 
   Callbacks callbacks;
   NoteStack<10> held_notes;
@@ -56,7 +57,6 @@ private:
   uint64_t clock = 0;
   uint8_t arpeggio_index = 0;
 
-  uint8_t last_note = 255;
   uint8_t last_stack_size = 0;
 
   enum NoteState { Idle, Playing };
