@@ -114,13 +114,13 @@ void sequencer_advance() {
 }
 
 void sequencer_update() {
-  const uint32_t gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
+  sequencer.gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
 
   const uint32_t cur_millis = millis();
   const uint32_t delta = cur_millis - last_sequencer_update;
   last_sequencer_update = cur_millis;
-  sequencer.update_notes(delta, gate_length_msec, random_offset);
+  sequencer.update_notes(delta, random_offset);
 }
 
 void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }

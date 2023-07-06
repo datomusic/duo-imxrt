@@ -75,6 +75,8 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
 
+uint8_t note_is_playing = 0;
+
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
   if (synth.accent) {
