@@ -17,10 +17,10 @@ void init() {
 }
 
 void update() {
-  static unsigned long update_time = millis() + 10;
+  static unsigned long update_time = millis();
 
-  if(millis() > update_time) {
-    update_time = millis() + 10;
+  if(millis() - update_time > 10) {
+    update_time = millis();
     hat_l = pinRead(HAT_PAD_L_PIN);
     hat_m = pinRead(HAT_PAD_M_PIN);
     hat_r = pinRead(HAT_PAD_R_PIN);
