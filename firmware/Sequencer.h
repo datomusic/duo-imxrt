@@ -101,13 +101,13 @@ void sequencer_tick_clock() {
 
 void sequencer_advance() {
   if (!next_step_is_random && !random_flag) {
-    random_offset = 0;
+    sequencer.step_offset= 0;
   } else {
     random_flag = false;
-    random_offset = random(1, (Sequencer::NUM_STEPS - 2));
+    sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
   }
 
-  sequencer.advance(random_offset);
+  sequencer.advance();
 }
 
 void sequencer_update() {
@@ -117,7 +117,7 @@ void sequencer_update() {
   const uint32_t cur_millis = millis();
   const uint32_t delta = cur_millis - last_sequencer_update;
   last_sequencer_update = cur_millis;
-  sequencer.update_notes(delta, random_offset);
+  sequencer.update_notes(delta);
 }
 
 void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }
