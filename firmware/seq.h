@@ -23,8 +23,8 @@ struct Sequencer {
   void start();
   void restart();
   void stop();
-  void update_notes(uint32_t delta_millis, uint8_t step_offset);
-  void advance(uint8_t step_offset);
+  void update_notes(uint32_t delta_millis);
+  void advance();
   void align_clock();
   inline void hold_note(uint8_t note, uint8_t velocity) {
     held_notes.NoteOn(note, velocity);
@@ -33,7 +33,9 @@ struct Sequencer {
   inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
   inline void release_all_notes() { held_notes.Clear(); };
   inline bool is_running() { return running; }
-  inline uint8_t get_cur_step() { return current_step % NUM_STEPS; }
+  inline uint8_t get_cur_step() {
+    return (current_step + step_offset) % NUM_STEPS;
+  }
   inline uint64_t get_clock() { return clock; }
   inline void inc_clock() { clock++; }
   inline bool gate_active() { return gate_dur <= gate_length_msec; }
@@ -54,15 +56,18 @@ struct Sequencer {
   }
 
   uint32_t gate_length_msec = 0;
+  uint8_t step_offset = 0;
 
 private:
   void trigger_note(uint8_t step);
   void untrigger_note();
   void record_note(uint8_t step, uint8_t note);
-  void handle_active_note(uint32_t delta_millis);
+  void update_gate(uint32_t delta_millis);
   uint8_t quantized_current_step();
-  void inc_current_step();
   void step_arpeggiator();
+  inline void inc_current_step() {
+    current_step = wrapped_step(current_step + 1);
+  }
 
   Callbacks callbacks;
   NoteStack<10> held_notes;

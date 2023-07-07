@@ -33,18 +33,18 @@ void holds_note_if_not_running() {
   ASSERT_EQ(seq.is_running(), false);
 
   seq.hold_note(1);
-  seq.update_notes(1, 0);
+  seq.update_notes(1);
   ASSERT_EQ(1, NoteTracker::activation_count);
   ASSERT_TRUE(NoteTracker::note_active);
   const uint32_t long_delta = 1000000;
-  seq.update_notes(long_delta, 0);
+  seq.update_notes(long_delta);
 
   // Note should still be on after gate length has passed.
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::activation_count);
 
   seq.release_note(1);
-  seq.update_notes(long_delta, 0);
+  seq.update_notes(long_delta);
   ASSERT_EQ(false, NoteTracker::note_active);
 }
 
@@ -56,15 +56,15 @@ void stops_playing_note_after_gate_duration() {
   seq.start();
   seq.hold_note(0);
   ASSERT_EQ(false, NoteTracker::note_active);
-  seq.advance(0);
+  seq.advance();
   seq.release_note(0);
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::activation_count);
 
-  seq.update_notes(seq.gate_length_msec - 1, 0);
+  seq.update_notes(seq.gate_length_msec - 1);
   ASSERT_TRUE(NoteTracker::note_active);
 
-  seq.update_notes(1, 0);
+  seq.update_notes(1);
   ASSERT_EQ(1, NoteTracker::activation_count);
   ASSERT_EQ(NoteTracker::note_active, false);
 }
@@ -75,14 +75,14 @@ void records_live_notes_in_correct_step() {
   seq.start();
 
   seq.hold_note(0);
-  seq.update_notes(0, 0);
+  seq.update_notes(0);
   seq.release_note(0);
   ASSERT_TRUE(get_step_enabled(seq, 0));
   ASSERT_FALSE(get_step_enabled(seq, 1));
   ASSERT_EQ(1, count_enabled_steps(seq));
 
   clear_steps(seq);
-  seq.update_notes(0, 0);
+  seq.update_notes(0);
 
   for (int i = 0; i < Sequencer::TICKS_PER_STEP / 2; ++i) {
     seq.inc_clock();
@@ -90,7 +90,7 @@ void records_live_notes_in_correct_step() {
 
   ASSERT_EQ(0, seq.get_cur_step());
   seq.hold_note(0);
-  seq.update_notes(0, 0);
+  seq.update_notes(0);
   seq.release_note(0);
   ASSERT_FALSE(get_step_enabled(seq, 0));
   ASSERT_TRUE(get_step_enabled(seq, 1));
@@ -103,12 +103,12 @@ void records_live_note_once() {
   seq.start();
 
   seq.hold_note(1);
-  seq.update_notes(1, 0);
+  seq.update_notes(1);
 
   ASSERT_TRUE(get_step_enabled(seq, 0));
   ASSERT_EQ(1, count_enabled_steps(seq));
   seq.release_note(1);
-  seq.advance(0);
+  seq.advance();
 
   ASSERT_FALSE(get_step_enabled(seq, 1));
   ASSERT_EQ(1, count_enabled_steps(seq));
@@ -119,9 +119,9 @@ void records_step_and_advances_when_not_running() {
   clear_steps(seq);
   ASSERT_FALSE(seq.is_running());
   seq.hold_note(1);
-  seq.update_notes(1, 0);
+  seq.update_notes(1);
   seq.release_note(1);
-  seq.update_notes(1, 0);
+  seq.update_notes(1);
 
   ASSERT_EQ(1, count_enabled_steps(seq));
   ASSERT_EQ(1, seq.get_cur_step());
