@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-// #define SINGLE_TEST records_notes_in_correct_step
+// #define SINGLE_TEST records_late_live_notes
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -69,7 +69,7 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_EQ(NoteTracker::note_active, false);
 }
 
-void records_live_notes_in_correct_step() {
+void records_early_live_note() {
   Sequencer seq(NoteTracker::callbacks);
   clear_steps(seq);
   seq.start();
@@ -80,21 +80,24 @@ void records_live_notes_in_correct_step() {
   ASSERT_TRUE(get_step_enabled(seq, 0));
   ASSERT_FALSE(get_step_enabled(seq, 1));
   ASSERT_EQ(1, count_enabled_steps(seq));
-
+}
+void records_late_live_note() {
+  Sequencer seq(NoteTracker::callbacks);
+  seq.start();
   clear_steps(seq);
   seq.update_notes(0);
 
-  for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP / 2; ++i) {
+  for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
     seq.inc_clock();
   }
 
   ASSERT_EQ(0, seq.get_cur_step());
-  seq.hold_note(0);
+
+  seq.hold_note(1);
   seq.update_notes(0);
-  seq.release_note(0);
-  ASSERT_FALSE(get_step_enabled(seq, 0));
-  ASSERT_TRUE(get_step_enabled(seq, 1));
+  seq.release_all_notes();
   ASSERT_EQ(1, count_enabled_steps(seq));
+  ASSERT_TRUE(get_step_enabled(seq, 1));
 }
 
 void records_live_note_once() {
@@ -139,7 +142,8 @@ int main() {
 #else
   RUN_TEST(Tests::holds_note_if_not_running);
   RUN_TEST(Tests::stops_playing_note_after_gate_duration);
-  RUN_TEST(Tests::records_live_notes_in_correct_step);
+  RUN_TEST(Tests::records_early_live_note);
+  RUN_TEST(Tests::records_late_live_note);
   RUN_TEST(Tests::records_live_note_once);
   RUN_TEST(Tests::records_step_and_advances_when_not_running);
 #endif
