@@ -125,7 +125,7 @@ void Sequencer::align_clock() {
   }
 }
 
-void Sequencer::tick_clock() {
+bool Sequencer::tick_clock() {
   uint8_t divider = TICKS_PER_STEP;
   switch (speed_mod) {
   case HalfSpeed:
@@ -138,9 +138,11 @@ void Sequencer::tick_clock() {
     break;
   }
 
-  if (running && (clock % divider) == 0) {
+  const bool should_advance = running && (clock % divider) == 0;
+  if (should_advance) {
     advance();
   }
 
   clock++;
+  return should_advance;
 }

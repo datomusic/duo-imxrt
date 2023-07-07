@@ -39,7 +39,7 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint64_t get_clock() const { return clock; }
-  void tick_clock();
+  bool tick_clock();
   inline bool gate_active() const { return gate_dur <= gate_length_msec; }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
