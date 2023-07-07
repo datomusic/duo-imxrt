@@ -159,6 +159,7 @@ void retriggers_held_notes_on_advance() {
   ASSERT_PLAYED_COUNT(1);
 
   tick_to_next_step(seq);
+  seq.update_notes(1);
 
   ASSERT_NOTE_PLAYING(true);
   ASSERT_PLAYED_COUNT(2);
