@@ -11,25 +11,28 @@
 #define ASSERT_FALSE TEST_ASSERT_FALSE
 
 #define each_step(seq, body)                                                   \
-  for (int i = 0; i < SEQUENCER_NUM_STEPS; ++i) {                              \
-    const uint8_t note = seq.step_note[i];                                     \
-    const uint8_t step_enabled = seq.step_enable[i];                           \
+  for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {                             \
+    const uint8_t note = seq.get_step_note(i);                                 \
+    const uint8_t step_enabled = seq.get_step_enabled(i);                      \
     body                                                                       \
   }
 
 uint8_t get_step_enabled(Sequencer &seq, int index) {
-  TEST_ASSERT_LESS_THAN_INT(SEQUENCER_NUM_STEPS, index);
-  return seq.step_enable[index];
+  TEST_ASSERT_LESS_THAN_INT(Sequencer::NUM_STEPS, index);
+  return seq.get_step_enabled(index);
 }
 
 uint8_t get_note(Sequencer &seq, int index) {
-  TEST_ASSERT_LESS_THAN_INT(SEQUENCER_NUM_STEPS, index);
-  return seq.step_note[index];
+  TEST_ASSERT_LESS_THAN_INT(Sequencer::NUM_STEPS, index);
+  return seq.get_step_note(index);
 }
 
 void clear_steps(Sequencer &s) {
-  for (int i = 0; i < SEQUENCER_NUM_STEPS; ++i) {
-    s.step_note[i] = s.step_enable[i] = 0;
+  for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {
+    if (s.get_step_enabled(i)) {
+      s.toggle_step(i);
+    }
+    s.set_step_note(i, 0);
   }
 }
 
