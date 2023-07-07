@@ -57,7 +57,7 @@ struct Sequencer {
     steps[wrapped_step(step)].note = note;
   }
 
-  uint32_t gate_length_msec = 0;
+  uint32_t gate_length_msec = 1;
   uint8_t step_offset = 0;
   SpeedModifier speed_mod = NormalSpeed;
 

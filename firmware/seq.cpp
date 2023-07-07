@@ -1,5 +1,4 @@
 #include "seq.h"
-#include <cstdio>
 
 Sequencer::Sequencer(Callbacks callbacks) : playing_note(callbacks) {
   held_notes.Init();
@@ -28,7 +27,7 @@ void Sequencer::update_gate(const uint32_t delta_millis) {
   gate_dur += delta_millis;
 
   if (running) {
-    const bool gate_closed = (gate_dur >= gate_length_msec);
+    const bool gate_closed = (gate_dur > gate_length_msec);
     if (gate_closed) {
       step_note.enabled = false;
     }
@@ -70,8 +69,6 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
 
   last_stack_size = stack_size;
 
-  printf("step_note, enabled: %i, note: %i\n", step_note.enabled, step_note.note);
-
   if (step_note.enabled) {
     playing_note.on(step_note.note);
   } else if (manual_note.enabled) {
@@ -82,7 +79,6 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
 }
 
 void Sequencer::advance() {
-  printf("advance\n");
   playing_note.off();
   inc_current_step();
   gate_dur = 0;
@@ -135,7 +131,6 @@ bool Sequencer::tick_clock() {
   clock++;
 
   const bool should_advance = running && (clock % divider) == 0;
-  printf("should_advance: %i\n", should_advance);
   if (should_advance) {
     advance();
   }
