@@ -17,7 +17,7 @@ void init() {
 }
 
 void update() {
-  static unsigned long update_time = millis();
+  static unsigned long update_time;
 
   if(millis() - update_time > 10) {
     update_time = millis();
