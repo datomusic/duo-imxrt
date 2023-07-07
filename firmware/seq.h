@@ -62,8 +62,7 @@ struct Sequencer {
   SpeedModifier speed_mod = NormalSpeed;
 
 private:
-  void trigger_note(uint8_t step);
-  void untrigger_note();
+  void stop_playing_note();
   void record_note(uint8_t step, uint8_t note);
   void update_gate(uint32_t delta_millis);
   uint8_t quantized_current_step();
@@ -72,7 +71,6 @@ private:
     current_step = wrapped_step(current_step + 1);
   }
 
-  Callbacks callbacks;
   NoteStack<10> held_notes;
   bool running = false;
   uint8_t current_step = 0;
@@ -80,16 +78,42 @@ private:
   uint8_t arpeggio_index = 0;
   uint8_t last_stack_size = 0;
 
-  enum NoteState { Idle, Playing };
-  NoteState note_state = Idle;
   uint32_t gate_dur = 0;
 
-  struct Step {
+  struct ActiveNote {
     uint8_t enabled = false;
     uint8_t note = 0;
   };
 
-  Step steps[NUM_STEPS];
+  ActiveNote steps[NUM_STEPS];
+
+  struct PlayingNote {
+    PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
+
+    void on(const uint8_t note) {
+      if (!playing) {
+        callbacks.note_on(note, INITIAL_VELOCITY);
+        // this->note = note;
+        playing = true;
+      }
+    }
+
+    void off() {
+      if (playing) {
+        callbacks.note_off();
+        playing = false;
+      }
+    }
+
+  private:
+    const Callbacks callbacks;
+    bool playing = false;
+    // uint8_t note = 0;
+  };
+
+  ActiveNote manual_note;
+  ActiveNote step_note;
+  PlayingNote playing_note;
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */
