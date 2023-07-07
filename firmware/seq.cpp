@@ -1,6 +1,7 @@
 #include "seq.h"
+#include <cstdio>
 
-Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
+Sequencer::Sequencer(Callbacks callbacks) : playing_note(callbacks) {
   held_notes.Init();
   for (int i = 0; i < NUM_STEPS; ++i) {
     steps[i].enabled = i != 1 && i != (NUM_STEPS - 2);
@@ -17,15 +18,20 @@ void Sequencer::restart() {
 void Sequencer::stop() {
   if (running) {
     running = false;
-    untrigger_note();
+    manual_note.enabled = false;
+    manual_note.enabled = false;
+    playing_note.off();
   }
 }
 
 void Sequencer::update_gate(const uint32_t delta_millis) {
   gate_dur += delta_millis;
-  const bool note_is_over = (gate_dur >= gate_length_msec);
-  if (note_is_over && (running || held_notes.size() == 0)) {
-    untrigger_note();
+
+  if (running) {
+    const bool gate_closed = (gate_dur >= gate_length_msec);
+    if (gate_closed) {
+      step_note.enabled = false;
+    }
   }
 }
 
@@ -41,21 +47,21 @@ uint8_t Sequencer::quantized_current_step() {
 void Sequencer::update_notes(const uint32_t delta_millis) {
   update_gate(delta_millis);
 
+  if (!running && held_notes.size() == 0) {
+    manual_note.enabled = false;
+  }
+
   const uint8_t recent_note = held_notes.most_recent_note().note;
   const uint8_t stack_size = held_notes.size();
 
   if (stack_size != last_stack_size) {
-    if (stack_size == 0) {
-      untrigger_note();
-    } else {
-      const bool single_note = stack_size == 1 && last_stack_size == 0;
+    const bool single_note = stack_size == 1 && last_stack_size == 0;
 
-      if (single_note) {
-        const uint8_t step = quantized_current_step() + step_offset;
-        record_note(step, recent_note);
-        trigger_note(step);
-      }
-
+    if (single_note) {
+      const uint8_t step = quantized_current_step() + step_offset;
+      record_note(step, recent_note);
+      manual_note.enabled = true;
+      manual_note.note = recent_note;
       if (!running) {
         inc_current_step();
       }
@@ -63,14 +69,24 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
   }
 
   last_stack_size = stack_size;
+
+  printf("step_note, enabled: %i, note: %i\n", step_note.enabled, step_note.note);
+
+  if (step_note.enabled) {
+    playing_note.on(step_note.note);
+  } else if (manual_note.enabled) {
+    playing_note.on(manual_note.note);
+  } else {
+    playing_note.off();
+  }
 }
 
 void Sequencer::advance() {
-  if (note_state == Playing) {
-    untrigger_note();
-  }
-
+  printf("advance\n");
+  playing_note.off();
   inc_current_step();
+  gate_dur = 0;
+  step_note = steps[wrapped_step(current_step + step_offset)];
 
   if (running) {
     step_arpeggiator();
@@ -79,8 +95,6 @@ void Sequencer::advance() {
       record_note(current_step, held_notes.sorted_note(arpeggio_index).note);
     }
   }
-
-  trigger_note(current_step + step_offset);
 }
 
 void Sequencer::step_arpeggiator() {
@@ -88,26 +102,6 @@ void Sequencer::step_arpeggiator() {
   if (arpeggio_index >= held_notes.size()) {
     arpeggio_index = 0;
   }
-}
-
-void Sequencer::trigger_note(uint8_t step_index) {
-  if (note_state == Idle) {
-    step_index = wrapped_step(step_index);
-    const Step step = steps[step_index];
-    if (step.enabled) {
-      callbacks.note_on(step.note, INITIAL_VELOCITY);
-      note_state = Playing;
-    }
-
-    gate_dur = 0;
-  }
-}
-
-void Sequencer::untrigger_note() {
-  if (note_state == Playing) {
-    callbacks.note_off();
-  }
-  note_state = Idle;
 }
 
 void Sequencer::record_note(uint8_t step, const uint8_t note) {
@@ -141,6 +135,7 @@ bool Sequencer::tick_clock() {
   clock++;
 
   const bool should_advance = running && (clock % divider) == 0;
+  printf("should_advance: %i\n", should_advance);
   if (should_advance) {
     advance();
   }
