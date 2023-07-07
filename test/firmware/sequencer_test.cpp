@@ -90,33 +90,43 @@ void stops_playing_note_after_gate_duration() {
 
 void records_early_live_note() {
   auto seq = make_cleared_sequencer();
+  seq.gate_length_msec = 10;
   seq.start();
 
-  seq.hold_note(0);
+  const auto note = 1;
+  seq.hold_note(note);
   seq.update_notes(1);
-  seq.release_note(0);
+  seq.release_note(note);
+  seq.update_notes(1);
+
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
+  NoteTracker::ASSERT_ACTIVE(true);
+  NoteTracker::ASSERT_ACTIVATED_COUNT(1);
 
   seq.advance();
-
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
 }
 void records_late_live_note() {
   auto seq = make_cleared_sequencer();
+  seq.gate_length_msec = 10;
   seq.start();
-  seq.update_notes(0);
 
   for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
     seq.inc_clock();
   }
 
-  ASSERT_EQ(0, seq.get_cur_step());
+  const auto note = 1;
+  seq.hold_note(note);
+  seq.update_notes(1);
+  seq.release_note(note);
+  seq.update_notes(1);
 
-  seq.hold_note(1);
-  seq.update_notes(0);
-  seq.release_all_notes();
-  ASSERT_EQ(1, count_enabled_steps(seq));
-  ASSERT_TRUE(get_step_enabled(seq, 1));
+  ASSERT_ONLY_ENABLED_STEP(seq, 1);
+  NoteTracker::ASSERT_ACTIVE(true);
+  NoteTracker::ASSERT_ACTIVATED_COUNT(1);
+
+  seq.advance();
+  ASSERT_ONLY_ENABLED_STEP(seq, 1);
 }
 
 void records_step_and_advances_when_not_running() {
