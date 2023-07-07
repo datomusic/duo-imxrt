@@ -30,3 +30,7 @@ add_test(
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -Wall -Wpedantic -Werror" CACHE INTERNAL "c compiler flags release")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -Wall -Wpedantic -Werror" CACHE INTERNAL "cxx compiler flags release")
+
+add_definitions(
+  -DUNITY_INCLUDE_CONFIG_H
+)
