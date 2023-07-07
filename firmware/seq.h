@@ -32,17 +32,17 @@ struct Sequencer {
   inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
   inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
   inline void release_all_notes() { held_notes.Clear(); };
-  inline bool is_running() { return running; }
-  inline uint8_t get_cur_step() {
+  inline bool is_running() const { return running; }
+  inline uint8_t get_cur_step() const {
     return (current_step + step_offset) % NUM_STEPS;
   }
-  inline uint64_t get_clock() { return clock; }
+  inline uint64_t get_clock() const { return clock; }
   inline void inc_clock() { clock++; }
-  inline bool gate_active() { return gate_dur <= gate_length_msec; }
-  inline uint8_t get_step_enabled(const uint8_t step) {
+  inline bool gate_active() const { return gate_dur <= gate_length_msec; }
+  inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
-  inline uint8_t get_step_note(const uint8_t step) {
+  inline uint8_t get_step_note(const uint8_t step) const {
     return steps[wrapped_step(step)].note;
   }
   inline bool toggle_step(uint8_t step) {
