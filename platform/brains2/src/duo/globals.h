@@ -18,7 +18,6 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 // Globals that should not be globals
 
 // Sequencer settings
-uint8_t set_key = 9;
 float osc_saw_frequency = 0.;
 float osc_pulse_frequency = 0.;
 float osc_pulse_target_frequency = 0.;
@@ -26,13 +25,11 @@ float osc_saw_target_frequency = 0.;
 uint8_t osc_pulse_midi_note = 0;
 int transpose = 0;
 bool next_step_is_random = false;
-int tempo_interval = 0;
 bool random_flag = 0;
 bool dfu_flag = 0;
 bool in_setup = true;
 
 uint32_t midi_clock = 0;
-uint16_t audio_peak_values = 0UL;
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
