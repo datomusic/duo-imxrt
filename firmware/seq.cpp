@@ -92,11 +92,12 @@ void Sequencer::step_arpeggiator() {
   }
 }
 
-void Sequencer::trigger_note(uint8_t step) {
+void Sequencer::trigger_note(uint8_t step_index) {
   if (note_state == Idle) {
-    step = wrapped_step(step);
-    if (step_enable[step]) {
-      callbacks.note_on(step_note[step], INITIAL_VELOCITY);
+    step_index = wrapped_step(step_index);
+    const Step step = steps[step_index];
+    if (step.enabled) {
+      callbacks.note_on(step.note, INITIAL_VELOCITY);
     }
 
     note_state = Playing;
@@ -111,10 +112,8 @@ void Sequencer::untrigger_note() {
   note_state = Idle;
 }
 
-void Sequencer::record_note(uint8_t step, const uint8_t note) {
-  step = wrapped_step(step);
-  step_note[step] = note;
-  step_enable[step] = true;
+void Sequencer::record_note(const uint8_t step, const uint8_t note) {
+  steps[wrapped_step(step)] = Step{.enabled = true, .note = note};
 }
 
 void Sequencer::align_clock() {
