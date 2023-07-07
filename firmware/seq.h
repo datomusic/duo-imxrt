@@ -19,12 +19,14 @@ struct Sequencer {
     NoteOff note_off;
   };
 
+  enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
+
   Sequencer(Callbacks callbacks);
   void start();
   void restart();
   void stop();
-  void update_notes(uint32_t delta_millis);
   void advance();
+  void update_notes(uint32_t delta_millis);
   void align_clock();
   inline void hold_note(uint8_t note, uint8_t velocity) {
     held_notes.NoteOn(note, velocity);
@@ -37,7 +39,7 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint64_t get_clock() const { return clock; }
-  inline void inc_clock() { clock++; }
+  void tick_clock();
   inline bool gate_active() const { return gate_dur <= gate_length_msec; }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
@@ -57,6 +59,7 @@ struct Sequencer {
 
   uint32_t gate_length_msec = 0;
   uint8_t step_offset = 0;
+  SpeedModifier speed_mod = NormalSpeed;
 
 private:
   void trigger_note(uint8_t step);
@@ -75,7 +78,6 @@ private:
   uint8_t current_step = 0;
   uint64_t clock = 0;
   uint8_t arpeggio_index = 0;
-
   uint8_t last_stack_size = 0;
 
   enum NoteState { Idle, Playing };

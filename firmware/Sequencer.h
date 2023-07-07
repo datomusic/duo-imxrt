@@ -77,31 +77,26 @@ void sequencer_toggle_start() {
 }
 
 void sequencer_tick_clock() {
-  uint8_t sequencer_divider = Sequencer::TICKS_PER_STEP;
-  if (double_speed) {
-    sequencer_divider = Sequencer::TICKS_PER_STEP / 2;
-  }
 
   if (!tempo_handler.is_clock_source_internal()) {
     int potvalue = synth.speed;
     if (potvalue > 900) {
-      sequencer_divider /= 2;
+      sequencer.speed_mod = Sequencer::DoubleSpeed;
     } else if (potvalue < 127) {
-      sequencer_divider *= 2;
+      sequencer.speed_mod = Sequencer::HalfSpeed;
     }
+  } else if (double_speed) {
+    sequencer.speed_mod = Sequencer::DoubleSpeed;
+  } else {
+    sequencer.speed_mod = Sequencer::NormalSpeed;
   }
 
-  const auto seq_clock = sequencer.get_clock();
-  if (sequencer.is_running() && (seq_clock % sequencer_divider) == 0) {
-    sequencer_advance();
-  }
-
-  sequencer.inc_clock();
+  sequencer.tick_clock();
 }
 
 void sequencer_advance() {
   if (!next_step_is_random && !random_flag) {
-    sequencer.step_offset= 0;
+    sequencer.step_offset = 0;
   } else {
     random_flag = false;
     sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
