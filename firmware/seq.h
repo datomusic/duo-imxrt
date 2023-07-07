@@ -26,6 +26,7 @@ struct Sequencer {
   void restart();
   void stop();
   void advance();
+  bool tick_clock();
   void update_notes(uint32_t delta_millis);
   void align_clock();
   inline void hold_note(uint8_t note, uint8_t velocity) {
@@ -39,7 +40,6 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint64_t get_clock() const { return clock; }
-  bool tick_clock();
   inline bool gate_active() const { return gate_dur <= gate_length_msec; }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
