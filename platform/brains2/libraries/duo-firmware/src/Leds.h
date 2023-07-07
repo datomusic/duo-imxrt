@@ -122,18 +122,20 @@ void led_update() {
     physical_leds[i+9] = COLORS[SCALE[i]%24];
   }
 
-  for (int l = 0; l < SEQUENCER_NUM_STEPS; l++) {
-    if (step_enable[l]) {
-      leds(l) = COLORS[step_note[l]%24];
+  for (int l = 0; l < Sequencer::NUM_STEPS; l++) {
+    if (sequencer.get_step_enabled(l)) {
+      leds(l) = COLORS[sequencer.get_step_note(l)%24];
     } else {
       leds(l) = CRGB::Black;
     }
      
-    const auto cur_seq_step = (sequencer.get_cur_step() + random_offset) % SEQUENCER_NUM_STEPS;
+    const auto cur_seq_step = (sequencer.get_cur_step() + random_offset);
+    const bool step_enabled = sequencer.get_step_enabled(cur_seq_step);
+
     if(sequencer.gate_active()) {
       leds(cur_seq_step) = LED_WHITE;
     } else {
-      if(!step_enable[cur_seq_step]) {
+      if(!step_enabled) {
         leds(cur_seq_step) = CRGB::Black;
       }
 
@@ -141,8 +143,8 @@ void led_update() {
 
       if(!sequencer.is_running()) {
         if(((seq_clock % 24) < 12)) {
-          if(step_enable[cur_seq_step]) {
-            leds(cur_seq_step) = COLORS[step_note[cur_seq_step]%24];
+          if(step_enabled) {
+            leds(cur_seq_step) = COLORS[sequencer.get_step_note(cur_seq_step)%24];
           } else {
             leds(cur_seq_step) = CRGB::Black;
           }
@@ -150,8 +152,8 @@ void led_update() {
           led_play.fadeLightBy((seq_clock % 12)*16);
         } else {
           led_play = CRGB::Black;
-          if(step_enable[cur_seq_step]) {
-            leds(cur_seq_step) = blend(LED_WHITE, COLORS[step_note[cur_seq_step]%24], (seq_clock % 12)*16);
+          if(step_enabled) {
+            leds(cur_seq_step) = blend(LED_WHITE, COLORS[sequencer.get_step_note(cur_seq_step)%24], (seq_clock % 12)*16);
           } else {
             leds(cur_seq_step) = LED_WHITE;
             leds(cur_seq_step) = leds(cur_seq_step).fadeLightBy((seq_clock % 12)*16);

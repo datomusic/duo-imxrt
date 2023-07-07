@@ -100,7 +100,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
-    leds((sequencer.get_cur_step() + random_offset) % SEQUENCER_NUM_STEPS) = LED_WHITE;
+    leds((sequencer.get_cur_step() + random_offset) % Sequencer::NUM_STEPS) = LED_WHITE;
   }
 }
 
@@ -173,9 +173,9 @@ static void process_key(const char k, const char state) {
           keyboard_set_note(SCALE[k - KEYB_0]);
         }
       } else if (k <= STEP_8 && k >= STEP_1) {
-        step_enable[k - STEP_1] = 1 - step_enable[k - STEP_1];
-        if (!step_enable[k - STEP_1]) {
-          leds(k - STEP_1) = CRGB::Black;
+        const uint8_t step = k - STEP_1;
+        if (!sequencer.toggle_step(step)) {
+          leds(step) = CRGB::Black;
         }
       } else if (k == BTN_SEQ2) {
         if (!sequencer.is_running()) {

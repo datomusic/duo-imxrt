@@ -1,7 +1,5 @@
 #include "seq.h"
 
-uint8_t wrapped_step(const uint8_t step) { return step % SEQUENCER_NUM_STEPS; }
-
 Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
   held_notes.Init();
 }
