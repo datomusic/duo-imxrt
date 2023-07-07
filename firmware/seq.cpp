@@ -9,9 +9,9 @@ Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
 
 void Sequencer::start() { running = true; }
 void Sequencer::restart() {
-  running = true;
   clock = 0;
   current_step = 0;
+  start();
 }
 
 void Sequencer::stop() {
@@ -96,9 +96,9 @@ void Sequencer::trigger_note(uint8_t step_index) {
     const Step step = steps[step_index];
     if (step.enabled) {
       callbacks.note_on(step.note, INITIAL_VELOCITY);
+      note_state = Playing;
     }
 
-    note_state = Playing;
     gate_dur = 0;
   }
 }
@@ -123,4 +123,24 @@ void Sequencer::align_clock() {
   } else {
     clock -= (clock % 12);
   }
+}
+
+void Sequencer::tick_clock() {
+  uint8_t divider = TICKS_PER_STEP;
+  switch (speed_mod) {
+  case HalfSpeed:
+    divider *= 2;
+    break;
+  case DoubleSpeed:
+    divider /= 2;
+    break;
+  case NormalSpeed:
+    break;
+  }
+
+  if (running && (clock % divider) == 0) {
+    advance();
+  }
+
+  clock++;
 }

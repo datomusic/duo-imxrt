@@ -10,6 +10,12 @@
 #define ASSERT_TRUE TEST_ASSERT_TRUE
 #define ASSERT_FALSE TEST_ASSERT_FALSE
 
+#define ASSERT_ONLY_ENABLED_STEP(seq, step_index)                              \
+  TEST_ASSERT_EQUAL_MESSAGE(1, count_enabled_steps(seq),                       \
+                            "Expected single enabled step.");                  \
+  TEST_ASSERT_TRUE_MESSAGE(get_step_enabled(seq, step_index),                  \
+                           "Expected step to be active: " #step_index);
+
 uint8_t get_step_enabled(const Sequencer &seq, int index) {
   TEST_ASSERT_LESS_THAN_INT(Sequencer::NUM_STEPS, index);
   return seq.get_step_enabled(index);
@@ -20,14 +26,15 @@ uint8_t get_note(Sequencer &seq, int index) {
   return seq.get_step_note(index);
 }
 
-void clear_steps(Sequencer &s) {
+void set_all_steps_active(Sequencer &s, const bool active) {
   for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {
-    if (s.get_step_enabled(i)) {
+    if (s.get_step_enabled(i) != active) {
       s.toggle_step(i);
     }
-    s.set_step_note(i, 0);
   }
 }
+
+void clear_steps(Sequencer &s) { set_all_steps_active(s, false); }
 
 int count_enabled_steps(const Sequencer &seq) {
   int count = 0;
@@ -40,9 +47,11 @@ int count_enabled_steps(const Sequencer &seq) {
   return count;
 }
 
-void ASSERT_ONLY_ENABLED_STEP(const Sequencer &seq, const unsigned step_index) {
-  ASSERT_TRUE(get_step_enabled(seq, step_index));
-  ASSERT_EQ(1, count_enabled_steps(seq));
+void tick_to_next_step(Sequencer &seq) {
+  const auto last_step = seq.get_cur_step();
+  while (last_step == seq.get_cur_step()) {
+    seq.tick_clock();
+  }
 }
 
 #endif /* end of include guard: SEQUENCER_HELPERS_H_VRO3THZL */
