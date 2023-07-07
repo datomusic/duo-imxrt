@@ -22,21 +22,20 @@ static void note_off(void) {
 }
 static Sequencer::Callbacks callbacks{note_on, note_off};
 
-static void ASSERT_ACTIVATED_COUNT(const int count) {
-  TEST_ASSERT_EQUAL_MESSAGE(count, activation_count,
-                            "Expected activated note count.");
-}
-
-static void ASSERT_ACTIVE(const bool active) {
-  if (active) {
-    TEST_ASSERT_TRUE_MESSAGE(NoteTracker::note_active, "Expected active note.");
-  } else {
-    TEST_ASSERT_FALSE_MESSAGE(NoteTracker::note_active,
-                              "Expected inactive note.");
-  }
-}
-
 } // namespace NoteTracker
+
+#define ASSERT_NOTE_ACTIVE(active)                                             \
+  if (active) {                                                                \
+    TEST_ASSERT_TRUE_MESSAGE(NoteTracker::note_active,                         \
+                             "Expected active note.");                         \
+  } else {                                                                     \
+    TEST_ASSERT_FALSE_MESSAGE(NoteTracker::note_active,                        \
+                              "Expected inactive note.");                      \
+  }
+
+#define ASSERT_ACTIVATED_NOTE_COUNT(count)                                          \
+  TEST_ASSERT_EQUAL_MESSAGE(count, NoteTracker::activation_count,                           \
+                            "Expected activated note count.");
 
 Sequencer make_cleared_sequencer() {
   Sequencer seq(NoteTracker::callbacks);
@@ -100,8 +99,8 @@ void records_early_live_note() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
-  NoteTracker::ASSERT_ACTIVE(true);
-  NoteTracker::ASSERT_ACTIVATED_COUNT(1);
+  ASSERT_NOTE_ACTIVE(true);
+  ASSERT_ACTIVATED_NOTE_COUNT(1);
 
   seq.advance();
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
@@ -122,8 +121,8 @@ void records_late_live_note() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
-  NoteTracker::ASSERT_ACTIVE(true);
-  NoteTracker::ASSERT_ACTIVATED_COUNT(1);
+  ASSERT_NOTE_ACTIVE(true);
+  ASSERT_ACTIVATED_NOTE_COUNT(1);
 
   seq.advance();
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
@@ -149,18 +148,18 @@ void retriggers_held_notes_on_advance() {
   seq.hold_note(1);
   seq.update_notes(1);
 
-  NoteTracker::ASSERT_ACTIVE(true);
-  NoteTracker::ASSERT_ACTIVATED_COUNT(1);
+  ASSERT_NOTE_ACTIVE(true);
+  ASSERT_ACTIVATED_NOTE_COUNT(1);
 
   seq.advance();
 
-  NoteTracker::ASSERT_ACTIVE(true);
-  NoteTracker::ASSERT_ACTIVATED_COUNT(2);
+  ASSERT_NOTE_ACTIVE(true);
+  ASSERT_ACTIVATED_NOTE_COUNT(2);
 
   seq.update_notes(seq.gate_length_msec);
 
-  NoteTracker::ASSERT_ACTIVATED_COUNT(2);
-  NoteTracker::ASSERT_ACTIVE(false);
+  ASSERT_ACTIVATED_NOTE_COUNT(2);
+  ASSERT_NOTE_ACTIVE(false);
 }
 
 } // namespace Tests
