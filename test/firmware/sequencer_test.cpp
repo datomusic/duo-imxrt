@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-// #define SINGLE_TEST holds_note_if_not_running
+// #define SINGLE_TEST respects_step_offset_during_playback
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -55,19 +55,18 @@ void holds_note_if_not_running() {
   ASSERT_EQ(seq.is_running(), false);
 
   seq.hold_note(1);
-  seq.tick_clock(1);
-  ;
+  seq.update_notes(1);
   ASSERT_EQ(1, NoteTracker::activation_count);
   ASSERT_TRUE(NoteTracker::note_active);
   const uint32_t long_delta = 1000000;
-  seq.tick_clock(long_delta);
+  seq.update_notes(long_delta);
 
   // Note should still be on after gate length has passed.
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::activation_count);
 
   seq.release_note(1);
-  seq.tick_clock(long_delta);
+  seq.update_notes(long_delta);
   ASSERT_EQ(false, NoteTracker::note_active);
 }
 
@@ -83,10 +82,10 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::activation_count);
 
-  seq.tick_clock(seq.gate_length_msec - 1);
+  seq.update_notes(seq.gate_length_msec - 1);
   ASSERT_TRUE(NoteTracker::note_active);
 
-  seq.tick_clock(1);
+  seq.update_notes(1);
   ASSERT_EQ(1, NoteTracker::activation_count);
   ASSERT_EQ(NoteTracker::note_active, false);
 }
@@ -98,9 +97,9 @@ void records_early_live_note() {
 
   const auto note = 1;
   seq.hold_note(note);
-  seq.tick_clock(1);
+  seq.update_notes(1);
   seq.release_note(note);
-  seq.tick_clock(1);
+  seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
   ASSERT_NOTE_ACTIVE(true);
@@ -115,15 +114,17 @@ void records_late_live_note() {
   seq.start();
 
   ASSERT_EQ(0, seq.get_cur_step());
-  seq.tick_clock(Sequencer::TICKS_PER_STEP - 1);
+  for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
+    seq.tick_clock();
+  }
 
   ASSERT_EQ(0, seq.get_cur_step());
 
   const auto note = 1;
   seq.hold_note(note);
-  seq.tick_clock(1);
+  seq.update_notes(1);
   seq.release_note(note);
-  seq.tick_clock(1);
+  seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
   ASSERT_NOTE_ACTIVE(true);
@@ -137,9 +138,9 @@ void records_step_and_advances_when_not_running() {
   auto seq = make_cleared_sequencer();
   ASSERT_FALSE(seq.is_running());
   seq.hold_note(1);
-  seq.tick_clock(1);
+  seq.update_notes(1);
   seq.release_note(1);
-  seq.tick_clock(1);
+  seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
   ASSERT_EQ(1, seq.get_cur_step());
@@ -151,7 +152,7 @@ void retriggers_held_notes_on_advance() {
   seq.gate_length_msec = 2;
 
   seq.hold_note(1);
-  seq.tick_clock(1);
+  seq.update_notes(1);
 
   ASSERT_NOTE_ACTIVE(true);
   ASSERT_ACTIVATED_NOTE_COUNT(1);
@@ -161,7 +162,7 @@ void retriggers_held_notes_on_advance() {
   ASSERT_NOTE_ACTIVE(true);
   ASSERT_ACTIVATED_NOTE_COUNT(2);
 
-  seq.tick_clock(seq.gate_length_msec);
+  seq.update_notes(seq.gate_length_msec);
 
   ASSERT_ACTIVATED_NOTE_COUNT(2);
   ASSERT_NOTE_ACTIVE(false);

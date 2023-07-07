@@ -38,6 +38,33 @@ uint8_t Sequencer::quantized_current_step() {
   }
 }
 
+void Sequencer::update_notes(const uint32_t delta_millis) {
+  update_gate(delta_millis);
+
+  const uint8_t recent_note = held_notes.most_recent_note().note;
+  const uint8_t stack_size = held_notes.size();
+
+  if (stack_size != last_stack_size) {
+    if (stack_size == 0) {
+      untrigger_note();
+    } else {
+      const bool single_note = stack_size == 1 && last_stack_size == 0;
+
+      if (single_note) {
+        const uint8_t step = quantized_current_step() + step_offset;
+        record_note(step, recent_note);
+        trigger_note(step);
+      }
+
+      if (!running) {
+        inc_current_step();
+      }
+    }
+  }
+
+  last_stack_size = stack_size;
+}
+
 void Sequencer::advance() {
   if (note_state == Playing) {
     untrigger_note();
@@ -98,32 +125,7 @@ void Sequencer::align_clock() {
   }
 }
 
-bool Sequencer::tick_clock(const uint32_t delta_millis) {
-  update_gate(delta_millis);
-
-  const uint8_t recent_note = held_notes.most_recent_note().note;
-  const uint8_t stack_size = held_notes.size();
-
-  if (stack_size != last_stack_size) {
-    if (stack_size == 0) {
-      untrigger_note();
-    } else {
-      const bool single_note = stack_size == 1 && last_stack_size == 0;
-
-      if (single_note) {
-        const uint8_t step = quantized_current_step() + step_offset;
-        record_note(step, recent_note);
-        trigger_note(step);
-      }
-
-      if (!running) {
-        inc_current_step();
-      }
-    }
-  }
-
-  last_stack_size = stack_size;
-
+bool Sequencer::tick_clock() {
   uint8_t divider = TICKS_PER_STEP;
   switch (speed_mod) {
   case HalfSpeed:

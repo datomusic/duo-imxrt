@@ -6,7 +6,6 @@
  */
 
 uint32_t last_sequencer_update;
-uint32_t sequencer_delta_accum = 0;
 
 void sequencer_init();
 void sequencer_restart();
@@ -97,15 +96,13 @@ void sequencer_tick_clock() {
     sequencer.speed_mod = Sequencer::NormalSpeed;
   }
 
-  if (sequencer.tick_clock(sequencer_delta_accum)) {
+  if (sequencer.tick_clock()) {
     if (random_flag) {
       sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
     } else {
       sequencer.step_offset = 0;
     }
   }
-
-  sequencer_delta_accum = 0;
 }
 
 void sequencer_update() {
@@ -113,8 +110,9 @@ void sequencer_update() {
   tempo_handler.update(midi_clock);
 
   const uint32_t cur_millis = millis();
-  sequencer_delta_accum += (cur_millis - last_sequencer_update);
+  const uint32_t delta = cur_millis - last_sequencer_update;
   last_sequencer_update = cur_millis;
+  sequencer.update_notes(delta);
 }
 
 void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }

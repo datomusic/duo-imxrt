@@ -142,6 +142,8 @@ static void pots_read() {
 bool power_check() { return true; }
 
 static void process_key(const char k, const char state) {
+      sequencer_update();
+        sequencer_update();
   switch (state) { // Report active key state : IDLE,
                    // PRESSED, HOLD, or RELEASED
     case PRESSED:
