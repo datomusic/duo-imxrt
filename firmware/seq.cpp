@@ -24,7 +24,7 @@ void Sequencer::stop() {
 void Sequencer::update_gate(const uint32_t delta_millis) {
   gate_dur += delta_millis;
   const bool note_is_over = (gate_dur >= gate_length_msec);
-  if (note_is_over && held_notes.size() == 0) {
+  if (note_is_over && (running || held_notes.size() == 0)) {
     untrigger_note();
   }
 }

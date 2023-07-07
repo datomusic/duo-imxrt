@@ -10,25 +10,45 @@ static void reset() {
   activation_count = 0;
 }
 static void note_on(uint8_t note, uint8_t velocity) {
-  TEST_ASSERT_MESSAGE(note_active == false, "note_on called twice");
+  TEST_ASSERT_MESSAGE(note_active == false, "note_on called twice.");
   // printf("Note on: %i\n", note);
   activation_count++;
   note_active = true;
 }
 static void note_off(void) {
-  TEST_ASSERT_MESSAGE(note_active == true, "note_off called twice");
+  TEST_ASSERT_MESSAGE(note_active == true, "note_off called twice.");
   // printf("Note off\n");
   note_active = false;
 }
 static Sequencer::Callbacks callbacks{note_on, note_off};
+
+static void ASSERT_ACTIVATED_COUNT(const int count) {
+  TEST_ASSERT_EQUAL_MESSAGE(count, activation_count,
+                            "Expected activated note count.");
+}
+
+static void ASSERT_ACTIVE(const bool active) {
+  if (active) {
+    TEST_ASSERT_TRUE_MESSAGE(NoteTracker::note_active, "Expected active note.");
+  } else {
+    TEST_ASSERT_FALSE_MESSAGE(NoteTracker::note_active,
+                              "Expected inactive note.");
+  }
+}
+
 } // namespace NoteTracker
+
+Sequencer make_cleared_sequencer() {
+  Sequencer seq(NoteTracker::callbacks);
+  clear_steps(seq);
+  return seq;
+}
 
 namespace Tests {
 
 void holds_note_if_not_running() {
-  Sequencer seq(NoteTracker::callbacks);
+  auto seq = make_cleared_sequencer();
   seq.gate_length_msec = 10;
-  clear_steps(seq);
 
   ASSERT_EQ(seq.is_running(), false);
 
@@ -49,9 +69,8 @@ void holds_note_if_not_running() {
 }
 
 void stops_playing_note_after_gate_duration() {
-  Sequencer seq(NoteTracker::callbacks);
+  auto seq = make_cleared_sequencer();
   seq.gate_length_msec = 10;
-  clear_steps(seq);
 
   seq.start();
   seq.hold_note(0);
@@ -69,10 +88,8 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_EQ(NoteTracker::note_active, false);
 }
 
-
 void records_early_live_note() {
-  Sequencer seq(NoteTracker::callbacks);
-  clear_steps(seq);
+  auto seq = make_cleared_sequencer();
   seq.start();
 
   seq.hold_note(0);
@@ -85,9 +102,8 @@ void records_early_live_note() {
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
 }
 void records_late_live_note() {
-  Sequencer seq(NoteTracker::callbacks);
+  auto seq = make_cleared_sequencer();
   seq.start();
-  clear_steps(seq);
   seq.update_notes(0);
 
   for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
@@ -104,8 +120,7 @@ void records_late_live_note() {
 }
 
 void records_step_and_advances_when_not_running() {
-  Sequencer seq(NoteTracker::callbacks);
-  clear_steps(seq);
+  auto seq = make_cleared_sequencer();
   ASSERT_FALSE(seq.is_running());
   seq.hold_note(1);
   seq.update_notes(1);
@@ -115,6 +130,29 @@ void records_step_and_advances_when_not_running() {
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
   ASSERT_EQ(1, seq.get_cur_step());
 }
+
+void retriggers_held_notes_on_advance() {
+  auto seq = make_cleared_sequencer();
+  seq.start();
+  seq.gate_length_msec = 2;
+
+  seq.hold_note(1);
+  seq.update_notes(1);
+
+  NoteTracker::ASSERT_ACTIVE(true);
+  NoteTracker::ASSERT_ACTIVATED_COUNT(1);
+
+  seq.advance();
+
+  NoteTracker::ASSERT_ACTIVE(true);
+  NoteTracker::ASSERT_ACTIVATED_COUNT(2);
+
+  seq.update_notes(seq.gate_length_msec);
+
+  NoteTracker::ASSERT_ACTIVATED_COUNT(2);
+  NoteTracker::ASSERT_ACTIVE(false);
+}
+
 } // namespace Tests
 
 void setUp(void) { NoteTracker::reset(); }
@@ -130,6 +168,7 @@ int main() {
   RUN_TEST(Tests::records_early_live_note);
   RUN_TEST(Tests::records_late_live_note);
   RUN_TEST(Tests::records_step_and_advances_when_not_running);
+  RUN_TEST(Tests::retriggers_held_notes_on_advance);
 #endif
   return UNITY_END();
 }
