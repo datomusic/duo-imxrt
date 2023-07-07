@@ -48,7 +48,6 @@ void Sequencer::update_notes(const uint32_t delta_millis,
     if (stack_size == 0) {
       untrigger_note();
     } else {
-
       const bool single_note = stack_size == 1 && last_stack_size == 0;
 
       if (single_note) {

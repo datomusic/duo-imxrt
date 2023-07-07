@@ -113,6 +113,20 @@ void records_live_note_once() {
   ASSERT_FALSE(get_step_enabled(seq, 1));
   ASSERT_EQ(1, count_enabled_steps(seq));
 }
+
+void records_step_and_advances_when_not_running() {
+  Sequencer seq(NoteTracker::callbacks);
+  clear_steps(seq);
+  ASSERT_FALSE(seq.is_running());
+  seq.hold_note(1);
+  seq.update_notes(1, 0);
+  seq.release_note(1);
+  seq.update_notes(1, 0);
+
+  ASSERT_EQ(1, count_enabled_steps(seq));
+  ASSERT_EQ(1, seq.get_cur_step());
+  ASSERT_TRUE(get_step_enabled(seq, 0));
+}
 } // namespace Tests
 
 void setUp(void) { NoteTracker::reset(); }
@@ -127,6 +141,7 @@ int main() {
   RUN_TEST(Tests::stops_playing_note_after_gate_duration);
   RUN_TEST(Tests::records_live_notes_in_correct_step);
   RUN_TEST(Tests::records_live_note_once);
+  RUN_TEST(Tests::records_step_and_advances_when_not_running);
 #endif
   return UNITY_END();
 }
