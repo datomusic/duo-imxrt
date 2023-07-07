@@ -10,7 +10,7 @@
 #define ASSERT_TRUE TEST_ASSERT_TRUE
 #define ASSERT_FALSE TEST_ASSERT_FALSE
 
-uint8_t get_step_enabled(Sequencer &seq, int index) {
+uint8_t get_step_enabled(const Sequencer &seq, int index) {
   TEST_ASSERT_LESS_THAN_INT(Sequencer::NUM_STEPS, index);
   return seq.get_step_enabled(index);
 }
@@ -29,7 +29,7 @@ void clear_steps(Sequencer &s) {
   }
 }
 
-int count_enabled_steps(Sequencer &seq) {
+int count_enabled_steps(const Sequencer &seq) {
   int count = 0;
   for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {
     if (seq.get_step_enabled(i)) {
@@ -38,6 +38,11 @@ int count_enabled_steps(Sequencer &seq) {
   }
 
   return count;
+}
+
+void ASSERT_ONLY_ENABLED_STEP(const Sequencer &seq, const unsigned step_index) {
+  ASSERT_TRUE(get_step_enabled(seq, step_index));
+  ASSERT_EQ(1, count_enabled_steps(seq));
 }
 
 #endif /* end of include guard: SEQUENCER_HELPERS_H_VRO3THZL */

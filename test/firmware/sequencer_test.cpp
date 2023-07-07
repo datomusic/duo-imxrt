@@ -69,17 +69,20 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_EQ(NoteTracker::note_active, false);
 }
 
+
 void records_early_live_note() {
   Sequencer seq(NoteTracker::callbacks);
   clear_steps(seq);
   seq.start();
 
   seq.hold_note(0);
-  seq.update_notes(0);
+  seq.update_notes(1);
   seq.release_note(0);
-  ASSERT_TRUE(get_step_enabled(seq, 0));
-  ASSERT_FALSE(get_step_enabled(seq, 1));
-  ASSERT_EQ(1, count_enabled_steps(seq));
+  ASSERT_ONLY_ENABLED_STEP(seq, 0);
+
+  seq.advance();
+
+  ASSERT_ONLY_ENABLED_STEP(seq, 0);
 }
 void records_late_live_note() {
   Sequencer seq(NoteTracker::callbacks);
@@ -100,23 +103,6 @@ void records_late_live_note() {
   ASSERT_TRUE(get_step_enabled(seq, 1));
 }
 
-void records_live_note_once() {
-  Sequencer seq(NoteTracker::callbacks);
-  clear_steps(seq);
-  seq.start();
-
-  seq.hold_note(1);
-  seq.update_notes(1);
-
-  ASSERT_TRUE(get_step_enabled(seq, 0));
-  ASSERT_EQ(1, count_enabled_steps(seq));
-  seq.release_note(1);
-  seq.advance();
-
-  ASSERT_FALSE(get_step_enabled(seq, 1));
-  ASSERT_EQ(1, count_enabled_steps(seq));
-}
-
 void records_step_and_advances_when_not_running() {
   Sequencer seq(NoteTracker::callbacks);
   clear_steps(seq);
@@ -126,9 +112,8 @@ void records_step_and_advances_when_not_running() {
   seq.release_note(1);
   seq.update_notes(1);
 
-  ASSERT_EQ(1, count_enabled_steps(seq));
+  ASSERT_ONLY_ENABLED_STEP(seq, 0);
   ASSERT_EQ(1, seq.get_cur_step());
-  ASSERT_TRUE(get_step_enabled(seq, 0));
 }
 } // namespace Tests
 
@@ -144,7 +129,6 @@ int main() {
   RUN_TEST(Tests::stops_playing_note_after_gate_duration);
   RUN_TEST(Tests::records_early_live_note);
   RUN_TEST(Tests::records_late_live_note);
-  RUN_TEST(Tests::records_live_note_once);
   RUN_TEST(Tests::records_step_and_advances_when_not_running);
 #endif
   return UNITY_END();
