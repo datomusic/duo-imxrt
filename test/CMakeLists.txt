@@ -27,3 +27,6 @@ target_link_libraries(sequencer_test PRIVATE unity_framework firmware)
 add_test(
   NAME sequencer_test
   COMMAND $<TARGET_FILE:sequencer_test>)
+
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -Wall -Wpedantic -Werror" CACHE INTERNAL "c compiler flags release")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -Wall -Wpedantic -Werror" CACHE INTERNAL "cxx compiler flags release")

@@ -10,13 +10,6 @@
 #define ASSERT_TRUE TEST_ASSERT_TRUE
 #define ASSERT_FALSE TEST_ASSERT_FALSE
 
-#define each_step(seq, body)                                                   \
-  for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {                             \
-    const uint8_t note = seq.get_step_note(i);                                 \
-    const uint8_t step_enabled = seq.get_step_enabled(i);                      \
-    body                                                                       \
-  }
-
 uint8_t get_step_enabled(Sequencer &seq, int index) {
   TEST_ASSERT_LESS_THAN_INT(Sequencer::NUM_STEPS, index);
   return seq.get_step_enabled(index);
@@ -38,11 +31,12 @@ void clear_steps(Sequencer &s) {
 
 int count_enabled_steps(Sequencer &seq) {
   int count = 0;
-  each_step(seq, {
-    if (step_enabled) {
+  for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {
+    if (seq.get_step_enabled(i)) {
       count++;
     }
-  });
+  }
+
   return count;
 }
 

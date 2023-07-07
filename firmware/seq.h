@@ -83,14 +83,19 @@ private:
   uint32_t gate_dur = 0;
 
   struct Step {
+    Step(const uint8_t enable) : enabled(enable) {}
+
     uint8_t enabled = false;
     uint8_t note = 0;
+
+    void enable_note(const uint8_t note) {
+      enabled = true;
+      this->note = note;
+    }
   };
 
-  Step steps[NUM_STEPS] = {Step{.enabled = 1}, Step{.enabled = 0},
-                           Step{.enabled = 1}, Step{.enabled = 1},
-                           Step{.enabled = 1}, Step{.enabled = 1},
-                           Step{.enabled = 0}, Step{.enabled = 1}};
+  Step steps[NUM_STEPS] = {Step(true), Step(false), Step(true),  Step(true),
+                           Step(true), Step(true),  Step(false), Step(true)};
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */

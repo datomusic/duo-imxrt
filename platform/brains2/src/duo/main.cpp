@@ -32,6 +32,8 @@ void midi_usb_sysex_callback(byte *data, unsigned length) {
 }
 
 void PlatformMidi::init(){
+
+
   usbMIDI.setHandleClock(midi_handle_clock);
   usbMIDI.setHandleSysEx(midi_usb_sysex_callback);
   //usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
