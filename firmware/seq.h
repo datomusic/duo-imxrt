@@ -38,19 +38,19 @@ struct Sequencer {
   inline void inc_clock() { clock++; }
   inline bool gate_active() { return gate_dur <= gate_length_msec; }
   inline uint8_t get_step_enabled(const uint8_t step) {
-    return step_enable[wrapped_step(step)];
+    return steps[wrapped_step(step)].enabled;
   }
   inline uint8_t get_step_note(const uint8_t step) {
-    return step_note[wrapped_step(step)];
+    return steps[wrapped_step(step)].note;
   }
   inline bool toggle_step(uint8_t step) {
     step = wrapped_step(step);
-    const auto enabled = !step_enable[step];
-    step_enable[step] = enabled;
+    const auto enabled = !steps[step].enabled;
+    steps[step].enabled = enabled;
     return enabled;
   }
   inline void set_step_note(const uint8_t step, const uint8_t note) {
-    step_note[wrapped_step(step)] = note;
+    steps[wrapped_step(step)].note = note;
   }
 
   uint32_t gate_length_msec = 0;
@@ -70,14 +70,22 @@ private:
   uint8_t current_step = 0;
   uint64_t clock = 0;
   uint8_t arpeggio_index = 0;
-  uint8_t step_note[NUM_STEPS] = {1, 0, 6, 9, 0, 4, 0, 5};
-  uint8_t step_enable[NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
 
   uint8_t last_stack_size = 0;
 
   enum NoteState { Idle, Playing };
   NoteState note_state = Idle;
   uint32_t gate_dur = 0;
+
+  struct Step {
+    uint8_t enabled = false;
+    uint8_t note = 0;
+  };
+
+  Step steps[NUM_STEPS] = {Step{.enabled = 1}, Step{.enabled = 0},
+                           Step{.enabled = 1}, Step{.enabled = 1},
+                           Step{.enabled = 1}, Step{.enabled = 1},
+                           Step{.enabled = 0}, Step{.enabled = 1}};
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */
