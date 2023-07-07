@@ -2,6 +2,9 @@
 
 Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
   held_notes.Init();
+  for (int i = 0; i < NUM_STEPS; ++i) {
+    steps[i].enabled = i != 1 && i != 7;
+  }
 }
 
 void Sequencer::start() { running = true; }
@@ -107,8 +110,10 @@ void Sequencer::untrigger_note() {
   note_state = Idle;
 }
 
-void Sequencer::record_note(const uint8_t step, const uint8_t note) {
-  steps[wrapped_step(step)].enable_note(note);
+void Sequencer::record_note(uint8_t step, const uint8_t note) {
+  step = wrapped_step(step);
+  steps[step].enabled = true;
+  steps[step].note = note;
 }
 
 void Sequencer::align_clock() {
