@@ -1,0 +1,1 @@
+#define UNITY_OUTPUT_COLOR
