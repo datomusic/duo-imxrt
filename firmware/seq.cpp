@@ -1,5 +1,7 @@
 #include "seq.h"
 
+uint8_t wrapped_step(const uint8_t step) { return step % SEQUENCER_NUM_STEPS; }
+
 Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
   held_notes.Init();
 }
@@ -20,11 +22,9 @@ void Sequencer::stop() {
 
 void Sequencer::handle_active_note(const uint32_t delta_millis) {
   gate_dur += delta_millis;
-  if (running && note_state == Playing) {
-    const bool note_is_over = (gate_dur >= gate_length_msec);
-    if (note_is_over) {
-      untrigger_note();
-    }
+  const bool note_is_over = (gate_dur >= gate_length_msec);
+  if (note_is_over && held_notes.size() == 0) {
+    untrigger_note();
   }
 }
 
@@ -33,7 +33,7 @@ uint8_t Sequencer::quantized_current_step() {
       (clock % Sequencer::TICKS_PER_STEP < Sequencer::TICKS_PER_STEP / 2)) {
     return current_step;
   } else {
-    return (current_step + 1) % SEQUENCER_NUM_STEPS;
+    return current_step + 1;
   }
 }
 
@@ -84,8 +84,7 @@ void Sequencer::advance(const uint8_t step_offset) {
 }
 
 void Sequencer::inc_current_step() {
-  current_step++;
-  current_step %= SEQUENCER_NUM_STEPS;
+  current_step = wrapped_step(current_step + 1);
 }
 
 void Sequencer::step_arpeggiator() {
@@ -95,11 +94,11 @@ void Sequencer::step_arpeggiator() {
   }
 }
 
-void Sequencer::trigger_note(const uint8_t step) {
+void Sequencer::trigger_note(uint8_t step) {
   if (note_state == Idle) {
-    const unsigned index = step % SEQUENCER_NUM_STEPS;
-    if (step_enable[index]) {
-      callbacks.note_on(step_note[index], INITIAL_VELOCITY);
+    step = wrapped_step(step);
+    if (step_enable[step]) {
+      callbacks.note_on(step_note[step], INITIAL_VELOCITY);
     }
 
     note_state = Playing;
@@ -114,7 +113,8 @@ void Sequencer::untrigger_note() {
   note_state = Idle;
 }
 
-void Sequencer::record_note(const uint8_t step, const uint8_t note) {
+void Sequencer::record_note(uint8_t step, const uint8_t note) {
+  step = wrapped_step(step);
   step_note[step] = note;
   step_enable[step] = true;
 }

@@ -32,7 +32,7 @@ struct Sequencer {
   inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
   inline void release_all_notes() { held_notes.Clear(); };
   inline bool is_running() { return running; }
-  inline uint8_t get_cur_step() { return current_step; }
+  inline uint8_t get_cur_step() { return current_step % SEQUENCER_NUM_STEPS; }
   inline uint64_t get_clock() { return clock; }
   inline void inc_clock() { clock++; }
   inline bool gate_active() { return gate_dur <= gate_length_msec; }
