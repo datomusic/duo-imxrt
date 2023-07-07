@@ -138,11 +138,12 @@ bool Sequencer::tick_clock() {
     break;
   }
 
+  clock++;
+
   const bool should_advance = running && (clock % divider) == 0;
   if (should_advance) {
     advance();
   }
 
-  clock++;
   return should_advance;
 }
