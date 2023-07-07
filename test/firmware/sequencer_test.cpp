@@ -84,7 +84,7 @@ void records_live_notes_in_correct_step() {
   clear_steps(seq);
   seq.update_notes(0);
 
-  for (int i = 0; i < Sequencer::TICKS_PER_STEP / 2; ++i) {
+  for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP / 2; ++i) {
     seq.inc_clock();
   }
 

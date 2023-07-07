@@ -108,7 +108,7 @@ void Sequencer::untrigger_note() {
 }
 
 void Sequencer::record_note(const uint8_t step, const uint8_t note) {
-  steps[wrapped_step(step)] = Step{.enabled = true, .note = note};
+  steps[wrapped_step(step)].enable_note(note);
 }
 
 void Sequencer::align_clock() {
