@@ -11,7 +11,6 @@ void sequencer_init();
 void sequencer_restart();
 void sequencer_start();
 void sequencer_stop();
-void sequencer_advance();
 void sequencer_tick_clock();
 void sequencer_reset();
 void sequencer_update();
@@ -21,6 +20,13 @@ int keyboard_get_latest_note();
 void sequencer_align_clock();
 
 static bool double_speed = false;
+
+void sequencer_randomize_step_offset() {
+  sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
+  if (!sequencer.is_running()) {
+    sequencer.advance();
+  }
+}
 
 void sequencer_init() {
   last_sequencer_update = millis();
@@ -77,7 +83,6 @@ void sequencer_toggle_start() {
 }
 
 void sequencer_tick_clock() {
-
   if (!tempo_handler.is_clock_source_internal()) {
     int potvalue = synth.speed;
     if (potvalue > 900) {
@@ -91,18 +96,13 @@ void sequencer_tick_clock() {
     sequencer.speed_mod = Sequencer::NormalSpeed;
   }
 
-  sequencer.tick_clock();
-}
-
-void sequencer_advance() {
-  if (!next_step_is_random && !random_flag) {
-    sequencer.step_offset = 0;
-  } else {
-    random_flag = false;
-    sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
+  if (sequencer.tick_clock()) {
+    if (random_flag) {
+      sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
+    } else {
+      sequencer.step_offset = 0;
+    }
   }
-
-  sequencer.advance();
 }
 
 void sequencer_update() {

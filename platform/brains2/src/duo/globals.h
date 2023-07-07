@@ -23,7 +23,6 @@ float osc_pulse_target_frequency = 0.;
 float osc_saw_target_frequency = 0.;
 uint8_t osc_pulse_midi_note = 0;
 int transpose = 0;
-bool next_step_is_random = false;
 bool random_flag = 0;
 bool dfu_flag = 0;
 bool in_setup = true;

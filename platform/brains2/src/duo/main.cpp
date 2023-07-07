@@ -158,7 +158,7 @@ static void process_key(const char k, const char state) {
         }
       } else if (k == BTN_SEQ2) {
         if (!sequencer.is_running()) {
-          sequencer_advance();
+          sequencer.advance();
         }
         double_speed = true;
       } else if (k == BTN_DOWN) {
@@ -172,10 +172,7 @@ static void process_key(const char k, const char state) {
           transpose = 24;
         }
       } else if (k == BTN_SEQ1) {
-        next_step_is_random = true;
-        if (!sequencer.is_running()) {
-          sequencer_advance();
-        }
+        sequencer_randomize_step_offset();
         random_flag = true;
       } else if (k == SEQ_START) {
         sequencer_toggle_start();
@@ -221,7 +218,6 @@ static void process_key(const char k, const char state) {
           transpose = 12;
         }
       } else if (k == BTN_SEQ1) {
-        next_step_is_random = false;
         random_flag = false;
       } else if (k == SEQ_START) {
 #ifdef DEV_MODE
