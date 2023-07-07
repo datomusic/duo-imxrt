@@ -3,7 +3,7 @@
 Sequencer::Sequencer(Callbacks callbacks) : callbacks(callbacks) {
   held_notes.Init();
   for (int i = 0; i < NUM_STEPS; ++i) {
-    steps[i].enabled = i != 1 && i != 7;
+    steps[i].enabled = i != 1 && i != (NUM_STEPS - 2);
   }
 }
 
