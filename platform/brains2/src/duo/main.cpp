@@ -165,8 +165,7 @@ static void power_off() {
 bool is_power_on() { return power_flag; }
 
 static void process_key(const char k, const char state) {
-      sequencer_update();
-        sequencer_update();
+      
   switch (state) { // Report active key state : IDLE,
                    // PRESSED, HOLD, or RELEASED
     case PRESSED:

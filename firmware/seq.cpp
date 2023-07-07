@@ -23,17 +23,6 @@ void Sequencer::stop() {
   }
 }
 
-void Sequencer::update_gate(const uint32_t delta_millis) {
-  gate_dur += delta_millis;
-
-  if (running) {
-    const bool gate_closed = (gate_dur > gate_length_msec);
-    if (gate_closed) {
-      step_note.enabled = false;
-    }
-  }
-}
-
 uint8_t Sequencer::quantized_current_step() {
   if (!running ||
       (clock % Sequencer::TICKS_PER_STEP < Sequencer::TICKS_PER_STEP / 2)) {
@@ -44,23 +33,28 @@ uint8_t Sequencer::quantized_current_step() {
 }
 
 void Sequencer::update_notes(const uint32_t delta_millis) {
-  update_gate(delta_millis);
+  gate_dur += delta_millis;
 
-  if (!running && held_notes.size() == 0) {
-    manual_note.enabled = false;
+  if (running) {
+    const bool gate_closed = (gate_dur > gate_length_msec);
+    if (gate_closed) {
+      step_note.enabled = false;
+    }
   }
 
-  const uint8_t recent_note = held_notes.most_recent_note().note;
   const uint8_t stack_size = held_notes.size();
+  const uint8_t step = quantized_current_step() + step_offset;
+  const uint8_t recent_note = held_notes.most_recent_note().note;
 
   if (stack_size != last_stack_size) {
-    const bool single_note = stack_size == 1 && last_stack_size == 0;
-
-    if (single_note) {
-      const uint8_t step = quantized_current_step() + step_offset;
-      record_note(step, recent_note);
+    if (stack_size == 0) {
+      if (!running) {
+        manual_note.enabled = false;
+      }
+    } else if (stack_size == 1 && last_stack_size == 0) {
       manual_note.enabled = true;
       manual_note.note = recent_note;
+      record_note(step, recent_note);
       if (!running) {
         inc_current_step();
       }
@@ -69,10 +63,10 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
 
   last_stack_size = stack_size;
 
-  if (step_note.enabled) {
-    playing_note.on(step_note.note);
-  } else if (manual_note.enabled) {
+  if (manual_note.enabled) {
     playing_note.on(manual_note.note);
+  } else if (step_note.enabled && running) {
+    playing_note.on(step_note.note);
   } else {
     playing_note.off();
   }
@@ -83,20 +77,21 @@ void Sequencer::advance() {
   inc_current_step();
   gate_dur = 0;
   step_note = steps[wrapped_step(current_step + step_offset)];
+  const auto note = held_notes.sorted_note(arpeggio_index).note;
 
   if (running) {
-    step_arpeggiator();
+    manual_note.enabled = false;
+
+    arpeggio_index++;
+    if (arpeggio_index >= held_notes.size()) {
+      arpeggio_index = 0;
+    }
 
     if (held_notes.size() > 0) {
-      record_note(current_step, held_notes.sorted_note(arpeggio_index).note);
+      record_note(current_step, note);
+      step_note.enabled = true;
+      step_note.note = note;
     }
-  }
-}
-
-void Sequencer::step_arpeggiator() {
-  arpeggio_index++;
-  if (arpeggio_index >= held_notes.size()) {
-    arpeggio_index = 0;
   }
 }
 

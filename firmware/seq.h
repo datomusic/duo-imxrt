@@ -39,7 +39,7 @@ struct Sequencer {
   inline uint8_t get_cur_step() const {
     return (current_step + step_offset) % NUM_STEPS;
   }
-  inline uint64_t get_clock() const { return clock; }
+  inline uint32_t get_clock() const { return clock; }
   inline bool gate_active() const { return gate_dur <= gate_length_msec; }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
@@ -64,9 +64,7 @@ struct Sequencer {
 private:
   void stop_playing_note();
   void record_note(uint8_t step, uint8_t note);
-  void update_gate(uint32_t delta_millis);
   uint8_t quantized_current_step();
-  void step_arpeggiator();
   inline void inc_current_step() {
     current_step = wrapped_step(current_step + 1);
   }
@@ -74,11 +72,11 @@ private:
   NoteStack<10> held_notes;
   bool running = false;
   uint8_t current_step = 0;
-  uint64_t clock = 0;
+  uint32_t clock = 0;
   uint8_t arpeggio_index = 0;
   uint8_t last_stack_size = 0;
 
-  uint32_t gate_dur = 0;
+  uint16_t gate_dur = 0;
 
   struct ActiveNote {
     uint8_t enabled = false;
