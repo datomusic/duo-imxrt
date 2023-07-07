@@ -7,9 +7,6 @@
 
 uint32_t last_sequencer_update;
 
-uint8_t *step_note = sequencer.step_note;
-uint8_t *step_enable = sequencer.step_enable;
-
 void sequencer_init();
 void sequencer_restart();
 void sequencer_start();
@@ -27,8 +24,8 @@ static bool double_speed = false;
 
 void sequencer_init() {
   last_sequencer_update = millis();
-  for (int i = 0; i < SEQUENCER_NUM_STEPS; i++) {
-    step_note[i] = SCALE[random(9)];
+  for (int i = 0; i < Sequencer::NUM_STEPS; i++) {
+    sequencer.set_step_note(i, SCALE[random(9)]);
   }
 
   tempo_handler.setHandleTempoEvent(sequencer_tick_clock);
@@ -107,7 +104,7 @@ void sequencer_advance() {
     random_offset = 0;
   } else {
     random_flag = false;
-    random_offset = random(1, (SEQUENCER_NUM_STEPS - 2));
+    random_offset = random(1, (Sequencer::NUM_STEPS - 2));
   }
 
   sequencer.advance(random_offset);

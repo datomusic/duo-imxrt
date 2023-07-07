@@ -4,12 +4,13 @@
 #include "note_stack.h"
 #include <cstdint>
 
-#define SEQUENCER_NUM_STEPS 8
-
 struct Sequencer {
+  static const uint8_t NUM_STEPS = 8;
   static const unsigned PULSES_PER_QUARTER_NOTE = 24;
   static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
   static const unsigned INITIAL_VELOCITY = 100;
+
+  static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
 
   struct Callbacks {
     typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
@@ -32,14 +33,27 @@ struct Sequencer {
   inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
   inline void release_all_notes() { held_notes.Clear(); };
   inline bool is_running() { return running; }
-  inline uint8_t get_cur_step() { return current_step % SEQUENCER_NUM_STEPS; }
+  inline uint8_t get_cur_step() { return current_step % NUM_STEPS; }
   inline uint64_t get_clock() { return clock; }
   inline void inc_clock() { clock++; }
   inline bool gate_active() { return gate_dur <= gate_length_msec; }
+  inline uint8_t get_step_enabled(const uint8_t step) {
+    return step_enable[wrapped_step(step)];
+  }
+  inline uint8_t get_step_note(const uint8_t step) {
+    return step_note[wrapped_step(step)];
+  }
+  inline bool toggle_step(uint8_t step) {
+    step = wrapped_step(step);
+    const auto enabled = !step_enable[step];
+    step_enable[step] = enabled;
+    return enabled;
+  }
+  inline void set_step_note(const uint8_t step, const uint8_t note) {
+    step_note[wrapped_step(step)] = note;
+  }
 
   uint32_t gate_length_msec = 0;
-  uint8_t step_note[SEQUENCER_NUM_STEPS] = {1, 0, 6, 9, 0, 4, 0, 5};
-  uint8_t step_enable[SEQUENCER_NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
 
 private:
   void trigger_note(uint8_t step);
@@ -56,6 +70,8 @@ private:
   uint8_t current_step = 0;
   uint64_t clock = 0;
   uint8_t arpeggio_index = 0;
+  uint8_t step_note[NUM_STEPS] = {1, 0, 6, 9, 0, 4, 0, 5};
+  uint8_t step_enable[NUM_STEPS] = {1, 0, 1, 1, 1, 1, 0, 1};
 
   uint8_t last_stack_size = 0;
 
