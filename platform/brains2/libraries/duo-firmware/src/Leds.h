@@ -129,12 +129,12 @@ void led_update() {
       leds(l) = CRGB::Black;
     }
      
-    const auto cur_seq_step = sequencer.get_cur_step();
+    const auto cur_seq_step = (sequencer.get_cur_step() + random_offset) % SEQUENCER_NUM_STEPS;
     if(sequencer.gate_active()) {
-      leds(((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)) = LED_WHITE;
+      leds(cur_seq_step) = LED_WHITE;
     } else {
-      if(!step_enable[((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)]) {
-        leds(((cur_seq_step+random_offset)%SEQUENCER_NUM_STEPS)) = CRGB::Black;
+      if(!step_enable[cur_seq_step]) {
+        leds(cur_seq_step) = CRGB::Black;
       }
 
       const auto seq_clock = sequencer.get_clock();
