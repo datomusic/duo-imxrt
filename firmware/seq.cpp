@@ -18,7 +18,7 @@ void Sequencer::stop() {
   if (running) {
     running = false;
     manual_note.enabled = false;
-    manual_note.enabled = false;
+    step_note.enabled = false;
     playing_note.off();
   }
 }
