@@ -87,13 +87,9 @@ static inline void send_byte(uint8_t byte, register uint32_t &last_mark,
 
     // Keep bit on for relevant time.
     pin_hi();
-    if (bit) {
-      while ((uint32_t)(DWT->CYCCNT - last_mark) < timings.bit_on)
-        ;
-    } else {
-      while ((uint32_t)(DWT->CYCCNT - last_mark) < timings.bit_off)
-        ;
-    }
+    const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
+    while ((uint32_t)(DWT->CYCCNT - last_mark) < on_cycles)
+      ;
 
     // Pin will be kept low until next time send_byte is called.
     pin_lo();
