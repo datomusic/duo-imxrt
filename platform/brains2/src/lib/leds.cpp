@@ -122,10 +122,9 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
     uint32_t next_cycle_start = last_mark + timings.interval;
     no_interrupts();
 
-    if (DWT->CYCCNT > next_cycle_start) {
-      if ((DWT->CYCCNT - next_cycle_start) > wait_off) {
-        return false;
-      }
+    if (DWT->CYCCNT > next_cycle_start &&
+        (DWT->CYCCNT - next_cycle_start) > wait_off) {
+      return false;
     }
 #endif
 
