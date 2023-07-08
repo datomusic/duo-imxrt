@@ -67,19 +67,13 @@ void init(void) {
 
 static inline void send_byte(uint8_t byte, register uint32_t &last_mark,
                              const Timings &timings) {
+  // Read bits from highest to lowest, comparing to bitmask 0x80 for low/high.
 
-  // Read bits from highest to lowest by using a bitmask
-  // which we shift for each bit.
-  // Starting at 0x80 will give us 8 bits and when it is 0 we are done.
-
-  uint32_t mask = 0x80;
-  while (mask) {
-    const uint8_t bit = byte & mask;
-
+#define BITS 8
+  for (int i = BITS; i > 0; --i) {
     // Wait for next interval cutoff
     while ((uint32_t)(DWT->CYCCNT - last_mark) < timings.interval)
       ;
-    // while (DWT->CYCCNT < next_cycle_start)
 
     // Set next interval cutoff.
     // It is important that this happens immediately after the previous wait.
@@ -87,15 +81,15 @@ static inline void send_byte(uint8_t byte, register uint32_t &last_mark,
 
     // Keep bit on for relevant time.
     pin_hi();
-    const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
+    const uint32_t on_cycles = byte & 0x80 ? timings.bit_on : timings.bit_off;
     while ((uint32_t)(DWT->CYCCNT - last_mark) < on_cycles)
       ;
 
     // Pin will be kept low until next time send_byte is called.
     pin_lo();
 
-    // Shift mask to reach next bit.
-    mask >>= 1;
+    // Shift to read next bit
+    byte <<= 1;
   }
 }
 
@@ -143,11 +137,10 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   return true;
 }
 
-void setBrightness(int brightness) {
-  _brightness = brightness;
-}
+void setBrightness(int brightness) { _brightness = brightness; }
 void show(const Pixel *const pixels, const int pixel_count) {
-  while(!show_pixels(pixels, pixel_count));
+  while (!show_pixels(pixels, pixel_count))
+    ;
 #ifdef ALLOW_INTERRUPTS
   yes_interrupts();
 #endif
