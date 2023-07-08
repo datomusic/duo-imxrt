@@ -65,7 +65,7 @@ void init(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
-static inline void send_byte(uint8_t byte, register uint32_t &next_cycle_start,
+static inline void send_byte(uint8_t byte, register uint32_t &last_mark,
                              const Timings &timings) {
 
   // Read bits from highest to lowest by using a bitmask
@@ -77,20 +77,23 @@ static inline void send_byte(uint8_t byte, register uint32_t &next_cycle_start,
     const uint8_t bit = byte & mask;
 
     // Wait for next interval cutoff
-    while (DWT->CYCCNT < next_cycle_start)
+    while ((uint32_t)(DWT->CYCCNT - last_mark) < timings.interval)
       ;
+    // while (DWT->CYCCNT < next_cycle_start)
 
     // Set next interval cutoff.
     // It is important that this happens immediately after the previous wait.
-    next_cycle_start = DWT->CYCCNT + timings.interval;
+    last_mark = DWT->CYCCNT;
 
     // Keep bit on for relevant time.
-    const uint32_t on_cycles = bit ? timings.bit_on : timings.bit_off;
-    const uint32_t on_cutoff =
-        next_cycle_start - (timings.interval - on_cycles);
     pin_hi();
-    while (DWT->CYCCNT < on_cutoff)
-      ;
+    if (bit) {
+      while ((uint32_t)(DWT->CYCCNT - last_mark) < timings.bit_on)
+        ;
+    } else {
+      while ((uint32_t)(DWT->CYCCNT - last_mark) < timings.bit_off)
+        ;
+    }
 
     // Pin will be kept low until next time send_byte is called.
     pin_lo();
@@ -115,11 +118,12 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   pin_lo();
 
   __DSB();
-  uint32_t next_cycle_start = DWT->CYCCNT + timings.interval;
+  uint32_t last_mark = DWT->CYCCNT;
 
   while (pixel_ptr != end) {
 
 #ifdef ALLOW_INTERRUPTS
+    uint32_t next_cycle_start = last_mark + timings.interval;
     no_interrupts();
 
     if (DWT->CYCCNT > next_cycle_start) {
@@ -131,12 +135,9 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
 
     const Pixel pix = *(pixel_ptr++);
 
-    send_byte(((pix.g * correction.g * _brightness) >> 16), next_cycle_start,
-              timings);
-    send_byte(((pix.r * correction.r * _brightness) >> 16), next_cycle_start,
-              timings);
-    send_byte(((pix.b * correction.b * _brightness) >> 16), next_cycle_start,
-              timings);
+    send_byte(((pix.g * correction.g * _brightness) >> 16), last_mark, timings);
+    send_byte(((pix.r * correction.r * _brightness) >> 16), last_mark, timings);
+    send_byte(((pix.b * correction.b * _brightness) >> 16), last_mark, timings);
 
 #ifdef ALLOW_INTERRUPTS
     yes_interrupts();
