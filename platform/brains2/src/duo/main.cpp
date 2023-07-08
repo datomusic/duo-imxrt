@@ -11,7 +11,6 @@
 #include <USB-MIDI.h>
 
 void keys_scan();
-
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
 
 #include "globals.h"
@@ -32,8 +31,6 @@ void midi_usb_sysex_callback(byte *data, unsigned length) {
 }
 
 void PlatformMidi::init(){
-
-
   usbMIDI.setHandleClock(midi_handle_clock);
   usbMIDI.setHandleSysEx(midi_usb_sysex_callback);
   //usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
@@ -143,6 +140,10 @@ bool power_check() { return true; }
 
 static void process_key(const char k, const char state) {
       
+      midi_handle();
+      sequencer_update();
+      
+        sequencer_update();
   switch (state) { // Report active key state : IDLE,
                    // PRESSED, HOLD, or RELEASED
     case PRESSED:
