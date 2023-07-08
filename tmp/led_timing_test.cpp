@@ -8,6 +8,9 @@
 #define UNSIGNED_TYPE uint16_t
 #define MAX UINT16_MAX
 
+// #define UNSIGNED_TYPE uint8_t
+// #define MAX UINT8_MAX
+
 void pin_lo() {}
 void pin_hi() {}
 
@@ -53,45 +56,47 @@ void overflow_cyc() {
 int on_count = 0;
 int off_count = 0;
 
-static inline void send_bit(const uint8_t bit, UNSIGNED_TYPE &next_cycle_start,
+void delay(unsigned long tick) {
+  unsigned long start = DWT->CYCCNT;
+  for (;;) {
+    unsigned long now = DWT->CYCCNT;
+    unsigned long elapsed = now - start;
+    if (elapsed >= tick)
+      return;
+  }
+}
+
+static inline void send_bit(const uint8_t bit, UNSIGNED_TYPE &last_mark,
                             const Timings &timings) {
-  inc_cyc();
+  overflow_cyc();
 
   // Wait for next interval cutoff
-  while (DWT->CYCCNT < next_cycle_start) {
+  while ((UNSIGNED_TYPE)(DWT->CYCCNT - last_mark) < timings.interval) {
+    // printf("Delta: %u\n", (UNSIGNED_TYPE)(DWT->CYCCNT - last_mark));
     inc_cyc();
     ++off_count;
   }
 
   inc_cyc();
+  // overflow_cyc();
 
   // Set next interval cutoff.
   // It is important that this happens immediately after the previous wait.
-  next_cycle_start = DWT->CYCCNT + timings.interval;
-  inc_cyc();
-
-  // Keep bit on for relevant time.
-  const UNSIGNED_TYPE on_cycles = bit ? timings.bit_on : timings.bit_off;
-  inc_cyc();
-  const UNSIGNED_TYPE on_cutoff =
-      next_cycle_start - (timings.interval - on_cycles);
+  last_mark = DWT->CYCCNT;
   inc_cyc();
   pin_hi();
+  // overflow_cyc();
 
-  overflow_cyc();
-
-  while (DWT->CYCCNT < on_cutoff) {
-    inc_cyc();
-    ++on_count;
+  // Keep bit on for relevant time.
+  if (bit) {
+    assert(false && "Only testing with 0 bit.");
+  } else {
+    while ((UNSIGNED_TYPE)(DWT->CYCCNT - last_mark) < timings.bit_off) {
+      ++on_count;
+      inc_cyc();
+    }
+    pin_lo();
   }
-
-  inc_cyc();
-
-  inc_cyc();
-  // Pin will be kept low until next time send_byte is called.
-  pin_lo();
-  inc_cyc();
-
   inc_cyc();
 }
 
@@ -100,8 +105,8 @@ void test() {
   on_count = off_count = 0;
 
   const auto timings = GET_TIMINGS();
-  UNSIGNED_TYPE next_cycle_start = DWT->CYCCNT + timings.interval;
-  send_bit(0, next_cycle_start, timings);
+  UNSIGNED_TYPE last_mark = DWT->CYCCNT;
+  send_bit(0, last_mark, timings);
 
 #define P(x) printf(#x ": %u\n", x)
 
@@ -109,8 +114,8 @@ void test() {
   P(off_count);
   P(DWT->CYCCNT);
 
-  assert(on_count < 300);
-  assert(off_count == 1199);
+  assert(on_count < 900);
+  assert(off_count <= 1200);
 }
 
 int main(int argc, char *argv[]) {
