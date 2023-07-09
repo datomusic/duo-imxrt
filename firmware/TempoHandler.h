@@ -27,7 +27,6 @@
 #define TEMPO_SYNC_PULSE_MS  12
 
 #include <MIDI.h>
-#include "lib/tempo.h"
 #include "lib/sync.h"
 #include "firmware/synth_params.h"
 #include "lib/elapsedMillis.h"
@@ -36,12 +35,8 @@ void midi_send_realtime(const midi::MidiType message);
  
 class TempoHandler 
 {
-  friend class Tempo;
-
   public:
-    TempoHandler(synth_parameters &synth_params): synth_params(synth_params){
-      tempo.reset();
-    }
+    TempoHandler(synth_parameters &synth_params): synth_params(synth_params){}
 
     inline void setHandleTempoEvent(void (*fptr)()) {
       tTempoCallback = fptr;
@@ -67,13 +62,12 @@ class TempoHandler
       if (new_source != _source) {
         _source = new_source;
         _midi_clock_received_flag = 0;
-        tempo.reset();
       }
 
 
       switch(_source) {
         case TEMPO_SOURCE_INTERNAL:
-          tempo.update_internal(*this, synth_params.speed);
+          update_internal();
           break;
         case TEMPO_SOURCE_MIDI:
           update_midi(midi_clock);
@@ -85,6 +79,25 @@ class TempoHandler
 
       if(syncStart >= TEMPO_SYNC_PULSE_MS) {
         Sync::write(LOW);
+      }
+    }
+
+    void update_internal(){
+      int tbpm = 240; // 2 x beats per minute
+
+      const auto potvalue = synth_params.speed;
+      if (potvalue < 128) {
+        tbpm = map(potvalue, 0, 128, 60, 120);
+      } else if (potvalue < 895) {
+        tbpm = map(potvalue, 128, 895, 120, 400);
+      } else {
+        tbpm = map(potvalue, 895, 1023, 400, 1200);
+      }
+      _tempo_interval = 5000000 / tbpm;
+
+      if ((micros() - _previous_clock_time) > _tempo_interval) {
+        _previous_clock_time = micros();
+        trigger();
       }
     }
 
@@ -103,7 +116,6 @@ class TempoHandler
     }
   private:
     synth_parameters& synth_params;
-    Tempo tempo;
     elapsedMillis syncStart;
     void (*tTempoCallback)();
     void (*tAlignCallback)();
