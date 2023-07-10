@@ -15,7 +15,7 @@ if [[ -e "$APP_PATH" ]]; then
   pushd "$APP_PATH"
   cmake -DTOOLCHAIN_DIR="$TOOLCHAIN_DIR" -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=flexspi_nor_$BUILD_TYPE  $CMAKE_ARGS -S . -B build
   pushd build
-  make -j
+  make -j 3
 
   pushd flexspi_nor_$BUILD_TYPE
 

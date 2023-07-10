@@ -179,6 +179,9 @@ void synth_update() {
   float osc_pulse_pulseWidth = map(synth.pulseWidth,0,1023,500,950)/1000.0f;
   float filter_resonance = map(synth.resonance,0,1023,70,320)/100.0f;
   
+  if(synth.accent) {
+    filter_resonance = 4.0f;
+  }
   // Audio interrupts have to be off to apply settings
   AudioNoInterrupts();
 

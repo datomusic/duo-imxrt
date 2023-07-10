@@ -20,10 +20,14 @@ void Tempo::update_internal(TempoHandler &handler, const int potvalue) {
         map(potvalue, 895, 1023, BPM_TO_MILLIS(200), BPM_TO_MILLIS(603));
   }
 
-  const auto cur = millis();
+  const uint32_t cur = millis();
   // Multiply by 100 as a scaling factor for millis_per_beat
   // and a factor of 10 to match original Duo
-  accum += (cur - last_millis) * 1000;
+  // Check if last_millis overflowed since last time.
+  if (cur >= last_millis) {
+    accum += (cur - last_millis) * 1000;
+  }
+
   last_millis = cur;
 
   while (accum >= scaled_millis_per_beat) {
