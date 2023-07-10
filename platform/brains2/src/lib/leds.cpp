@@ -73,7 +73,7 @@ static inline void send_byte(uint8_t byte, register uint32_t &last_mark,
   for (int i = BITS; i > 0; --i) {
     // Wait for next interval cutoff
     while ((uint32_t)(DWT->CYCCNT - last_mark) < timings.interval) {
-    };
+    }
 
     // Set next interval cutoff.
     // It is important that this happens immediately after the previous wait.
@@ -83,7 +83,7 @@ static inline void send_byte(uint8_t byte, register uint32_t &last_mark,
     pin_hi();
     const uint32_t on_cycles = byte & 0x80 ? timings.bit_on : timings.bit_off;
     while ((uint32_t)(DWT->CYCCNT - last_mark) < on_cycles) {
-    };
+    }
 
     // Pin will be kept low until next time send_byte is called.
     pin_lo();
@@ -142,7 +142,7 @@ void setBrightness(int brightness) {
 }
 void show(const Pixel *const pixels, const int pixel_count) {
   while (!show_pixels(pixels, pixel_count)) {
-  };
+  }
 #ifdef ALLOW_INTERRUPTS
   yes_interrupts();
 #endif
