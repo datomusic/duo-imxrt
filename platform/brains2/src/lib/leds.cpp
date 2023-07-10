@@ -137,7 +137,9 @@ static uint32_t show_pixels(const Pixel *const pixels, const int pixel_count) {
   return true;
 }
 
-void setBrightness(int brightness) { _brightness = brightness; }
+void setBrightness(int brightness) {
+  _brightness = brightness;
+}
 void show(const Pixel *const pixels, const int pixel_count) {
   while (!show_pixels(pixels, pixel_count))
     ;
