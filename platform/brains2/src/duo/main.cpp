@@ -148,6 +148,7 @@ static void process_key(const char k, const char state) {
       #endif
 
       led_update();
+      FastLED.show();
 
       pots_read();
       keys_scan(); // 14 or 175us (depending on debounce)
