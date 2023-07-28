@@ -163,8 +163,21 @@ bool is_power_on() { return power_flag; }
 
 static void process_key(const char k, const char state) {
       
+  const unsigned long next_frame_time = millis() + 100;
       midi_handle();
+
+      #ifdef DEV_MODE
+      if (!dfu_flag) {
+      #endif
+
+      led_update();
+
+      pots_read();
+      keys_scan(); // 14 or 175us (depending on debounce)
       sequencer_update();
+      #ifdef DEV_MODE
+      }
+      #endif
       
         sequencer_update();
   switch (state) { // Report active key state : IDLE,
