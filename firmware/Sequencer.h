@@ -107,8 +107,6 @@ void sequencer_tick_clock() {
 }
 
 void sequencer_update() {
-  sequencer_update_speed_mod();
-
   sequencer.gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
 

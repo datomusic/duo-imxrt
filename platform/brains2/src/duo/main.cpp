@@ -15,6 +15,9 @@ void keys_scan();
 
 #include "globals.h"
 
+unsigned long next_frame_time;
+unsigned int frame_interval = 10;
+
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
 #define setHandleSysEx setHandleSystemExclusive
@@ -140,24 +143,31 @@ bool power_check() { return true; }
 
 static void process_key(const char k, const char state) {
       
-  const unsigned long next_frame_time = millis() + 100;
+  next_frame_time = millis() + 100;
+  next_frame_time = millis() + frame_interval;
       midi_handle();
-
+      sequencer_update();
+      
+        sequencer_update();
+      
+      midi_handle();
+      sequencer_update();
+      
       #ifdef DEV_MODE
       if (!dfu_flag) {
       #endif
-
-      led_update();
-      FastLED.show();
-
-      pots_read();
-      keys_scan(); // 14 or 175us (depending on debounce)
-      sequencer_update();
+      if (millis() > next_frame_time) {
+        next_frame_time = millis() + frame_interval;
+        led_update();
+      } else {
+        sequencer_update();
+        pots_read();
+        sequencer_update_speed_mod();
+        keys_scan(); // 14 or 175us (depending on debounce)
+      }
       #ifdef DEV_MODE
       }
       #endif
-      
-        sequencer_update();
   switch (state) { // Report active key state : IDLE,
                    // PRESSED, HOLD, or RELEASED
     case PRESSED:
