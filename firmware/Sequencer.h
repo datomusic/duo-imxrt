@@ -82,12 +82,11 @@ void sequencer_toggle_start() {
   }
 }
 
-void sequencer_tick_clock() {
+void sequencer_update_speed_mod() {
   if (!tempo_handler.is_clock_source_internal()) {
-    int potvalue = synth.speed;
-    if (potvalue > 900) {
+    if (synth.speed > 900) {
       sequencer.speed_mod = Sequencer::DoubleSpeed;
-    } else if (potvalue < 127) {
+    } else if (synth.speed < 127) {
       sequencer.speed_mod = Sequencer::HalfSpeed;
     }
   } else if (double_speed) {
@@ -95,7 +94,9 @@ void sequencer_tick_clock() {
   } else {
     sequencer.speed_mod = Sequencer::NormalSpeed;
   }
+}
 
+void sequencer_tick_clock() {
   if (sequencer.tick_clock()) {
     if (random_flag) {
       sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
@@ -106,6 +107,8 @@ void sequencer_tick_clock() {
 }
 
 void sequencer_update() {
+  sequencer_update_speed_mod();
+
   sequencer.gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
 
@@ -115,8 +118,7 @@ void sequencer_update() {
   sequencer.update_notes(delta);
 }
 
-void keyboard_set_note(uint8_t note) { sequencer.hold_note(note); }
-
-void keyboard_unset_note(uint8_t note) { sequencer.release_note(note); }
+#define keyboard_set_note(note) sequencer.hold_note(note)
+#define keyboard_unset_note(note) sequencer.release_note(note)
 
 #endif
