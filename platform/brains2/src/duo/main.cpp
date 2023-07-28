@@ -224,7 +224,6 @@ int main(void) {
       midi_send_cc();
 
       Drums::update(); // ~ 700us
-
       midi_handle();
       sequencer_update();
       
@@ -235,6 +234,7 @@ int main(void) {
       if (millis() > next_frame_time) {
         next_frame_time = millis() + frame_interval;
         led_update();
+        FastLED.show();
       } else {
         sequencer_update();
         pots_read();   

@@ -144,7 +144,6 @@ void led_update() {
       }
     }
   }
-  FastLED.show();
 
   write_env_led(peak1.read());
   write_filter_led(synth.filter);
