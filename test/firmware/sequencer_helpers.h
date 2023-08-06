@@ -3,6 +3,7 @@
 
 #include "firmware/seq.h"
 #include "unity.h"
+#include <cstdint>
 
 #define ASSERT_ELEMS_UINT8 TEST_ASSERT_EACH_EQUAL_UINT8
 #define ASSERT TEST_ASSERT
