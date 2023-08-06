@@ -10,6 +10,8 @@
 #include <Audio.h>
 #include <USB-MIDI.h>
 
+void keys_scan();
+
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
 
 #include "globals.h"
