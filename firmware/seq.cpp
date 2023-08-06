@@ -17,8 +17,7 @@ void Sequencer::restart() {
 void Sequencer::stop() {
   if (running) {
     running = false;
-    manual_note.enabled = false;
-    step_note.enabled = false;
+    cur_step_note.enabled = false;
     playing_note.off();
   }
 }
@@ -33,27 +32,21 @@ uint8_t Sequencer::quantized_current_step() {
 }
 
 void Sequencer::update_notes(const uint32_t delta_millis) {
-  gate_dur += delta_millis;
-
-  if (running) {
-    const bool gate_closed = (gate_dur > gate_length_msec);
-    if (gate_closed) {
-      step_note.enabled = false;
-    }
-  }
+  playing_note.update(running, delta_millis);
 
   const uint8_t stack_size = held_notes.size();
   const uint8_t step = quantized_current_step() + step_offset;
   const uint8_t recent_note = held_notes.most_recent_note().note;
 
+
   if (stack_size != last_stack_size) {
     if (stack_size == 0) {
       if (!running) {
-        manual_note.enabled = false;
+        manual_note_enabled = false;
       }
     } else if (stack_size == 1 && last_stack_size == 0) {
-      manual_note.enabled = true;
-      manual_note.note = recent_note;
+      manual_note_enabled = true;
+      manual_note_note = recent_note;
       record_note(step, recent_note);
       if (!running) {
         inc_current_step();
@@ -63,25 +56,31 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
 
   last_stack_size = stack_size;
 
-  if (manual_note.enabled) {
-    playing_note.on(manual_note.note);
-  } else if (step_note.enabled && running) {
-    playing_note.on(step_note.note);
+  if (manual_note_enabled) {
+    playing_note.on(manual_note_note);
+    if (running) {
+      manual_note_enabled = false;
+    }
+  } else if (cur_step_note.enabled && running) {
+    if (!step_triggered) {
+      playing_note.on(cur_step_note.note);
+    }
+    step_triggered = true;
   } else {
     playing_note.off();
   }
 }
 
 void Sequencer::advance() {
+  step_triggered = false;
   playing_note.off();
   inc_current_step();
   gate_dur = 0;
-  step_note = steps[wrapped_step(current_step + step_offset)];
+  cur_step_note = steps[wrapped_step(current_step + step_offset)];
   const auto note = held_notes.sorted_note(arpeggio_index).note;
 
   if (running) {
-    manual_note.enabled = false;
-
+    manual_note_enabled = false;
     arpeggio_index++;
     if (arpeggio_index >= held_notes.size()) {
       arpeggio_index = 0;
@@ -89,8 +88,8 @@ void Sequencer::advance() {
 
     if (held_notes.size() > 0) {
       record_note(current_step, note);
-      step_note.enabled = true;
-      step_note.note = note;
+      cur_step_note.enabled = true;
+      cur_step_note.note = note;
     }
   }
 }

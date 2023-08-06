@@ -40,7 +40,7 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return gate_dur <= gate_length_msec; }
+  inline bool gate_active() const { return playing_note.gate_active(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
@@ -57,9 +57,12 @@ struct Sequencer {
     steps[wrapped_step(step)].note = note;
   }
 
-  uint32_t gate_length_msec = 1;
   uint8_t step_offset = 0;
   SpeedModifier speed_mod = NormalSpeed;
+
+  void set_gate_length(const uint32_t gate) {
+    playing_note.gate_length_msec = gate;
+  }
 
 private:
   void stop_playing_note();
@@ -84,16 +87,32 @@ private:
   };
 
   ActiveNote steps[NUM_STEPS];
+  bool step_triggered = false;
 
   struct PlayingNote {
     PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
 
-    void on(const uint8_t note) {
-      if (!playing) {
-        callbacks.note_on(note, INITIAL_VELOCITY);
-        // this->note = note;
-        playing = true;
+    void update(const bool running, const uint32_t delta_millis) {
+      gate_dur += delta_millis;
+      if (running) {
+        const bool gate_closed = (gate_dur >= gate_length_msec);
+        if (gate_closed) {
+          off();
+        }
       }
+    }
+
+    void on(const uint8_t note) {
+      if (playing && note != this->note) {
+        off();
+        callbacks.note_on(note, INITIAL_VELOCITY);
+      } else if (!playing) {
+        callbacks.note_on(note, INITIAL_VELOCITY);
+      }
+
+      gate_dur = 0;
+      playing = true;
+      this->note = note;
     }
 
     void off() {
@@ -103,15 +122,22 @@ private:
       }
     }
 
+    bool gate_active() const { return gate_dur <= gate_length_msec; }
+
+    uint32_t gate_length_msec = 1;
+
   private:
     const Callbacks callbacks;
     bool playing = false;
-    // uint8_t note = 0;
+    uint16_t gate_dur = 0;
+    uint8_t note = 0;
   };
 
-  ActiveNote manual_note;
-  ActiveNote step_note;
+  ActiveNote cur_step_note;
   PlayingNote playing_note;
+
+  bool manual_note_enabled = false;
+  uint32_t manual_note_note = 0;
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */
