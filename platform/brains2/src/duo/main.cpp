@@ -10,8 +10,6 @@
 #include <Audio.h>
 #include <USB-MIDI.h>
 
-void keys_scan();
-
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
 
@@ -78,8 +76,6 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
 
-void headphone_jack_check();
-
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
   if (synth.accent) {
@@ -123,7 +119,7 @@ void midi_handle_clock() {
   midi_clock++;
 }
 
-void pots_read() {
+static void pots_read() {
   synth.speed = potRead(TEMPO_POT);
   synth.gateLength = potRead(GATE_POT);
   
@@ -142,114 +138,7 @@ void pots_read() {
 
 bool power_check() { return true; }
 
-
-int main(void) {
-  board_init();
-
-  Sync::init();
-  LEDs::init();
-  pins_init();
-  Drums::init();
-  DatoUSB::init();
-
-  //This is needed to configure the UART peripheral correctly (used for MIDI).
-  Serial.begin(31250U);
-
-  Audio::amp_disable();
-  Audio::headphone_disable();
-  sequencer_init();
-
-  BoardAudioOutput dac1; // xy=988.1000061035156,100
-  AudioAmplifier headphone_preamp;
-  AudioAmplifier speaker_preamp;
-  AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
-  AudioConnection patchCord17(pop_suppressor, 0, speaker_preamp, 0);
-  AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
-  AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
-
-  // Read the MIDI channel from EEPROM. Lowest four bits
-  // const uint8_t stored_midi_channel =
-  //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
-  const uint8_t stored_midi_channel = 1;
-  // if (midi_get_channel() != stored_midi_channel) {
-  //   eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
-  // }
-  midi_set_channel(stored_midi_channel);
-
-  // The order sequencer_init, button_matrix_init, led_init and midi_init is
-  // important Hold a button of the keyboard at startup to select MIDI channel
-  next_frame_time = millis() + 100;
-  button_matrix_init();
-  while(millis() < next_frame_time) {
-    keys_scan();
-    DatoUSB::background_update();
-  }
-  next_frame_time = millis() + frame_interval;
-  midi_init();
-  led_init();
-
-  AudioNoInterrupts();
-  headphone_preamp.gain(HEADPHONE_GAIN);
-  speaker_preamp.gain(SPEAKER_GAIN);
-  audio_init();
-  AudioInterrupts();
-
-  MIDI.setHandleStart(sequencer_restart);
-  usbMIDI.setHandleStart(sequencer_restart);
-  MIDI.setHandleContinue(sequencer_restart);
-  usbMIDI.setHandleContinue(sequencer_restart);
-  MIDI.setHandleStop(sequencer_stop);
-  usbMIDI.setHandleStop(sequencer_stop);
-
-  previous_note_on_time = millis();
-
-  Audio::headphone_enable();
-  Audio::amp_enable();
-
-  in_setup = false;  
-  
-  bool pinState = LOW;
-  while (true) {
-    digitalWrite(GPIO_SD_13, pinState);
-    pinState = !pinState;
-
-    DatoUSB::background_update();
-
-    if (power_check()) {
-      midi_handle();
-      sequencer_update();
-
-      keyboard_to_note();
-      pitch_update(); // ~30us
-
-      synth_update(); // ~ 100us
-      midi_send_cc();
-
-      Drums::update(); // ~ 700us
-      midi_handle();
-      sequencer_update();
-      
-      headphone_jack_check();
-      #ifdef DEV_MODE
-      if (!dfu_flag) {
-      #endif
-      if (millis() > next_frame_time) {
-        next_frame_time = millis() + frame_interval;
-        led_update();
-        FastLED.show();
-      } else {
-        sequencer_update();
-        pots_read();   
-        keys_scan(); // 14 or 175us (depending on debounce)
-      }
-      #ifdef DEV_MODE
-      }
-      #endif
-    }
-  }
-}
-
-void process_key(const char k, const char state) {
+static void process_key(const char k, const char state) {
   switch (state) { // Report active key state : IDLE,
                    // PRESSED, HOLD, or RELEASED
     case PRESSED:
@@ -348,7 +237,7 @@ void process_key(const char k, const char state) {
   }
 }
 
-inline void keys_scan() {
+static void keys_scan() {
   AudioNoInterrupts();
   if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
@@ -375,6 +264,128 @@ inline void keys_scan() {
   }
 }
 
+static void headphone_jack_check() {
+  static unsigned long next_jack_check_time = 0;
+  const unsigned int jack_check_interval = 200;
+  
+  if (millis() > next_jack_check_time) {
+    next_jack_check_time = millis() + jack_check_interval; 
+    if(headphone_jack_detected()) {
+    Audio::headphone_enable();
+    Audio::amp_disable();
+  } else {
+    Audio::headphone_disable();
+    Audio::amp_enable();
+  }
+  }
+}
+
+int main(void) {
+  board_init();
+
+  Sync::init();
+  LEDs::init();
+  pins_init();
+  Drums::init();
+  DatoUSB::init();
+
+  //This is needed to configure the UART peripheral correctly (used for MIDI).
+  Serial.begin(31250U);
+
+  Audio::amp_disable();
+  Audio::headphone_disable();
+  sequencer_init();
+
+  BoardAudioOutput dac1; // xy=988.1000061035156,100
+  AudioAmplifier headphone_preamp;
+  AudioAmplifier speaker_preamp;
+  AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
+  AudioConnection patchCord17(pop_suppressor, 0, speaker_preamp, 0);
+  AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
+  AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
+
+  // Read the MIDI channel from EEPROM. Lowest four bits
+  // const uint8_t stored_midi_channel =
+  //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
+  const uint8_t stored_midi_channel = 1;
+  // if (midi_get_channel() != stored_midi_channel) {
+  //   eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
+  // }
+  midi_set_channel(stored_midi_channel);
+
+  // The order sequencer_init, button_matrix_init, led_init and midi_init is
+  // important Hold a button of the keyboard at startup to select MIDI channel
+  next_frame_time = millis() + 100;
+  button_matrix_init();
+  while(millis() < next_frame_time) {
+    keys_scan();
+    DatoUSB::background_update();
+  }
+  next_frame_time = millis() + frame_interval;
+  midi_init();
+  led_init();
+
+  AudioNoInterrupts();
+  headphone_preamp.gain(HEADPHONE_GAIN);
+  speaker_preamp.gain(SPEAKER_GAIN);
+  audio_init();
+  AudioInterrupts();
+
+  MIDI.setHandleStart(sequencer_restart);
+  usbMIDI.setHandleStart(sequencer_restart);
+  MIDI.setHandleContinue(sequencer_restart);
+  usbMIDI.setHandleContinue(sequencer_restart);
+  MIDI.setHandleStop(sequencer_stop);
+  usbMIDI.setHandleStop(sequencer_stop);
+
+  previous_note_on_time = millis();
+
+  Audio::headphone_enable();
+  Audio::amp_enable();
+
+  in_setup = false;
+
+  bool pinState = LOW;
+  while (true) {
+    digitalWrite(GPIO_SD_13, pinState);
+    pinState = !pinState;
+
+    DatoUSB::background_update();
+
+    if (power_check()) {
+      midi_handle();
+      sequencer_update();
+
+      keyboard_to_note();
+      pitch_update(); // ~30us
+
+      synth_update(); // ~ 100us
+      midi_send_cc();
+
+      Drums::update(); // ~ 700us
+      midi_handle();
+      sequencer_update();
+
+      headphone_jack_check();
+      #ifdef DEV_MODE
+      if (!dfu_flag) {
+      #endif
+      if (millis() > next_frame_time) {
+        next_frame_time = millis() + frame_interval;
+        led_update();
+        FastLED.show();
+      } else {
+        sequencer_update();
+        pots_read();
+        keys_scan(); // 14 or 175us (depending on debounce)
+      }
+      #ifdef DEV_MODE
+      }
+      #endif
+    }
+  }
+}
+
 void enter_dfu() {
   // Blank all leds and turn the power button blue before rebooting
   FastLED.clear();
@@ -390,21 +401,4 @@ void enter_dfu() {
   delay(100);
   FastLED.show();
   BOARD_EnterROMBootloader();
-}
-
-
-void headphone_jack_check() {
-  static unsigned long next_jack_check_time = 0;
-  const unsigned int jack_check_interval = 200;
-  
-  if (millis() > next_jack_check_time) {
-    next_jack_check_time = millis() + jack_check_interval; 
-    if(headphone_jack_detected()) {
-    Audio::headphone_enable();
-    Audio::amp_disable();
-  } else {
-    Audio::headphone_disable();
-    Audio::amp_enable();
-  }
-  }
 }
