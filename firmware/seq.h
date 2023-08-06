@@ -81,12 +81,12 @@ private:
 
   uint16_t gate_dur = 0;
 
-  struct ActiveNote {
+  struct Step {
     uint8_t enabled = false;
     uint8_t note = 0;
   };
 
-  ActiveNote steps[NUM_STEPS];
+  Step steps[NUM_STEPS];
   bool step_triggered = false;
 
   struct PlayingNote {
@@ -123,7 +123,6 @@ private:
     }
 
     bool gate_active() const { return gate_dur <= gate_length_msec; }
-
     uint32_t gate_length_msec = 1;
 
   private:
@@ -133,11 +132,9 @@ private:
     uint8_t note = 0;
   };
 
-  ActiveNote cur_step_note;
+  Step cur_step;
+  Step manual_note;
   PlayingNote playing_note;
-
-  bool manual_note_enabled = false;
-  uint32_t manual_note_note = 0;
 };
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */

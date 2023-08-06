@@ -17,7 +17,7 @@ void Sequencer::restart() {
 void Sequencer::stop() {
   if (running) {
     running = false;
-    cur_step_note.enabled = false;
+    cur_step.enabled = false;
     playing_note.off();
   }
 }
@@ -42,11 +42,11 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
   if (stack_size != last_stack_size) {
     if (stack_size == 0) {
       if (!running) {
-        manual_note_enabled = false;
+        manual_note.enabled = false;
       }
     } else if (stack_size == 1 && last_stack_size == 0) {
-      manual_note_enabled = true;
-      manual_note_note = recent_note;
+      manual_note.enabled = true;
+      manual_note.note = recent_note;
       record_note(step, recent_note);
       if (!running) {
         inc_current_step();
@@ -56,14 +56,14 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
 
   last_stack_size = stack_size;
 
-  if (manual_note_enabled) {
-    playing_note.on(manual_note_note);
+  if (manual_note.enabled) {
+    playing_note.on(manual_note.note);
     if (running) {
-      manual_note_enabled = false;
+      manual_note.enabled = false;
     }
-  } else if (cur_step_note.enabled && running) {
+  } else if (cur_step.enabled && running) {
     if (!step_triggered) {
-      playing_note.on(cur_step_note.note);
+      playing_note.on(cur_step.note);
     }
     step_triggered = true;
   } else {
@@ -76,11 +76,11 @@ void Sequencer::advance() {
   playing_note.off();
   inc_current_step();
   gate_dur = 0;
-  cur_step_note = steps[wrapped_step(current_step + step_offset)];
+  cur_step = steps[wrapped_step(current_step + step_offset)];
   const auto note = held_notes.sorted_note(arpeggio_index).note;
 
   if (running) {
-    manual_note_enabled = false;
+    manual_note.enabled = false;
     arpeggio_index++;
     if (arpeggio_index >= held_notes.size()) {
       arpeggio_index = 0;
@@ -88,8 +88,8 @@ void Sequencer::advance() {
 
     if (held_notes.size() > 0) {
       record_note(current_step, note);
-      cur_step_note.enabled = true;
-      cur_step_note.note = note;
+      cur_step.enabled = true;
+      cur_step.note = note;
     }
   }
 }
