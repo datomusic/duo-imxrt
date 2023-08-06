@@ -101,7 +101,7 @@ static void sequencer_tick_clock() {
 }
 
 static void sequencer_update() {
-  sequencer.gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
+  sequencer.set_gate_length(map(synth.gateLength, 0, 1023, 10, 200));
   tempo_handler.update(midi_clock);
 
   const uint32_t cur_millis = millis();
