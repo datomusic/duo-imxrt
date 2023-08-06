@@ -161,8 +161,7 @@ static void process_key(const char k, const char state) {
         led_update();
       } else {
         sequencer_update();
-        pots_read();
-        sequencer_update_speed_mod();
+        pots_read();   
         keys_scan(); // 14 or 175us (depending on debounce)
       }
       #ifdef DEV_MODE

@@ -82,7 +82,7 @@ void sequencer_toggle_start() {
   }
 }
 
-void sequencer_update_speed_mod() {
+static void sequencer_update_speed_mod() {
   if (!tempo_handler.is_clock_source_internal()) {
     if (synth.speed > 900) {
       sequencer.speed_mod = Sequencer::DoubleSpeed;
@@ -97,6 +97,7 @@ void sequencer_update_speed_mod() {
 }
 
 void sequencer_tick_clock() {
+  sequencer_update_speed_mod();
   if (sequencer.tick_clock()) {
     if (random_flag) {
       sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
