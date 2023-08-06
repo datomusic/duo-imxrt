@@ -7,17 +7,9 @@
 
 uint32_t last_sequencer_update;
 
-void sequencer_init();
-void sequencer_restart();
-void sequencer_start();
-void sequencer_stop();
-void sequencer_tick_clock();
-void sequencer_reset();
-void sequencer_update();
-void keyboard_to_note();
-int keyboard_get_highest_note();
-int keyboard_get_latest_note();
-void sequencer_align_clock();
+static void sequencer_stop();
+static void sequencer_tick_clock();
+static void sequencer_update();
 
 static bool double_speed = false;
 
@@ -28,7 +20,9 @@ void sequencer_randomize_step_offset() {
   }
 }
 
-void sequencer_init() {
+static void sequencer_align_clock() { sequencer.align_clock(); }
+
+static void sequencer_init() {
   last_sequencer_update = millis();
   for (int i = 0; i < Sequencer::NUM_STEPS; i++) {
     sequencer.set_step_note(i, SCALE[random(9)]);
@@ -46,23 +40,22 @@ static void reset_midi_clock() {
   tempo_handler.midi_clock_reset();
 }
 
-void sequencer_restart() {
+static void sequencer_restart() {
   MIDI.sendRealTime(midi::Start);
   delay(1);
   reset_midi_clock();
   sequencer.restart();
 }
 
-void sequencer_align_clock() { sequencer.align_clock(); }
 
-void sequencer_start() {
+static void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
   reset_midi_clock();
   sequencer.start();
 }
 
-void sequencer_stop() {
+static void sequencer_stop() {
   if (sequencer.is_running()) {
     usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
     MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
@@ -96,7 +89,7 @@ static void sequencer_update_speed_mod() {
   }
 }
 
-void sequencer_tick_clock() {
+static void sequencer_tick_clock() {
   sequencer_update_speed_mod();
   if (sequencer.tick_clock()) {
     if (random_flag) {
@@ -107,7 +100,7 @@ void sequencer_tick_clock() {
   }
 }
 
-void sequencer_update() {
+static void sequencer_update() {
   sequencer.gate_length_msec = map(synth.gateLength, 0, 1023, 10, 200);
   tempo_handler.update(midi_clock);
 
