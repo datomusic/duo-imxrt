@@ -280,6 +280,48 @@ static void headphone_jack_check() {
   }
 }
 
+static void main_loop(){
+  bool pinState = LOW;
+  while (true) {
+    digitalWrite(GPIO_SD_13, pinState);
+    pinState = !pinState;
+
+    DatoUSB::background_update();
+
+    if (power_check()) {
+      midi_handle();
+      sequencer_update();
+
+      keyboard_to_note();
+      pitch_update(); // ~30us
+
+      synth_update(); // ~ 100us
+      midi_send_cc();
+
+      Drums::update(); // ~ 700us
+      midi_handle();
+      sequencer_update();
+
+      headphone_jack_check();
+      #ifdef DEV_MODE
+      if (!dfu_flag) {
+      #endif
+      if (millis() > next_frame_time) {
+        next_frame_time = millis() + frame_interval;
+        led_update();
+        FastLED.show();
+      } else {
+        sequencer_update();
+        pots_read();
+        keys_scan(); // 14 or 175us (depending on debounce)
+      }
+      #ifdef DEV_MODE
+      }
+      #endif
+    }
+  }
+}
+
 int main(void) {
   board_init();
 
@@ -345,45 +387,8 @@ int main(void) {
 
   in_setup = false;
 
-  bool pinState = LOW;
-  while (true) {
-    digitalWrite(GPIO_SD_13, pinState);
-    pinState = !pinState;
-
-    DatoUSB::background_update();
-
-    if (power_check()) {
-      midi_handle();
-      sequencer_update();
-
-      keyboard_to_note();
-      pitch_update(); // ~30us
-
-      synth_update(); // ~ 100us
-      midi_send_cc();
-
-      Drums::update(); // ~ 700us
-      midi_handle();
-      sequencer_update();
-
-      headphone_jack_check();
-      #ifdef DEV_MODE
-      if (!dfu_flag) {
-      #endif
-      if (millis() > next_frame_time) {
-        next_frame_time = millis() + frame_interval;
-        led_update();
-        FastLED.show();
-      } else {
-        sequencer_update();
-        pots_read();
-        keys_scan(); // 14 or 175us (depending on debounce)
-      }
-      #ifdef DEV_MODE
-      }
-      #endif
-    }
-  }
+  main_loop();
+  return 0;
 }
 
 void enter_dfu() {
