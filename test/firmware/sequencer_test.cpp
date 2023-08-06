@@ -48,7 +48,7 @@ namespace Tests {
 
 void holds_note_if_not_running() {
   auto seq = make_cleared_sequencer();
-  seq.gate_length_msec = 10;
+  seq.set_gate_length(10);
 
   ASSERT_EQ(seq.is_running(), false);
 
@@ -70,7 +70,8 @@ void holds_note_if_not_running() {
 
 void stops_playing_note_after_gate_duration() {
   auto seq = make_cleared_sequencer();
-  seq.gate_length_msec = 10;
+  const auto gate_len = 10;
+  seq.set_gate_length(gate_len);
   seq.start();
   const auto note = 123;
   seq.set_step_note(1, note);
@@ -84,7 +85,7 @@ void stops_playing_note_after_gate_duration() {
   seq.update_notes(1);
 
   ASSERT_NOTE_PLAYING(true);
-  seq.update_notes(seq.gate_length_msec - 1);
+  seq.update_notes(gate_len - 1);
   ASSERT_NOTE_PLAYING(true);
 
   seq.update_notes(1);
@@ -94,7 +95,7 @@ void stops_playing_note_after_gate_duration() {
 
 void records_early_live_note() {
   auto seq = make_cleared_sequencer();
-  seq.gate_length_msec = 10;
+  seq.set_gate_length(10);
   seq.start();
 
   const auto note = 1;
@@ -104,7 +105,7 @@ void records_early_live_note() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
-  ASSERT_NOTE_PLAYING(true);
+  ASSERT_NOTE_PLAYING(false);
   ASSERT_PLAYED_COUNT(1);
 
   tick_to_next_step(seq);
@@ -112,7 +113,7 @@ void records_early_live_note() {
 }
 void records_late_live_note() {
   auto seq = make_cleared_sequencer();
-  seq.gate_length_msec = 10;
+  seq.set_gate_length(10);
   seq.start();
 
   ASSERT_EQ(0, seq.get_cur_step());
@@ -129,7 +130,7 @@ void records_late_live_note() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
-  ASSERT_NOTE_PLAYING(true);
+  ASSERT_NOTE_PLAYING(false);
   ASSERT_PLAYED_COUNT(1);
 
   tick_to_next_step(seq);
@@ -150,6 +151,8 @@ void records_step_and_advances_when_not_running() {
 
 void retriggers_held_notes_on_advance() {
   auto seq = make_cleared_sequencer();
+  const auto gate_len = 1;
+  seq.set_gate_length(gate_len);
   seq.start();
 
   seq.hold_note(1);
@@ -164,7 +167,7 @@ void retriggers_held_notes_on_advance() {
   ASSERT_NOTE_PLAYING(true);
   ASSERT_PLAYED_COUNT(2);
 
-  seq.update_notes(seq.gate_length_msec);
+  seq.update_notes(gate_len);
 
   ASSERT_PLAYED_COUNT(2);
   ASSERT_NOTE_PLAYING(false);
