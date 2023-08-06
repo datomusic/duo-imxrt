@@ -10,6 +10,8 @@
 #include <Audio.h>
 #include <USB-MIDI.h>
 
+void keys_scan();
+
 unsigned long next_frame_time;
 unsigned int frame_interval = 10;
 
