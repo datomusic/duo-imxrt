@@ -308,30 +308,7 @@ static void main_loop(){
   }
 }
 
-int main(void) {
-  board_init();
-
-  Sync::init();
-  LEDs::init();
-  pins_init();
-  Drums::init();
-  DatoUSB::init();
-
-  //This is needed to configure the UART peripheral correctly (used for MIDI).
-  Serial.begin(31250U);
-
-  Audio::amp_disable();
-  Audio::headphone_disable();
-  sequencer_init();
-
-  BoardAudioOutput dac1; // xy=988.1000061035156,100
-  AudioAmplifier headphone_preamp;
-  AudioAmplifier speaker_preamp;
-  AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
-  AudioConnection patchCord17(pop_suppressor, 0, speaker_preamp, 0);
-  AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
-  AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
-
+static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_preamp){
   // Read the MIDI channel from EEPROM. Lowest four bits
   // const uint8_t stored_midi_channel =
   //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
@@ -344,6 +321,7 @@ int main(void) {
   // The order sequencer_init, button_matrix_init, led_init and midi_init is
   // important Hold a button of the keyboard at startup to select MIDI channel
   const uint64_t next_frame_time = millis() + 100;
+  sequencer_init();
   button_matrix_init();
   while(millis() < next_frame_time) {
     keys_scan();
@@ -371,7 +349,32 @@ int main(void) {
   Audio::amp_enable();
 
   in_setup = false;
+}
 
+int main(void) {
+  board_init();
+
+  Sync::init();
+  LEDs::init();
+  pins_init();
+  Drums::init();
+  DatoUSB::init();
+
+  //This is needed to configure the UART peripheral correctly (used for MIDI).
+  Serial.begin(31250U);
+
+  Audio::amp_disable();
+  Audio::headphone_disable();
+
+  BoardAudioOutput dac1; // xy=988.1000061035156,100
+  AudioAmplifier headphone_preamp;
+  AudioAmplifier speaker_preamp;
+  AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
+  AudioConnection patchCord17(pop_suppressor, 0, speaker_preamp, 0);
+  AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
+  AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
+
+  main_init(headphone_preamp, speaker_preamp);
   main_loop();
   return 0;
 }
