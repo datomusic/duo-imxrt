@@ -63,8 +63,8 @@ void midi_send_realtime(const midi::MidiType message){
 #include "duo-firmware/src/Synth.h"
 
 // One more LED than the physical number of leds for loopback testing
-const int NUM_LEDS = 19 + 1;
-const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
+static const int NUM_LEDS = 19 + 1;
+static const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
                                  11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 
 #define GRB 1
@@ -76,7 +76,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
 
-uint8_t note_is_playing = 0;
+static uint8_t note_is_playing = 0;
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
