@@ -14,9 +14,6 @@
 
 #include "globals.h"
 
-unsigned long next_frame_time;
-unsigned int frame_interval = 10;
-
 USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 
 #define setHandleSysEx setHandleSystemExclusive
