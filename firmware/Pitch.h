@@ -12,6 +12,7 @@ const uint8_t DETUNE_OFFSET_SEMITONES[] = { 4,5,7,9 };
 int detune_amount = 0;
 uint32_t pitch_update_time = 0;
 void pitch_update();
+float detune(int note, int amount);
 
 // Constant rate glide
 void pitch_update() {

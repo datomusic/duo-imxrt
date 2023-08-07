@@ -41,20 +41,8 @@ int random_offset = 0;
 uint32_t midi_clock = 0;
 uint16_t audio_peak_values = 0UL;
 
-void keys_scan();
-void pots_read();
-void drum_init();
-void drum_read();
-void print_log();
-
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
-
-void keyboard_to_note();
-float detune(int note, int amount);
-
-int tempo_interval_msec();
-
 void enter_dfu();
 
 #include "firmware/synth_params.h"
