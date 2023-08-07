@@ -6,53 +6,21 @@
  */
 
 uint32_t last_sequencer_update;
+bool double_speed = false;
 
-static void sequencer_stop();
-static void sequencer_tick_clock();
-static void sequencer_update();
+static void sequencer_update() {
+  sequencer.set_gate_length(map(synth.gateLength, 0, 1023, 10, 200));
+  tempo_handler.update(midi_clock);
 
-static bool double_speed = false;
-
-static void sequencer_randomize_step_offset() {
-  sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
-  if (!sequencer.is_running()) {
-    sequencer.advance();
-  }
-}
-
-static void sequencer_align_clock() { sequencer.align_clock(); }
-
-static void sequencer_init() {
-  last_sequencer_update = millis();
-  for (int i = 0; i < Sequencer::NUM_STEPS; i++) {
-    sequencer.set_step_note(i, SCALE[random(9)]);
-  }
-
-  tempo_handler.setHandleTempoEvent(sequencer_tick_clock);
-  tempo_handler.setHandleAlignEvent(sequencer_align_clock);
-  tempo_handler.setPPQN(Sequencer::PULSES_PER_QUARTER_NOTE);
-  sequencer_stop();
-  double_speed = false;
+  const uint32_t cur_millis = millis();
+  const uint32_t delta = cur_millis - last_sequencer_update;
+  last_sequencer_update = cur_millis;
+  sequencer.update_notes(delta);
 }
 
 static void reset_midi_clock() {
   midi_clock = 0;
   tempo_handler.midi_clock_reset();
-}
-
-static void sequencer_restart() {
-  MIDI.sendRealTime(midi::Start);
-  delay(1);
-  reset_midi_clock();
-  sequencer.restart();
-}
-
-
-static void sequencer_start() {
-  MIDI.sendRealTime(midi::Continue);
-  usbMIDI.sendRealTime(midi::Continue);
-  reset_midi_clock();
-  sequencer.start();
 }
 
 static void sequencer_stop() {
@@ -65,6 +33,13 @@ static void sequencer_stop() {
 
   sequencer.stop();
   midi_clock = 0;
+}
+
+static void sequencer_start() {
+  MIDI.sendRealTime(midi::Continue);
+  usbMIDI.sendRealTime(midi::Continue);
+  reset_midi_clock();
+  sequencer.start();
 }
 
 static void sequencer_toggle_start() {
@@ -96,14 +71,33 @@ static void sequencer_tick_clock() {
   }
 }
 
-static void sequencer_update() {
-  sequencer.set_gate_length(map(synth.gateLength, 0, 1023, 10, 200));
-  tempo_handler.update(midi_clock);
+static void sequencer_randomize_step_offset() {
+  sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
+  if (!sequencer.is_running()) {
+    sequencer.advance();
+  }
+}
 
-  const uint32_t cur_millis = millis();
-  const uint32_t delta = cur_millis - last_sequencer_update;
-  last_sequencer_update = cur_millis;
-  sequencer.update_notes(delta);
+static void sequencer_align_clock() { sequencer.align_clock(); }
+
+static void sequencer_init() {
+  last_sequencer_update = millis();
+  for (int i = 0; i < Sequencer::NUM_STEPS; i++) {
+    sequencer.set_step_note(i, SCALE[random(9)]);
+  }
+
+  tempo_handler.setHandleTempoEvent(sequencer_tick_clock);
+  tempo_handler.setHandleAlignEvent(sequencer_align_clock);
+  tempo_handler.setPPQN(Sequencer::PULSES_PER_QUARTER_NOTE);
+  sequencer_stop();
+  double_speed = false;
+}
+
+static void sequencer_restart() {
+  MIDI.sendRealTime(midi::Start);
+  delay(1);
+  reset_midi_clock();
+  sequencer.restart();
 }
 
 #define keyboard_set_note(note) sequencer.hold_note(note)
