@@ -13,7 +13,7 @@ static void sequencer_update();
 
 static bool double_speed = false;
 
-void sequencer_randomize_step_offset() {
+static void sequencer_randomize_step_offset() {
   sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
   if (!sequencer.is_running()) {
     sequencer.advance();
@@ -67,7 +67,7 @@ static void sequencer_stop() {
   midi_clock = 0;
 }
 
-void sequencer_toggle_start() {
+static void sequencer_toggle_start() {
   if (sequencer.is_running()) {
     sequencer_stop();
   } else {
@@ -75,7 +75,7 @@ void sequencer_toggle_start() {
   }
 }
 
-static void sequencer_update_speed_mod() {
+static void sequencer_tick_clock() {
   if (!tempo_handler.is_clock_source_internal()) {
     if (synth.speed > 900) {
       sequencer.speed_mod = Sequencer::DoubleSpeed;
@@ -87,10 +87,6 @@ static void sequencer_update_speed_mod() {
   } else {
     sequencer.speed_mod = Sequencer::NormalSpeed;
   }
-}
-
-static void sequencer_tick_clock() {
-  sequencer_update_speed_mod();
   if (sequencer.tick_clock()) {
     if (random_flag) {
       sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
