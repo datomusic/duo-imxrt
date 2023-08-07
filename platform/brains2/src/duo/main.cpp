@@ -10,7 +10,6 @@
 #include <Audio.h>
 #include <USB-MIDI.h>
 
-void keys_scan();
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
 
 #include "globals.h"
@@ -142,31 +141,6 @@ static void pots_read() {
 bool power_check() { return true; }
 
 static void process_key(const char k, const char state) {
-      
-  next_frame_time = millis() + 100;
-  next_frame_time = millis() + frame_interval;
-      midi_handle();
-      sequencer_update();
-      
-        sequencer_update();
-      
-      midi_handle();
-      sequencer_update();
-      
-      #ifdef DEV_MODE
-      if (!dfu_flag) {
-      #endif
-      if (millis() > next_frame_time) {
-        next_frame_time = millis() + frame_interval;
-        led_update();
-      } else {
-        sequencer_update();
-        pots_read();   
-        keys_scan(); // 14 or 175us (depending on debounce)
-      }
-      #ifdef DEV_MODE
-      }
-      #endif
   switch (state) { // Report active key state : IDLE,
                    // PRESSED, HOLD, or RELEASED
     case PRESSED:
@@ -312,7 +286,6 @@ static void main_loop(){
     DatoUSB::background_update();
 
     if (power_check()) {
-      keyboard_to_note();
       pitch_update(); // ~30us
       synth_update(); // ~ 100us
       midi_send_cc();
@@ -368,8 +341,6 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   usbMIDI.setHandleContinue(sequencer_restart);
   MIDI.setHandleStop(sequencer_stop);
   usbMIDI.setHandleStop(sequencer_stop);
-
-  previous_note_on_time = millis();
 
   Audio::headphone_enable();
   Audio::amp_enable();
