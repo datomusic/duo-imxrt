@@ -114,7 +114,6 @@ void note_off() {
 
 void midi_handle_clock() {
   tempo_handler.midi_clock_received();
-  midi_clock++;
 }
 
 static void pots_read() {

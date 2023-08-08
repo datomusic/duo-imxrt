@@ -52,7 +52,7 @@ class TempoHandler
     void setPPQN(int ppqn) {
       _ppqn = ppqn;
     }
-    void update(const uint32_t midi_clock) {
+    void update() {
       // Determine which source is selected for tempo
       uint8_t new_source = _source;
 
@@ -89,10 +89,12 @@ class TempoHandler
     }
 
     void midi_clock_received() {
+      midi_clock++;
       _midi_clock_received_flag = 1;
     }
     void midi_clock_reset() {
       _previous_midi_clock = 0;
+      midi_clock = 0;
     }
     void reset_clock_source() {
       _midi_clock_received_flag = 0;
@@ -117,6 +119,7 @@ class TempoHandler
     bool _midi_clock_received_flag = 0;
     uint16_t _clock = 0;
     uint16_t _ppqn = 24;
+    uint32_t midi_clock;
 
 
     void update_midi(const uint32_t midi_clock) { 
