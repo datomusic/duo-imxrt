@@ -10,7 +10,7 @@ bool double_speed = false;
 
 static void sequencer_update() {
   sequencer.set_gate_length(map(synth.gateLength, 0, 1023, 10, 200));
-  tempo_handler.update(midi_clock);
+  tempo_handler.update();
 
   const uint32_t cur_millis = millis();
   const uint32_t delta = cur_millis - last_sequencer_update;
@@ -19,7 +19,6 @@ static void sequencer_update() {
 }
 
 static void reset_midi_clock() {
-  midi_clock = 0;
   tempo_handler.midi_clock_reset();
 }
 
@@ -32,7 +31,7 @@ static void sequencer_stop() {
   }
 
   sequencer.stop();
-  midi_clock = 0;
+  tempo_handler.midi_clock_reset();
 }
 
 static void sequencer_start() {
