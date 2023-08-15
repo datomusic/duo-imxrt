@@ -10,6 +10,6 @@ const float DELAY_GAIN     = 1.0f;
 const float KICK_GAIN      = 1.0f;
 const float HAT_GAIN       = 1.2f;
 
-const float HEADPHONE_GAIN = 1.0f;
-const float SPEAKER_GAIN   = 1.0f;
+const float HEADPHONE_GAIN = 2.0f;
+const float SPEAKER_GAIN   = 2.0f;
 #endif /* end of include guard: AUDIO_OUTPUT_H_VS0HQTKT */
