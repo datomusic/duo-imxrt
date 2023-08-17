@@ -274,6 +274,8 @@ static void headphone_jack_check() {
 }
 
 static void main_loop(){
+  static unsigned long frame_time = millis();
+  static unsigned long frame_interval = 11;
   bool pinState = LOW;
   while (true) {
     digitalWrite(GPIO_SD_13, pinState);
@@ -282,23 +284,21 @@ static void main_loop(){
     DatoUSB::background_update();
 
     if (power_check()) {
-      pitch_update(); // ~30us
-      synth_update(); // ~ 100us
-      midi_send_cc();
-      Drums::update(); // ~ 700us
-      midi_handle();
-      sequencer_update();
-      headphone_jack_check();
-      #ifdef DEV_MODE
-      if (!dfu_flag) {
-      #endif
-      led_update();
-      FastLED.show();
-      pots_read();
-      keys_scan(); // 14 or 175us (depending on debounce)
-      #ifdef DEV_MODE
+      if (millis() - frame_time > frame_interval) {
+        frame_time = millis();
+        led_update();
+        FastLED.show();
+      } else {
+        pitch_update(); // ~30us
+        synth_update(); // ~ 100us
+        midi_send_cc();
+        Drums::update(); // ~ 700us
+        midi_handle();
+        sequencer_update();
+        headphone_jack_check();
+        pots_read();
+        keys_scan(); // 14 or 175us (depending on debounce)
       }
-      #endif
     }
   }
 }
