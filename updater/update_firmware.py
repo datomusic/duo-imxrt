@@ -64,6 +64,9 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
             else:
                 input("Please enter bootloader manually, then press Enter.")
         time.sleep(1)
+    else:
+        if find_duo_midi_port() is not None:
+            print("but not entering bootloader as skip_enter_bootloader is set")
 
     interface = find_sdp_interface()
     if not interface:
