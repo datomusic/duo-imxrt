@@ -36,7 +36,7 @@ execute_process(
 )
 
 if ("${GIT_TAG}" STREQUAL "undefined")
-  SET(GIT_TAG "Development build")
+  SET(GIT_TAG "Dev build")
 endif()
 
 add_definitions("-DGIT_TAG=\"${GIT_TAG}\"")
