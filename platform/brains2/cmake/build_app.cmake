@@ -15,6 +15,7 @@ include(${COMMON_CMAKE}/modules.cmake)
 include(${COMMON_CMAKE}/lib.cmake)
 
 if(WITH_USB)
+  include(${COMMON_CMAKE}/add_git_defines.cmake)
   include(${COMMON_CMAKE}/usb.cmake)
 endif(WITH_USB)
 
