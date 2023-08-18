@@ -1,23 +1,22 @@
-# Requirements
-## NXP MCUXpresso SDK
-https://github.com/NXPmicro/mcux-sdk
+This repository contains the firmware for the Dato DUO synthesizer.
 
-## ArduinoCore-imxrt 
+## Updating the firmware
+
+Grab one of the binaries from https://github.com/datomusic/duo-imxrt/releases
+Make sure you have Python 3 installed
+
+in the commandline, go to the updater directory and enter
+python3 -m pip install -r requirements.txt
+
+use python3 update_firmware.py 
+
+## DUO Brains revisions
+The main pcb of the Dato DUO is dubbed Brains. Up until mid 2022 the Brains 1 were based on the NXP K20DX256 microcontroller. Due to ongoing problems with availability of that chip family later Brains 2 are based on NXP iMX RT1010
+
+Source code for the two different platforms can be found in the platforms directory.
+
+## Credits
+Teensy Audio Library
+https://github.com/PaulStoffregen/cores https://github.com/PaulStoffregen/Audio
+Seeeduino Arduino core for imxrt
 https://github.com/Seeed-Studio/ArduinoCore-imxrt
-
-## Teensy 4 core and Audio library
-https://github.com/PaulStoffregen/cores
-https://github.com/PaulStoffregen/Audio
-- DMAChannel
-- memcpy_audio
-- AudioStream
-
-## Setting up VSCode for NXP ARM programming
-follow this whole series:
-https://mcuoneclipse.com/2021/05/01/visual-studio-code-for-c-c-with-arm-cortex-m-part-1/
-
-# Hardware
-## MIMXRT1010-EVK
-https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/i-mx-rt1010-evaluation-kit:MIMXRT1010-EVK
-
-## DUO-Brains-2.0
