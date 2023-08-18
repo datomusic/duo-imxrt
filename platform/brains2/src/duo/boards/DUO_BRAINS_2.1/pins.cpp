@@ -108,7 +108,7 @@ void pins_init() {
   // These pins are available as benchmarking pins
   pinMode(GPIO_SD_13, OUTPUT);
 
-  randomSeed(potRead(GATE_POT) * potRead(FILTER_RES_POT) * potRead(AMP_ENV_POT));
+  randomSeed(potRead(GATE_POT) + potRead(FILTER_RES_POT) + potRead(AMP_ENV_POT));
 }
 
 bool headphone_jack_detected() {
