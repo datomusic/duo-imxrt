@@ -96,3 +96,7 @@ void pins_init() {
 
   //   randomSeed(analogRead(UNCONNECTED_ANALOG));
 }
+
+bool headphone_jack_detected() {
+  return pinRead(HP_DETECT_PIN);
+}
