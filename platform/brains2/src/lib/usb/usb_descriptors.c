@@ -100,7 +100,7 @@ char const *string_desc_arr[7] = {
     GIT_BRANCH,
     GIT_HASH};
 
-#define DESC_STR_LEN 128
+#define DESC_STR_LEN 32
 static uint16_t _desc_str[DESC_STR_LEN];
 
 // Invoked when received GET STRING DESCRIPTOR request

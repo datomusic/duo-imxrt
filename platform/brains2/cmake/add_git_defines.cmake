@@ -41,4 +41,4 @@ endif()
 
 add_definitions("-DGIT_TAG=\"${GIT_TAG}\"")
 add_definitions("-DGIT_HASH=\"${GIT_HASH}\"")
-add_definitions("-DGIT_BRANCH=\"${GIT_BRANCH} [${GIT_DIRTY_STATE}]\"")
+add_definitions("-DGIT_BRANCH=\"[${GIT_DIRTY_STATE}] ${GIT_BRANCH}\"")
