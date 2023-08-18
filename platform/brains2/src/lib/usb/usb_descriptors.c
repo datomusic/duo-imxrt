@@ -91,13 +91,17 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 //--------------------------------------------------------------------+
 
 // array of pointer to string descriptors
-char const *string_desc_arr[3] = {
+char const *string_desc_arr[7] = {
     (const char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
     "Dato",                     // 1: Manufacturer
-    "Dato DUO"                  // 2: Product
-};
+    "Dato DUO",                 // 2: Product
+    NULL,                       // 3: Serial. Built upon request.
+    GIT_TAG,
+    GIT_BRANCH,
+    GIT_HASH};
 
-static uint16_t _desc_str[32];
+#define DESC_STR_LEN 32
+static uint16_t _desc_str[DESC_STR_LEN];
 
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long
@@ -116,8 +120,8 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     const uint32_t ID_1 = OCOTP->CFG1;
     char tmp_serial[32];
     chr_count = snprintf(tmp_serial, sizeof(tmp_serial), "%li-%li", ID_0, ID_1);
-    if (chr_count > 31) {
-      chr_count = 31;
+    if (chr_count > DESC_STR_LEN-1) {
+      chr_count = DESC_STR_LEN-1;
     }
 
     for (uint8_t i = 0; i < chr_count; i++) {
@@ -135,8 +139,8 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
 
     // Cap at max char
     chr_count = strlen(str);
-    if (chr_count > 31)
-      chr_count = 31;
+    if (chr_count > DESC_STR_LEN-1)
+      chr_count = DESC_STR_LEN-1;
 
     // Convert ASCII string into UTF-16
     for (uint8_t i = 0; i < chr_count; i++) {
