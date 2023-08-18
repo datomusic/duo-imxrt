@@ -28,5 +28,6 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
 )
 
 set(WITH_USB true)
+add_definitions("-DDATO_BOARD=\"${BOARD}\"")
 include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/build_app.cmake)
 
