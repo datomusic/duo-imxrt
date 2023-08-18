@@ -94,13 +94,13 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
 
         binary_start_addr = 0x60000400
 
-        print("Erasing flash", end=" ")
+        print("Erasing flash ... ", end=" ")
         mboot.flash_erase_region(binary_start_addr, len(firmware_bytes))
-        print("... done")
+        print("done")
 
-        print(f"Writing binary {basename(firmware_path)}", sep=" ", end=" ")
+        print(f"Writing binary {basename(firmware_path)} ... ", sep=" ", end=" ")
         mboot.write_memory(binary_start_addr, firmware_bytes)
-        print("... done")
+        print("done")
 
         print("Resetting")
         mboot.reset(reopen=False)
