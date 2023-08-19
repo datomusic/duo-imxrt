@@ -49,8 +49,8 @@ int count_enabled_steps(const Sequencer &seq) {
 }
 
 void tick_to_next_step(Sequencer &seq) {
-  const auto last_step = seq.get_cur_step();
-  while (last_step == seq.get_cur_step()) {
+  const auto last_step = seq.cur_step_index();
+  while (last_step == seq.cur_step_index()) {
     seq.tick_clock();
   }
 

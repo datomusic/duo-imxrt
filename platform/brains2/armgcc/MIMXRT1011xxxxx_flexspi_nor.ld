@@ -207,22 +207,23 @@ SECTIONS
   } > m_qacode
 
   __NDATA_ROM = __ram_function_flash_start + (__ram_function_end__ - __ram_function_start__);
-  .ncache.init : AT(__NDATA_ROM)
-  {
-    __noncachedata_start__ = .;   /* create a global symbol at ncache data start */
-    *(NonCacheable.init)
-    . = ALIGN(4);
-    __noncachedata_init_end__ = .;   /* create a global symbol at initialized ncache data end */
-  } > m_data
-  . = __noncachedata_init_end__;
-  .ncache :
-  {
-    *(NonCacheable)
-    . = ALIGN(4);
-    __noncachedata_end__ = .;     /* define a global symbol at ncache data end */
-  } > m_data
+  /* .ncache.init : AT(__NDATA_ROM) */
+  /* { */
+  /*   __noncachedata_start__ = .;   /1* create a global symbol at ncache data start *1/ */
+  /*   *(NonCacheable.init) */
+  /*   . = ALIGN(4); */
+  /*   __noncachedata_init_end__ = .;   /1* create a global symbol at initialized ncache data end *1/ */
+  /* } > m_data */
+  /* . = __noncachedata_init_end__; */
+  /* .ncache : */
+  /* { */
+  /*   *(NonCacheable) */
+  /*   . = ALIGN(4); */
+  /*   __noncachedata_end__ = .;     /1* define a global symbol at ncache data end *1/ */
+  /* } > m_data */
 
-  __DATA_END = __NDATA_ROM + (__noncachedata_init_end__ - __noncachedata_start__);
+  /* __DATA_END = __NDATA_ROM + (__noncachedata_init_end__ - __noncachedata_start__); */
+  __DATA_END = __NDATA_ROM;
   text_end = ORIGIN(m_text) + LENGTH(m_text);
   ASSERT(__DATA_END <= text_end, "region m_text overflowed with text and data")
 

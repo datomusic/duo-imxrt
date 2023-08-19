@@ -36,7 +36,7 @@ struct Sequencer {
   inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
   inline void release_all_notes() { held_notes.Clear(); };
   inline bool is_running() const { return running; }
-  inline uint8_t get_cur_step() const {
+  inline uint8_t cur_step_index() const {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
@@ -67,6 +67,8 @@ struct Sequencer {
 private:
   void stop_playing_note();
   void record_note(uint8_t step, uint8_t note);
+  void advance_running();
+  void advance_stopped();
   uint8_t quantized_current_step();
   inline void inc_current_step() {
     current_step = wrapped_step(current_step + 1);
@@ -78,8 +80,6 @@ private:
   uint32_t clock = 0;
   uint8_t arpeggio_index = 0;
   uint8_t last_stack_size = 0;
-
-  uint16_t gate_dur = 0;
 
   struct Step {
     uint8_t enabled = false;
@@ -93,8 +93,8 @@ private:
     PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
 
     void update(const bool running, const uint32_t delta_millis) {
-      gate_dur += delta_millis;
       if (running) {
+        gate_dur += delta_millis;
         const bool gate_closed = (gate_dur >= gate_length_msec);
         if (gate_closed) {
           off();
@@ -124,11 +124,11 @@ private:
 
     bool gate_active() const { return gate_dur <= gate_length_msec; }
     uint32_t gate_length_msec = 1;
+    uint16_t gate_dur = 0;
 
   private:
     const Callbacks callbacks;
     bool playing = false;
-    uint16_t gate_dur = 0;
     uint8_t note = 0;
   };
 

@@ -81,7 +81,7 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_NOTE_PLAYING(false)
 
   tick_to_next_step(seq);
-  ASSERT_EQ(1, seq.get_cur_step());
+  ASSERT_EQ(1, seq.cur_step_index());
   seq.update_notes(1);
 
   ASSERT_NOTE_PLAYING(true);
@@ -116,12 +116,12 @@ void records_late_live_note() {
   seq.set_gate_length(10);
   seq.start();
 
-  ASSERT_EQ(0, seq.get_cur_step());
+  ASSERT_EQ(0, seq.cur_step_index());
   for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
     seq.tick_clock();
   }
 
-  ASSERT_EQ(0, seq.get_cur_step());
+  ASSERT_EQ(0, seq.cur_step_index());
 
   const auto note = 1;
   seq.hold_note(note);
@@ -146,7 +146,7 @@ void records_step_and_advances_when_not_running() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
-  ASSERT_EQ(1, seq.get_cur_step());
+  ASSERT_EQ(1, seq.cur_step_index());
 }
 
 void retriggers_held_notes_on_advance() {
@@ -196,7 +196,7 @@ void respects_step_offset_during_playback() {
   seq.update_notes(1);
   ASSERT_EQ(2, NoteTracker::played_notes);
   ASSERT_EQ(4, NoteTracker::last_note);
-  ASSERT_EQ(4, seq.get_cur_step());
+  ASSERT_EQ(4, seq.cur_step_index());
 }
 
 } // namespace Tests

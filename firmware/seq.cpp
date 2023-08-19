@@ -17,7 +17,6 @@ void Sequencer::restart() {
 void Sequencer::stop() {
   if (running) {
     running = false;
-    cur_step.enabled = false;
     playing_note.off();
   }
 }
@@ -37,7 +36,6 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
   const uint8_t stack_size = held_notes.size();
   const uint8_t step = quantized_current_step() + step_offset;
   const uint8_t recent_note = held_notes.most_recent_note().note;
-
 
   if (stack_size != last_stack_size) {
     if (stack_size == 0) {
@@ -72,26 +70,38 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
 }
 
 void Sequencer::advance() {
+  if (running) {
+    advance_running();
+  } else {
+    advance_stopped();
+  }
+}
+
+void Sequencer::advance_running() {
   step_triggered = false;
   playing_note.off();
   inc_current_step();
-  gate_dur = 0;
-  cur_step = steps[wrapped_step(current_step + step_offset)];
-  const auto note = held_notes.sorted_note(arpeggio_index).note;
+  manual_note.enabled = false;
+  arpeggio_index++;
 
-  if (running) {
-    manual_note.enabled = false;
-    arpeggio_index++;
-    if (arpeggio_index >= held_notes.size()) {
-      arpeggio_index = 0;
-    }
-
-    if (held_notes.size() > 0) {
-      record_note(current_step, note);
-      cur_step.enabled = true;
-      cur_step.note = note;
-    }
+  if (arpeggio_index >= held_notes.size()) {
+    arpeggio_index = 0;
   }
+
+  if (held_notes.size() > 0) {
+    const auto note = held_notes.sorted_note(arpeggio_index).note;
+    record_note(current_step, note);
+    cur_step.enabled = true;
+    cur_step.note = note;
+  }
+}
+
+void Sequencer::advance_stopped(){
+  step_triggered = false;
+  playing_note.off();
+  inc_current_step();
+  manual_note.enabled = false;
+  arpeggio_index++;
 }
 
 void Sequencer::record_note(uint8_t step, const uint8_t note) {
@@ -110,24 +120,28 @@ void Sequencer::align_clock() {
 }
 
 bool Sequencer::tick_clock() {
-  uint8_t divider = TICKS_PER_STEP;
-  switch (speed_mod) {
-  case HalfSpeed:
-    divider *= 2;
-    break;
-  case DoubleSpeed:
-    divider /= 2;
-    break;
-  case NormalSpeed:
-    break;
-  }
-
   clock++;
 
-  const bool should_advance = running && (clock % divider) == 0;
-  if (should_advance) {
-    advance();
-  }
+  if (running) {
+    uint8_t divider = TICKS_PER_STEP;
+    switch (speed_mod) {
+      case HalfSpeed:
+        divider *= 2;
+        break;
+      case DoubleSpeed:
+        divider /= 2;
+        break;
+      case NormalSpeed:
+        break;
+    }
 
-  return should_advance;
+    const bool should_advance = (clock % divider) == 0;
+    if (should_advance) {
+      advance();
+    }
+
+    return should_advance;
+  } else {
+    return false;
+  }
 }
