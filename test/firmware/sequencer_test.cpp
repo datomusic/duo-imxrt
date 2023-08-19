@@ -98,6 +98,8 @@ void records_early_live_note() {
   seq.set_gate_length(10);
   seq.start();
 
+  seq.tick_clock();
+  ASSERT_EQ(0, seq.cur_step_index());
   const auto note = 1;
   seq.hold_note(note);
   seq.update_notes(1);
@@ -105,12 +107,15 @@ void records_early_live_note() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
-  ASSERT_NOTE_PLAYING(false);
-  ASSERT_PLAYED_COUNT(1);
+  ASSERT_NOTE_PLAYING(true);
 
   tick_to_next_step(seq);
+
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
+  ASSERT_PLAYED_COUNT(1);
+  ASSERT_NOTE_PLAYING(false);
 }
+
 void records_late_live_note() {
   auto seq = make_cleared_sequencer();
   seq.set_gate_length(10);

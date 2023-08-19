@@ -54,6 +54,8 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
 
   last_stack_size = stack_size;
 
+  const Step cur_step = steps[wrapped_step(current_step + step_offset)];
+
   if (manual_note.enabled) {
     playing_note.on(manual_note.note);
     if (running) {
@@ -88,11 +90,9 @@ void Sequencer::advance_running() {
     arpeggio_index = 0;
   }
 
-  cur_step = steps[wrapped_step(current_step + step_offset)];
   if (held_notes.size() > 0) {
     const auto note = held_notes.sorted_note(arpeggio_index).note;
     record_note(current_step, note);
-    cur_step = steps[wrapped_step(current_step + step_offset)];
   }
 }
 

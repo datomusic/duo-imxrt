@@ -132,7 +132,6 @@ private:
     uint8_t note = 0;
   };
 
-  Step cur_step;
   Step manual_note;
   PlayingNote playing_note;
 };
