@@ -40,7 +40,7 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return playing_note.gate_active(); }
+  inline bool gate_active() const { return gate.active(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
@@ -60,9 +60,7 @@ struct Sequencer {
   uint8_t step_offset = 0;
   SpeedModifier speed_mod = NormalSpeed;
 
-  void set_gate_length(const uint32_t gate) {
-    playing_note.gate_length_msec = gate;
-  }
+  void set_gate_length(const uint32_t millis) { gate.length_millis = millis; }
 
 private:
   void stop_playing_note();
@@ -89,14 +87,25 @@ private:
   Step steps[NUM_STEPS];
   bool step_triggered = false;
 
+  struct Gate {
+    void update(const uint32_t delta_millis) { elapsed_millis += delta_millis; }
+
+    bool active() const { return elapsed_millis <= length_millis; }
+
+    uint32_t length_millis = 1;
+
+  private:
+    uint16_t elapsed_millis;
+  };
+
+  Gate gate;
+
   struct PlayingNote {
     PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
 
-    void update(const bool running, const uint32_t delta_millis) {
+    void update(const Gate &gate, const bool running) {
       if (running) {
-        gate_dur += delta_millis;
-        const bool gate_closed = (gate_dur >= gate_length_msec);
-        if (gate_closed) {
+        if (!gate.active()) {
           off();
         }
       }
@@ -110,7 +119,6 @@ private:
         callbacks.note_on(note, INITIAL_VELOCITY);
       }
 
-      gate_dur = 0;
       playing = true;
       this->note = note;
     }
@@ -121,10 +129,6 @@ private:
         playing = false;
       }
     }
-
-    bool gate_active() const { return gate_dur <= gate_length_msec; }
-    uint32_t gate_length_msec = 1;
-    uint16_t gate_dur = 0;
 
   private:
     const Callbacks callbacks;

@@ -31,7 +31,8 @@ uint8_t Sequencer::quantized_current_step() {
 }
 
 void Sequencer::update_notes(const uint32_t delta_millis) {
-  playing_note.update(running, delta_millis);
+  gate.update(delta_millis);
+  playing_note.update(gate, running);
 
   const uint8_t stack_size = held_notes.size();
   const uint8_t step = quantized_current_step() + step_offset;
