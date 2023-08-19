@@ -1,7 +1,7 @@
 #include "seq.h"
 
 Sequencer::Sequencer(Callbacks callbacks) : playing_note(callbacks) {
-  held_notes.Init();
+  arp.held_notes.Init();
   for (int i = 0; i < NUM_STEPS; ++i) {
     steps[i].enabled = i != 1 && i != (NUM_STEPS - 2);
   }
@@ -36,9 +36,9 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
     playing_note.off();
   }
 
-  const uint8_t stack_size = held_notes.size();
+  const uint8_t stack_size = arp.held_notes.size();
   const uint8_t step = quantized_current_step() + step_offset;
-  const uint8_t recent_note = held_notes.most_recent_note().note;
+  const uint8_t recent_note = arp.held_notes.most_recent_note().note;
 
   if (stack_size != last_stack_size) {
     if (stack_size == 0) {
@@ -88,14 +88,10 @@ void Sequencer::advance_running() {
   playing_note.off();
   inc_current_step();
   manual_note.enabled = false;
-  arpeggio_index++;
+  arp.advance();
 
-  if (arpeggio_index >= held_notes.size()) {
-    arpeggio_index = 0;
-  }
-
-  if (held_notes.size() > 0) {
-    const auto note = held_notes.sorted_note(arpeggio_index).note;
+  if (arp.count() > 0) {
+    const auto note = arp.held_notes.sorted_note(arp.index).note;
     record_note(current_step, note);
   }
 }

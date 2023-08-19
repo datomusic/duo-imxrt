@@ -30,11 +30,11 @@ struct Sequencer {
   void update_notes(uint32_t delta_millis);
   void align_clock();
   inline void hold_note(uint8_t note, uint8_t velocity) {
-    held_notes.NoteOn(note, velocity);
+    arp.hold_note(note, velocity);
   }
+  inline void release_note(uint8_t note) { arp.release_note(note); }
+  inline void release_all_notes() { arp.release_all_notes(); };
   inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
-  inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
-  inline void release_all_notes() { held_notes.Clear(); };
   inline bool is_running() const { return running; }
   inline uint8_t cur_step_index() const {
     return (current_step + step_offset) % NUM_STEPS;
@@ -71,11 +71,9 @@ private:
     current_step = wrapped_step(current_step + 1);
   }
 
-  NoteStack<10> held_notes;
   bool running = false;
   uint8_t current_step = 0;
   uint32_t clock = 0;
-  uint8_t arpeggio_index = 0;
   uint8_t last_stack_size = 0;
 
   struct Step {
@@ -98,6 +96,28 @@ private:
   };
 
   Gate gate;
+
+  struct Arpeggiator {
+    void advance() {
+      index++;
+      if (index >= held_notes.size()) {
+        index = 0;
+      }
+    }
+
+    uint8_t count() const { return held_notes.size(); }
+    inline void hold_note(uint8_t note, uint8_t velocity) {
+      held_notes.NoteOn(note, velocity);
+    }
+    inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
+    inline void release_all_notes() { held_notes.Clear(); };
+
+    NoteStack<10> held_notes;
+
+    uint8_t index = 0;
+  };
+
+  Arpeggiator arp;
 
   struct PlayingNote {
     PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
