@@ -66,7 +66,6 @@ private:
   void stop_playing_note();
   void record_note(uint8_t step, uint8_t note);
   void advance_running();
-  void advance_stopped();
   uint8_t quantized_current_step();
   inline void inc_current_step() {
     current_step = wrapped_step(current_step + 1);
@@ -89,7 +88,7 @@ private:
 
   struct Gate {
     void update(const uint32_t delta_millis) { elapsed_millis += delta_millis; }
-
+    void trigger() { elapsed_millis = 0; }
     bool active() const { return elapsed_millis <= length_millis; }
 
     uint32_t length_millis = 1;
@@ -102,14 +101,6 @@ private:
 
   struct PlayingNote {
     PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
-
-    void update(const Gate &gate, const bool running) {
-      if (running) {
-        if (!gate.active()) {
-          off();
-        }
-      }
-    }
 
     void on(const uint8_t note) {
       if (playing && note != this->note) {

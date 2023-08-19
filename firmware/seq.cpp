@@ -32,7 +32,9 @@ uint8_t Sequencer::quantized_current_step() {
 
 void Sequencer::update_notes(const uint32_t delta_millis) {
   gate.update(delta_millis);
-  playing_note.update(gate, running);
+  if (running && !gate.active()) {
+    playing_note.off();
+  }
 
   const uint8_t stack_size = held_notes.size();
   const uint8_t step = quantized_current_step() + step_offset;
@@ -76,11 +78,12 @@ void Sequencer::advance() {
   if (running) {
     advance_running();
   } else {
-    advance_stopped();
+    inc_current_step();
   }
 }
 
 void Sequencer::advance_running() {
+  gate.trigger();
   step_triggered = false;
   playing_note.off();
   inc_current_step();
@@ -95,14 +98,6 @@ void Sequencer::advance_running() {
     const auto note = held_notes.sorted_note(arpeggio_index).note;
     record_note(current_step, note);
   }
-}
-
-void Sequencer::advance_stopped() {
-  step_triggered = false;
-  playing_note.off();
-  inc_current_step();
-  manual_note.enabled = false;
-  arpeggio_index++;
 }
 
 void Sequencer::record_note(uint8_t step, const uint8_t note) {
