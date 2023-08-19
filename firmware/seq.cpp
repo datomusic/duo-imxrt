@@ -88,15 +88,15 @@ void Sequencer::advance_running() {
     arpeggio_index = 0;
   }
 
+  cur_step = steps[wrapped_step(current_step + step_offset)];
   if (held_notes.size() > 0) {
     const auto note = held_notes.sorted_note(arpeggio_index).note;
     record_note(current_step, note);
-    cur_step.enabled = true;
-    cur_step.note = note;
+    cur_step = steps[wrapped_step(current_step + step_offset)];
   }
 }
 
-void Sequencer::advance_stopped(){
+void Sequencer::advance_stopped() {
   step_triggered = false;
   playing_note.off();
   inc_current_step();
@@ -125,14 +125,14 @@ bool Sequencer::tick_clock() {
   if (running) {
     uint8_t divider = TICKS_PER_STEP;
     switch (speed_mod) {
-      case HalfSpeed:
-        divider *= 2;
-        break;
-      case DoubleSpeed:
-        divider /= 2;
-        break;
-      case NormalSpeed:
-        break;
+    case HalfSpeed:
+      divider *= 2;
+      break;
+    case DoubleSpeed:
+      divider /= 2;
+      break;
+    case NormalSpeed:
+      break;
     }
 
     const bool should_advance = (clock % divider) == 0;
