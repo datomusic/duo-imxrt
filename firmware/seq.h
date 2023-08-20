@@ -129,11 +129,16 @@ struct Sequencer {
     steps[wrapped_step(step)].note = note;
   }
 
-  uint8_t step_offset = 0;
   SpeedModifier speed_mod = NormalSpeed;
 
   void set_gate_length(const uint32_t millis) {
     step_gate.length_millis = live_gate.length_millis = millis;
+  }
+
+  void set_step_offset(const uint8_t offset) {
+    step_offset = offset;
+    last_played_step = UINT8_MAX;
+    step_played_live = false;
   }
 
 private:
@@ -146,8 +151,9 @@ private:
 
   bool running = false;
   uint8_t current_step = 0;
-  uint32_t clock = 0;
+  uint8_t step_offset = 0;
   uint8_t last_played_step = 0;
+  uint32_t clock = 0;
   bool step_played_live = false;
   Arpeggiator arp;
   Gate step_gate;

@@ -63,15 +63,15 @@ static void sequencer_tick_clock() {
   }
   if (sequencer.tick_clock()) {
     if (random_flag) {
-      sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
+      sequencer.set_step_offset(random(1, (Sequencer::NUM_STEPS - 2)));
     } else {
-      sequencer.step_offset = 0;
+      sequencer.set_step_offset(0);
     }
   }
 }
 
 static void sequencer_randomize_step_offset() {
-  sequencer.step_offset = random(1, (Sequencer::NUM_STEPS - 2));
+  sequencer.set_step_offset(random(1, (Sequencer::NUM_STEPS - 2)));
   if (!sequencer.is_running()) {
     sequencer.advance();
   }
