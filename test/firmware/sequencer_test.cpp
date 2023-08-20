@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-#define SINGLE_TEST records_late_live_note
+// #define SINGLE_TEST arp_does_not_replay_note_when_lower_held
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -146,7 +146,7 @@ void records_late_live_note() {
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
 
   // Gate has already been ticked once.
-  // Note should stop when gate_len has passed since the 
+  // Note should stop when gate_len has passed since the
   // note was pressed, not since the step started.
   seq.update_gate(gate_len - 2);
   // Gate should still be active
@@ -219,6 +219,23 @@ void respects_step_offset_during_playback() {
   ASSERT_EQ(4, seq.cur_step_index());
 }
 
+void arp_does_not_replay_note_when_lower_held() {
+  auto seq = make_cleared_sequencer();
+  seq.set_gate_length(10);
+  seq.start();
+  seq.hold_note(1);
+  seq.hold_note(3);
+  ASSERT_PLAYED_COUNT(1);
+  ASSERT_EQ(1, NoteTracker::last_note);
+  seq.advance();
+  seq.hold_note(2);
+  ASSERT_PLAYED_COUNT(2);
+  ASSERT_EQ(3, NoteTracker::last_note);
+  seq.advance();
+  ASSERT_PLAYED_COUNT(3);
+  ASSERT_EQ(1, NoteTracker::last_note);
+}
+
 } // namespace Tests
 
 void setUp(void) { NoteTracker::reset(); }
@@ -236,6 +253,7 @@ int main() {
   RUN_TEST(Tests::records_step_and_advances_when_not_running);
   RUN_TEST(Tests::retriggers_held_notes_on_advance);
   RUN_TEST(Tests::respects_step_offset_during_playback);
+  RUN_TEST(Tests::arp_does_not_replay_note_when_lower_held);
 #endif
   return UNITY_END();
 }
