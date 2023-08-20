@@ -212,7 +212,7 @@ void respects_step_offset_during_playback() {
 
   ASSERT_PLAYED_COUNT(1);
   ASSERT_EQ(1, NoteTracker::last_note);
-  seq.step_offset = 2;
+  seq.set_step_offset(2);
 
   seq.advance();
   seq.update_gate(1);
