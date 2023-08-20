@@ -92,7 +92,7 @@ private:
     uint32_t length_millis = 1;
 
   private:
-    uint16_t elapsed_millis;
+    uint16_t elapsed_millis = 0;
   };
 
   Gate gate;
@@ -112,9 +112,8 @@ private:
     inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
     inline void release_all_notes() { held_notes.Clear(); };
 
-    NoteStack<10> held_notes;
-
     uint8_t index = 0;
+    NoteStack<10> held_notes;
   };
 
   Arpeggiator arp;
