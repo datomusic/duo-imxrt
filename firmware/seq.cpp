@@ -1,5 +1,7 @@
 #include "seq.h"
 
+namespace Sequencer {
+
 Sequencer::Sequencer(Callbacks callbacks) : playing_note(callbacks) {
   arp.held_notes.Init();
 
@@ -23,8 +25,7 @@ void Sequencer::stop() {
 }
 
 uint8_t Sequencer::quantized_current_step() {
-  if (!running ||
-      (clock % Sequencer::TICKS_PER_STEP < Sequencer::TICKS_PER_STEP / 2)) {
+  if (!running || (clock % TICKS_PER_STEP < TICKS_PER_STEP / 2)) {
     return current_step;
   } else {
     return current_step + 1;
@@ -138,3 +139,4 @@ bool Sequencer::tick_clock() {
     return false;
   }
 }
+} // namespace Sequencer

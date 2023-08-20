@@ -4,22 +4,83 @@
 #include "note_stack.h"
 #include <cstdint>
 
+namespace Sequencer {
+
+static const unsigned INITIAL_VELOCITY = 100;
+
+struct Arpeggiator {
+  void advance() {
+    index++;
+    if (index >= held_notes.size()) {
+      index = 0;
+    }
+  }
+
+  uint8_t count() const { return held_notes.size(); }
+  inline void hold_note(uint8_t note, uint8_t velocity) {
+    held_notes.NoteOn(note, velocity);
+  }
+  inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
+  inline void release_all_notes() { held_notes.Clear(); };
+
+  uint8_t index = 0;
+  NoteStack<10> held_notes;
+};
+
+struct Gate {
+  void update(const uint32_t delta_millis) { elapsed_millis += delta_millis; }
+  void trigger() { elapsed_millis = 0; }
+  bool active() const { return elapsed_millis <= length_millis; }
+
+  uint32_t length_millis = 1;
+
+private:
+  uint16_t elapsed_millis = 0;
+};
+
+struct Callbacks {
+  typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
+  typedef void (&NoteOff)(void);
+  NoteOn note_on;
+  NoteOff note_off;
+};
+
+struct PlayingNote {
+  PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
+
+  void on(const uint8_t note) {
+    if (playing && note != this->note) {
+      off();
+      callbacks.note_on(note, INITIAL_VELOCITY);
+    } else if (!playing) {
+      callbacks.note_on(note, INITIAL_VELOCITY);
+    }
+
+    playing = true;
+    this->note = note;
+  }
+
+  void off() {
+    if (playing) {
+      callbacks.note_off();
+      playing = false;
+    }
+  }
+
+private:
+  const Callbacks callbacks;
+  bool playing = false;
+  uint8_t note = 0;
+};
+
+static const uint8_t NUM_STEPS = 8;
+static const unsigned PULSES_PER_QUARTER_NOTE = 24;
+static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
+enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
+
 struct Sequencer {
-  static const uint8_t NUM_STEPS = 8;
-  static const unsigned PULSES_PER_QUARTER_NOTE = 24;
-  static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
-  static const unsigned INITIAL_VELOCITY = 100;
 
   static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
-
-  struct Callbacks {
-    typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
-    typedef void (&NoteOff)(void);
-    NoteOn note_on;
-    NoteOff note_off;
-  };
-
-  enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
 
   Sequencer(Callbacks callbacks);
   void start();
@@ -72,82 +133,21 @@ private:
   }
 
   bool running = false;
+  bool step_triggered = false;
   uint8_t current_step = 0;
-  uint32_t clock = 0;
   uint8_t last_stack_size = 0;
+  uint32_t clock = 0;
+  Arpeggiator arp;
+  PlayingNote playing_note;
+  Gate gate;
 
   struct Step {
     uint8_t enabled = false;
     uint8_t note = 0;
   };
-
   Step steps[NUM_STEPS];
-  bool step_triggered = false;
-
-  struct Gate {
-    void update(const uint32_t delta_millis) { elapsed_millis += delta_millis; }
-    void trigger() { elapsed_millis = 0; }
-    bool active() const { return elapsed_millis <= length_millis; }
-
-    uint32_t length_millis = 1;
-
-  private:
-    uint16_t elapsed_millis = 0;
-  };
-
-  Gate gate;
-
-  struct Arpeggiator {
-    void advance() {
-      index++;
-      if (index >= held_notes.size()) {
-        index = 0;
-      }
-    }
-
-    uint8_t count() const { return held_notes.size(); }
-    inline void hold_note(uint8_t note, uint8_t velocity) {
-      held_notes.NoteOn(note, velocity);
-    }
-    inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
-    inline void release_all_notes() { held_notes.Clear(); };
-
-    uint8_t index = 0;
-    NoteStack<10> held_notes;
-  };
-
-  Arpeggiator arp;
-
-  struct PlayingNote {
-    PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
-
-    void on(const uint8_t note) {
-      if (playing && note != this->note) {
-        off();
-        callbacks.note_on(note, INITIAL_VELOCITY);
-      } else if (!playing) {
-        callbacks.note_on(note, INITIAL_VELOCITY);
-      }
-
-      playing = true;
-      this->note = note;
-    }
-
-    void off() {
-      if (playing) {
-        callbacks.note_off();
-        playing = false;
-      }
-    }
-
-  private:
-    const Callbacks callbacks;
-    bool playing = false;
-    uint8_t note = 0;
-  };
-
   Step manual_note;
-  PlayingNote playing_note;
 };
+} // namespace Sequencer
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */

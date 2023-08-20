@@ -38,8 +38,8 @@ static Sequencer::Callbacks callbacks{note_on, note_off};
   TEST_ASSERT_EQUAL_MESSAGE(count, NoteTracker::played_notes,                  \
                             "[Played note count]");
 
-Sequencer make_cleared_sequencer() {
-  Sequencer seq(NoteTracker::callbacks);
+Sequencer::Sequencer make_cleared_sequencer() {
+  Sequencer::Sequencer seq(NoteTracker::callbacks);
   clear_steps(seq);
   return seq;
 }
