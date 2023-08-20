@@ -128,9 +128,9 @@ bool Sequencer::tick_clock() {
       break;
     }
 
-    const bool should_advance = (clock % divider) == 0;
+    const bool should_advance = running && (clock % divider) == 0;
     if (should_advance) {
-      advance();
+      advance_running();
     }
 
     return should_advance;
