@@ -14,6 +14,8 @@ void Sequencer::start() { running = true; }
 void Sequencer::restart() {
   clock = 0;
   current_step = 0;
+  last_played_step = NUM_STEPS;
+  step_played_live = false;
   start();
 }
 
@@ -36,8 +38,14 @@ void Sequencer::update_gate(const uint32_t delta_millis) {
   step_gate.update(delta_millis);
   live_gate.update(delta_millis);
 
-  if (running && !step_gate.open() && !live_gate.open()) {
-    output.off();
+  if (running) {
+    if (step_played_live) {
+      if (!live_gate.open()) {
+        output.off();
+      }
+    } else if (!step_gate.open()) {
+      output.off();
+    }
   }
 }
 
@@ -51,20 +59,30 @@ void Sequencer::advance() {
 
 void Sequencer::advance_running() {
   step_gate.trigger();
-  output.off();
+
+  if (!step_played_live || !live_gate.open()) {
+    output.off();
+  }
+
   inc_current_step();
 
   const auto step_index = current_step + step_offset;
   const Step cur_step = steps[wrapped_step(step_index)];
 
-  if (arp.count() > 0) {
-    arp.advance();
-    const uint8_t note = arp.current_note();
-    record_note(current_step + step_offset, note);
-    output.on(note);
-  } else if (cur_step.enabled) {
-    output.on(cur_step.note);
+  arp.advance();
+
+  if (last_played_step != step_index) {
+    step_played_live = false;
+    if (arp.count() > 0) {
+      const uint8_t note = arp.current_note();
+      record_note(current_step + step_offset, note);
+      output.on(note);
+    } else if (cur_step.enabled) {
+      output.on(cur_step.note);
+    }
   }
+
+  last_played_step = step_index;
 }
 
 void Sequencer::record_note(uint8_t step, const uint8_t note) {
@@ -115,12 +133,15 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   const auto active_note_count = arp.count();
   if (active_note_count > 0) {
     const auto arp_note = arp.recent_note();
-    record_note(quantized_current_step() + step_offset, arp_note);
+    const auto step_index = quantized_current_step() + step_offset;
+    record_note(step_index, arp_note);
 
     if (running) {
       if (active_note_count == 1) {
         output.on(arp_note);
         live_gate.trigger();
+        last_played_step = step_index;
+        step_played_live = true;
       }
     } else {
       output.on(arp_note);
@@ -131,6 +152,7 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
 
 void Sequencer::release_note(uint8_t note) {
   arp.release_note(note);
+  step_played_live = false;
   if (!running) {
     if (arp.count() > 0) {
       output.on(arp.recent_note());

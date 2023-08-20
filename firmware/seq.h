@@ -61,7 +61,7 @@ struct Output {
   Output(Callbacks callbacks) : callbacks(callbacks) {}
 
   void on(const uint8_t note) {
-    if (output_active && note != active_note) {
+    if (output_active) {
       off();
     }
 
@@ -149,6 +149,8 @@ private:
   bool running = false;
   uint8_t current_step = 0;
   uint32_t clock = 0;
+  uint8_t last_played_step = 0;
+  bool step_played_live = false;
   Arpeggiator arp;
   Gate step_gate;
   Gate live_gate;
