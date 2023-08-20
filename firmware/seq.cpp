@@ -51,24 +51,29 @@ void Sequencer::advance_running() {
   gate.trigger();
 
   output.step_off();
+  output.live_note_off();
   inc_current_step();
+
+  const auto step_index = current_step + step_offset;
+  const Step cur_step = steps[wrapped_step(step_index)];
 
   if (arp.count() > 0) {
     arp.advance();
-    record_note(current_step + step_offset, arp.current_note());
-  }
-
-  const auto step_index = current_step + step_offset; 
-  const Step cur_step = steps[wrapped_step(step_index)];
-  if (cur_step.enabled) {
+    const uint8_t note = arp.current_note();
+    record_note(current_step + step_offset, note);
+    output.step_on(note);
+  } else if (last_recorded_step != step_index && cur_step.enabled) {
     output.step_on(cur_step.note);
   }
+
+  last_recorded_step = -1;
 }
 
 void Sequencer::record_note(uint8_t step, const uint8_t note) {
   step = wrapped_step(step);
   steps[step].enabled = true;
   steps[step].note = note;
+  last_recorded_step = step;
 }
 
 void Sequencer::align_clock() {
@@ -112,21 +117,24 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   const auto arp_note = arp.recent_note();
 
   record_note(quantized_current_step() + step_offset, arp_note);
-  if (!running) {
+
+  if (running) {
+    if (arp.count() == 1) {
+      output.live_note_on(arp_note);
+      gate.trigger();
+    }
+  } else {
+    output.live_note_on(arp_note);
     inc_current_step();
   }
-
-  output.live_note_on(arp_note);
 }
 
 void Sequencer::release_note(uint8_t note) {
   arp.release_note(note);
-  if (!running) {
-    if (arp.count() > 0) {
-      output.live_note_on(arp.current_note());
-    } else {
-      output.live_note_off();
-    }
+  if (arp.count() > 0) {
+    output.live_note_on(arp.current_note());
+  } else if (!running) {
+    output.live_note_off();
   }
 }
 

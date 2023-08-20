@@ -55,32 +55,38 @@ struct Callbacks {
 struct Output {
   Output(Callbacks callbacks) : callbacks(callbacks) {}
 
-  void live_note_on(const uint8_t note) { on(note); }
-  void live_note_off() { off(); }
+  bool live_active = false;
+  void live_note_on(const uint8_t note) {
+    on(note);
+    live_active = true;
+  }
+  void live_note_off() {
+    off();
+    live_active = false;
+  }
+
   void step_on(const uint8_t note) { on(note); }
   void step_off() { off(); }
 
   const Callbacks callbacks;
-  bool playing = false;
-  uint8_t note = 0;
+  bool output_active = false;
+  uint8_t active_note = 0;
 
 private:
   void on(const uint8_t note) {
-    if (playing && note != this->note) {
+    if (output_active && note != active_note) {
       off();
-      callbacks.note_on(note, INITIAL_VELOCITY);
-    } else if (!playing) {
-      callbacks.note_on(note, INITIAL_VELOCITY);
     }
 
-    playing = true;
-    this->note = note;
+    output_active = true;
+    active_note = note;
+    callbacks.note_on(active_note, INITIAL_VELOCITY);
   }
 
   void off() {
-    if (playing) {
+    if (output_active) {
       callbacks.note_off();
-      playing = false;
+      output_active = false;
     }
   }
 };
@@ -150,6 +156,7 @@ private:
   bool running = false;
   uint8_t current_step = 0;
   uint32_t clock = 0;
+  uint8_t last_recorded_step = -1;
   Arpeggiator arp;
   Gate gate;
   Output output;

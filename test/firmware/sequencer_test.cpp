@@ -110,10 +110,9 @@ void records_early_live_note() {
   ASSERT_NOTE_PLAYING(true);
 
   tick_to_next_step(seq);
-
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
-  ASSERT_PLAYED_COUNT(1);
   ASSERT_NOTE_PLAYING(false);
+  ASSERT_PLAYED_COUNT(1);
 }
 
 void records_late_live_note() {
@@ -135,13 +134,12 @@ void records_late_live_note() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
-  ASSERT_PLAYED_COUNT(1);
+  ASSERT_NOTE_PLAYING(true);
 
   tick_to_next_step(seq);
-  ASSERT_NOTE_PLAYING(true);
-  seq.update_notes(6);
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
   ASSERT_NOTE_PLAYING(false);
+  ASSERT_PLAYED_COUNT(1);
 }
 
 void records_step_and_advances_when_not_running() {
