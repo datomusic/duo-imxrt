@@ -17,17 +17,17 @@
   TEST_ASSERT_TRUE_MESSAGE(get_step_enabled(seq, step_index),                  \
                            "Expected step to be active: " #step_index);
 
-uint8_t get_step_enabled(const Sequencer &seq, int index) {
+uint8_t get_step_enabled(const Sequencer::Sequencer &seq, int index) {
   TEST_ASSERT_LESS_THAN_INT(Sequencer::NUM_STEPS, index);
   return seq.get_step_enabled(index);
 }
 
-uint8_t get_note(Sequencer &seq, int index) {
+uint8_t get_note(Sequencer::Sequencer &seq, int index) {
   TEST_ASSERT_LESS_THAN_INT(Sequencer::NUM_STEPS, index);
   return seq.get_step_note(index);
 }
 
-void set_all_steps_active(Sequencer &s, const bool active) {
+void set_all_steps_active(Sequencer::Sequencer &s, const bool active) {
   for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {
     if (s.get_step_enabled(i) != active) {
       s.toggle_step(i);
@@ -35,9 +35,9 @@ void set_all_steps_active(Sequencer &s, const bool active) {
   }
 }
 
-void clear_steps(Sequencer &s) { set_all_steps_active(s, false); }
+void clear_steps(Sequencer::Sequencer &s) { set_all_steps_active(s, false); }
 
-int count_enabled_steps(const Sequencer &seq) {
+int count_enabled_steps(const Sequencer::Sequencer &seq) {
   int count = 0;
   for (int i = 0; i < Sequencer::NUM_STEPS; ++i) {
     if (seq.get_step_enabled(i)) {
@@ -48,9 +48,9 @@ int count_enabled_steps(const Sequencer &seq) {
   return count;
 }
 
-void tick_to_next_step(Sequencer &seq) {
-  const auto last_step = seq.get_cur_step();
-  while (last_step == seq.get_cur_step()) {
+void tick_to_next_step(Sequencer::Sequencer &seq) {
+  const auto last_step = seq.cur_step_index();
+  while (last_step == seq.cur_step_index()) {
     seq.tick_clock();
   }
 

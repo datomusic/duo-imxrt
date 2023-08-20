@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-// #define SINGLE_TEST stops_playing_note_after_gate_duration
+// #define SINGLE_TEST records_early_live_note
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -38,8 +38,8 @@ static Sequencer::Callbacks callbacks{note_on, note_off};
   TEST_ASSERT_EQUAL_MESSAGE(count, NoteTracker::played_notes,                  \
                             "[Played note count]");
 
-Sequencer make_cleared_sequencer() {
-  Sequencer seq(NoteTracker::callbacks);
+Sequencer::Sequencer make_cleared_sequencer() {
+  Sequencer::Sequencer seq(NoteTracker::callbacks);
   clear_steps(seq);
   return seq;
 }
@@ -53,18 +53,18 @@ void holds_note_if_not_running() {
   ASSERT_EQ(seq.is_running(), false);
 
   seq.hold_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
   ASSERT_EQ(1, NoteTracker::played_notes);
   ASSERT_TRUE(NoteTracker::note_active);
   const uint32_t long_delta = 1000000;
-  seq.update_notes(long_delta);
+  seq.update_gate(long_delta);
 
   // Note should still be on after gate length has passed.
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::played_notes);
 
   seq.release_note(1);
-  seq.update_notes(long_delta);
+  seq.update_gate(long_delta);
   ASSERT_EQ(false, NoteTracker::note_active);
 }
 
@@ -81,72 +81,94 @@ void stops_playing_note_after_gate_duration() {
   ASSERT_NOTE_PLAYING(false)
 
   tick_to_next_step(seq);
-  ASSERT_EQ(1, seq.get_cur_step());
-  seq.update_notes(1);
+  ASSERT_EQ(1, seq.cur_step_index());
+  seq.update_gate(1);
 
   ASSERT_NOTE_PLAYING(true);
-  seq.update_notes(gate_len - 1);
+  seq.update_gate(gate_len - 1);
   ASSERT_NOTE_PLAYING(true);
 
-  seq.update_notes(1);
+  seq.update_gate(1);
   ASSERT_PLAYED_COUNT(1);
   ASSERT_NOTE_PLAYING(false);
 }
 
 void records_early_live_note() {
   auto seq = make_cleared_sequencer();
-  seq.set_gate_length(10);
+  const uint8_t gate_len = 5;
+  seq.set_gate_length(gate_len);
   seq.start();
 
+  seq.tick_clock();
+  ASSERT_EQ(0, seq.cur_step_index());
   const auto note = 1;
   seq.hold_note(note);
-  seq.update_notes(1);
+  seq.update_gate(1);
   seq.release_note(note);
-  seq.update_notes(1);
 
+  ASSERT_ONLY_ENABLED_STEP(seq, 0);
+  ASSERT_NOTE_PLAYING(true);
+
+  tick_to_next_step(seq);
+  seq.update_gate(gate_len);
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
   ASSERT_NOTE_PLAYING(false);
   ASSERT_PLAYED_COUNT(1);
-
-  tick_to_next_step(seq);
-  ASSERT_ONLY_ENABLED_STEP(seq, 0);
 }
+
 void records_late_live_note() {
   auto seq = make_cleared_sequencer();
-  seq.set_gate_length(10);
+  const uint8_t gate_len = 5;
+  seq.set_gate_length(gate_len);
   seq.start();
 
-  ASSERT_EQ(0, seq.get_cur_step());
+  // Tick to end of current step
   for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
     seq.tick_clock();
   }
-
-  ASSERT_EQ(0, seq.get_cur_step());
+  ASSERT_EQ(0, seq.cur_step_index());
 
   const auto note = 1;
   seq.hold_note(note);
-  seq.update_notes(1);
-  seq.release_note(note);
-  seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
-  ASSERT_NOTE_PLAYING(false);
+  ASSERT_NOTE_PLAYING(true);
   ASSERT_PLAYED_COUNT(1);
 
+  seq.update_gate(1);
+
+  // Tick to next step while still holding the note.
+  // Should not retrigger the note that was just recorded.
   tick_to_next_step(seq);
+  ASSERT_EQ(1, seq.cur_step_index());
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
+
+  // Make sure the note was not retriggered.
+  ASSERT_PLAYED_COUNT(1);
+
+  // Gate has already been ticked once.
+  // Note should stop when gate_len has passed since the
+  // note was pressed, not since the step started.
+  seq.update_gate(gate_len - 1);
+
+  // Live gate should still be active.
+  ASSERT_NOTE_PLAYING(true);
+
+  // Ticked over gate duration, should kill active step note.
+  seq.update_gate(1);
+  ASSERT_NOTE_PLAYING(false);
 }
 
 void records_step_and_advances_when_not_running() {
   auto seq = make_cleared_sequencer();
   ASSERT_FALSE(seq.is_running());
   seq.hold_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
   seq.release_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
-  ASSERT_EQ(1, seq.get_cur_step());
+  ASSERT_EQ(1, seq.cur_step_index());
 }
 
 void retriggers_held_notes_on_advance() {
@@ -156,18 +178,18 @@ void retriggers_held_notes_on_advance() {
   seq.start();
 
   seq.hold_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_NOTE_PLAYING(true);
   ASSERT_PLAYED_COUNT(1);
 
   tick_to_next_step(seq);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_NOTE_PLAYING(true);
   ASSERT_PLAYED_COUNT(2);
 
-  seq.update_notes(gate_len);
+  seq.update_gate(gate_len);
 
   ASSERT_PLAYED_COUNT(2);
   ASSERT_NOTE_PLAYING(false);
@@ -186,17 +208,34 @@ void respects_step_offset_during_playback() {
   ASSERT_PLAYED_COUNT(0);
 
   seq.advance();
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_PLAYED_COUNT(1);
   ASSERT_EQ(1, NoteTracker::last_note);
   seq.step_offset = 2;
 
   seq.advance();
-  seq.update_notes(1);
+  seq.update_gate(1);
   ASSERT_EQ(2, NoteTracker::played_notes);
   ASSERT_EQ(4, NoteTracker::last_note);
-  ASSERT_EQ(4, seq.get_cur_step());
+  ASSERT_EQ(4, seq.cur_step_index());
+}
+
+void arp_does_not_replay_note_when_lower_added() {
+  auto seq = make_cleared_sequencer();
+  seq.set_gate_length(10);
+  seq.start();
+  seq.hold_note(1);
+  seq.hold_note(3);
+  ASSERT_PLAYED_COUNT(1);
+  ASSERT_EQ(1, NoteTracker::last_note);
+  seq.advance();
+  seq.hold_note(2);
+  ASSERT_PLAYED_COUNT(2);
+  ASSERT_EQ(3, NoteTracker::last_note);
+  seq.advance();
+  ASSERT_PLAYED_COUNT(3);
+  ASSERT_EQ(1, NoteTracker::last_note);
 }
 
 } // namespace Tests
@@ -216,6 +255,7 @@ int main() {
   RUN_TEST(Tests::records_step_and_advances_when_not_running);
   RUN_TEST(Tests::retriggers_held_notes_on_advance);
   RUN_TEST(Tests::respects_step_offset_during_playback);
+  RUN_TEST(Tests::arp_does_not_replay_note_when_lower_added);
 #endif
   return UNITY_END();
 }

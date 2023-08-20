@@ -98,7 +98,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
-    leds(sequencer.get_cur_step() % Sequencer::NUM_STEPS) = LED_WHITE;
+    leds(sequencer.cur_step_index() % Sequencer::NUM_STEPS) = LED_WHITE;
   }
 }
 

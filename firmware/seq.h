@@ -4,22 +4,91 @@
 #include "note_stack.h"
 #include <cstdint>
 
+namespace Sequencer {
+static const unsigned INITIAL_VELOCITY = 100;
+static const uint8_t NUM_STEPS = 8;
+static const unsigned PULSES_PER_QUARTER_NOTE = 24;
+static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
+
+struct Arpeggiator {
+  void init() {
+    held_notes.Init();
+    index = 0;
+  }
+  void advance() { index++; }
+
+  uint8_t recent_note() { return held_notes.most_recent_note().note; }
+  uint8_t current_note() {
+    if (index >= held_notes.size()) {
+      index = 0;
+    }
+
+    return held_notes.sorted_note(index).note;
+  }
+  uint8_t count() const { return held_notes.size(); }
+  inline void hold_note(uint8_t note, uint8_t velocity) {
+    if (count() > 0 && note < current_note()) {
+      ++index;
+    }
+
+    held_notes.NoteOn(note, velocity);
+  }
+  inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
+  inline void release_all_notes() { held_notes.Clear(); };
+
+private:
+  uint8_t index = 0;
+  NoteStack<10> held_notes;
+};
+
+struct Gate {
+  void update(const uint32_t delta_millis) { elapsed_millis += delta_millis; }
+  void trigger() { elapsed_millis = 0; }
+  bool open() const { return elapsed_millis <= length_millis; }
+
+  uint32_t length_millis = 1;
+
+private:
+  uint16_t elapsed_millis = 0;
+};
+
+struct Callbacks {
+  typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
+  typedef void (&NoteOff)(void);
+  NoteOn note_on;
+  NoteOff note_off;
+};
+
+struct Output {
+  Output(Callbacks callbacks) : callbacks(callbacks) {}
+
+  void on(const uint8_t note) {
+    if (output_active) {
+      off();
+    }
+
+    output_active = true;
+    active_note = note;
+    callbacks.note_on(active_note, INITIAL_VELOCITY);
+  }
+
+  void off() {
+    if (output_active) {
+      callbacks.note_off();
+      output_active = false;
+    }
+  }
+
+private:
+  const Callbacks callbacks;
+  bool output_active = false;
+  uint8_t active_note = 0;
+};
+
+enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
+
 struct Sequencer {
-  static const uint8_t NUM_STEPS = 8;
-  static const unsigned PULSES_PER_QUARTER_NOTE = 24;
-  static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
-  static const unsigned INITIAL_VELOCITY = 100;
-
   static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
-
-  struct Callbacks {
-    typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
-    typedef void (&NoteOff)(void);
-    NoteOn note_on;
-    NoteOff note_off;
-  };
-
-  enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
 
   Sequencer(Callbacks callbacks);
   void start();
@@ -27,20 +96,23 @@ struct Sequencer {
   void stop();
   void advance();
   bool tick_clock();
-  void update_notes(uint32_t delta_millis);
+  void update_gate(uint32_t delta_millis);
   void align_clock();
-  inline void hold_note(uint8_t note, uint8_t velocity) {
-    held_notes.NoteOn(note, velocity);
-  }
   inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
-  inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
-  inline void release_all_notes() { held_notes.Clear(); };
+  void hold_note(uint8_t note, uint8_t velocity);
+  void release_note(uint8_t note);
+  inline void release_all_notes() {
+    arp.release_all_notes();
+    if (!running) {
+      output.off();
+    }
+  };
   inline bool is_running() const { return running; }
-  inline uint8_t get_cur_step() const {
+  inline uint8_t cur_step_index() const {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return playing_note.gate_active(); }
+  inline bool gate_active() const { return step_gate.open(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
@@ -60,81 +132,34 @@ struct Sequencer {
   uint8_t step_offset = 0;
   SpeedModifier speed_mod = NormalSpeed;
 
-  void set_gate_length(const uint32_t gate) {
-    playing_note.gate_length_msec = gate;
+  void set_gate_length(const uint32_t millis) {
+    step_gate.length_millis = live_gate.length_millis = millis;
   }
 
 private:
-  void stop_playing_note();
   void record_note(uint8_t step, uint8_t note);
+  void advance_running();
   uint8_t quantized_current_step();
   inline void inc_current_step() {
     current_step = wrapped_step(current_step + 1);
   }
 
-  NoteStack<10> held_notes;
   bool running = false;
   uint8_t current_step = 0;
   uint32_t clock = 0;
-  uint8_t arpeggio_index = 0;
-  uint8_t last_stack_size = 0;
-
-  uint16_t gate_dur = 0;
+  uint8_t last_played_step = 0;
+  bool step_played_live = false;
+  Arpeggiator arp;
+  Gate step_gate;
+  Gate live_gate;
+  Output output;
 
   struct Step {
     uint8_t enabled = false;
     uint8_t note = 0;
   };
-
   Step steps[NUM_STEPS];
-  bool step_triggered = false;
-
-  struct PlayingNote {
-    PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
-
-    void update(const bool running, const uint32_t delta_millis) {
-      gate_dur += delta_millis;
-      if (running) {
-        const bool gate_closed = (gate_dur >= gate_length_msec);
-        if (gate_closed) {
-          off();
-        }
-      }
-    }
-
-    void on(const uint8_t note) {
-      if (playing && note != this->note) {
-        off();
-        callbacks.note_on(note, INITIAL_VELOCITY);
-      } else if (!playing) {
-        callbacks.note_on(note, INITIAL_VELOCITY);
-      }
-
-      gate_dur = 0;
-      playing = true;
-      this->note = note;
-    }
-
-    void off() {
-      if (playing) {
-        callbacks.note_off();
-        playing = false;
-      }
-    }
-
-    bool gate_active() const { return gate_dur <= gate_length_msec; }
-    uint32_t gate_length_msec = 1;
-
-  private:
-    const Callbacks callbacks;
-    bool playing = false;
-    uint16_t gate_dur = 0;
-    uint8_t note = 0;
-  };
-
-  Step cur_step;
-  Step manual_note;
-  PlayingNote playing_note;
 };
+} // namespace Sequencer
 
 #endif /* end of include guard: SEQ_H_0PHDG2MB */

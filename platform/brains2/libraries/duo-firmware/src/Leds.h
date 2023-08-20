@@ -129,7 +129,7 @@ void led_update() {
       leds(l) = CRGB::Black;
     }
      
-    const auto cur_seq_step = sequencer.get_cur_step();
+    const auto cur_seq_step = sequencer.cur_step_index();
     const bool step_enabled = sequencer.get_step_enabled(cur_seq_step);
 
     if(sequencer.gate_active()) {

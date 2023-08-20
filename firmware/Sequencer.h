@@ -15,7 +15,7 @@ static void sequencer_update() {
   const uint32_t cur_millis = millis();
   const uint32_t delta = cur_millis - last_sequencer_update;
   last_sequencer_update = cur_millis;
-  sequencer.update_notes(delta);
+  sequencer.update_gate(delta);
 }
 
 static void reset_midi_clock() {
