@@ -13,17 +13,22 @@ struct Arpeggiator {
     held_notes.Init();
     index = 0;
   }
-  void advance() {
-    index++;
+  void advance() { index++; }
+
+  uint8_t recent_note() { return held_notes.most_recent_note().note; }
+  uint8_t current_note() {
     if (index >= held_notes.size()) {
       index = 0;
     }
-  }
 
-  uint8_t recent_note() { return held_notes.most_recent_note().note; }
-  uint8_t current_note() { return held_notes.sorted_note(index).note; }
+    return held_notes.sorted_note(index).note;
+  }
   uint8_t count() const { return held_notes.size(); }
   inline void hold_note(uint8_t note, uint8_t velocity) {
+    if (count() > 0 && note < current_note()) {
+      ++index;
+    }
+
     held_notes.NoteOn(note, velocity);
   }
   inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
@@ -144,7 +149,6 @@ private:
   bool running = false;
   uint8_t current_step = 0;
   uint32_t clock = 0;
-  uint8_t last_recorded_step = -1;
   Arpeggiator arp;
   Gate step_gate;
   Gate live_gate;

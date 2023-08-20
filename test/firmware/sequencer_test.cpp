@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-// #define SINGLE_TEST arp_does_not_replay_note_when_lower_held
+// #define SINGLE_TEST arp_does_not_replay_note_when_lower_added
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -219,7 +219,7 @@ void respects_step_offset_during_playback() {
   ASSERT_EQ(4, seq.cur_step_index());
 }
 
-void arp_does_not_replay_note_when_lower_held() {
+void arp_does_not_replay_note_when_lower_added() {
   auto seq = make_cleared_sequencer();
   seq.set_gate_length(10);
   seq.start();
@@ -253,7 +253,7 @@ int main() {
   RUN_TEST(Tests::records_step_and_advances_when_not_running);
   RUN_TEST(Tests::retriggers_held_notes_on_advance);
   RUN_TEST(Tests::respects_step_offset_during_playback);
-  RUN_TEST(Tests::arp_does_not_replay_note_when_lower_held);
+  RUN_TEST(Tests::arp_does_not_replay_note_when_lower_added);
 #endif
   return UNITY_END();
 }
