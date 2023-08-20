@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-// #define SINGLE_TEST records_late_live_note
+#define SINGLE_TEST records_late_live_note
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -117,7 +117,8 @@ void records_early_live_note() {
 
 void records_late_live_note() {
   auto seq = make_cleared_sequencer();
-  seq.set_gate_length(5);
+  const uint8_t gate_len = 3;
+  seq.set_gate_length(gate_len);
   seq.start();
 
   ASSERT_EQ(0, seq.cur_step_index());
@@ -125,21 +126,35 @@ void records_late_live_note() {
     seq.tick_clock();
   }
 
-  ASSERT_EQ(0, seq.cur_step_index());
-
   const auto note = 1;
   seq.hold_note(note);
+
+  ASSERT_EQ(0, seq.cur_step_index());
+  ASSERT_ONLY_ENABLED_STEP(seq, 1);
+
   seq.update_gate(1);
-  seq.release_note(note);
-  seq.update_gate(1);
+  ASSERT_NOTE_PLAYING(true);
+  ASSERT_PLAYED_COUNT(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
+  ASSERT_EQ(0, seq.cur_step_index());
+
+  // Tick to next step while still holding the note.
+  // Should not re-trigger the note that was just recorded.
+  tick_to_next_step(seq);
+  ASSERT_EQ(1, seq.cur_step_index());
+  ASSERT_ONLY_ENABLED_STEP(seq, 1);
+
+  // Gate has already been ticked once.
+  // Note should stop when gate_len has passed since the 
+  // note was pressed, not since the step started.
+  seq.update_gate(gate_len - 2);
+  // Gate should still be active
   ASSERT_NOTE_PLAYING(true);
 
-  tick_to_next_step(seq);
-  ASSERT_ONLY_ENABLED_STEP(seq, 1);
+  // Ticked over gate duration, should kill active step note.
+  seq.update_gate(1);
   ASSERT_NOTE_PLAYING(false);
-  ASSERT_PLAYED_COUNT(1);
 }
 
 void records_step_and_advances_when_not_running() {
