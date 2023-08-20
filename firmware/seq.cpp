@@ -2,7 +2,7 @@
 
 namespace Sequencer {
 
-Sequencer::Sequencer(Callbacks callbacks) : playing_note(callbacks) {
+Sequencer::Sequencer(Callbacks callbacks) : output(callbacks) {
   arp.held_notes.Init();
 
   for (int i = 0; i < NUM_STEPS; ++i) {
@@ -20,7 +20,7 @@ void Sequencer::restart() {
 void Sequencer::stop() {
   if (running) {
     running = false;
-    playing_note.off();
+    output.step_off();
   }
 }
 
@@ -35,7 +35,7 @@ uint8_t Sequencer::quantized_current_step() {
 void Sequencer::update_notes(const uint32_t delta_millis) {
   gate.update(delta_millis);
   if (running && !gate.active()) {
-    playing_note.off();
+    output.step_off();
   }
 
   const uint8_t stack_size = arp.held_notes.size();
@@ -58,21 +58,26 @@ void Sequencer::update_notes(const uint32_t delta_millis) {
   }
 
   last_stack_size = stack_size;
-
   const Step cur_step = steps[wrapped_step(current_step + step_offset)];
 
   if (manual_note.enabled) {
-    playing_note.on(manual_note.note);
+    output.live_note_on(manual_note.note);
     if (running) {
       manual_note.enabled = false;
     }
-  } else if (cur_step.enabled && running) {
-    if (!step_triggered) {
-      playing_note.on(cur_step.note);
+  }else{
+    output.live_note_off();
+  }
+
+  if (running) {
+    if (cur_step.enabled) {
+      if (!step_triggered) {
+        output.step_on(cur_step.note);
+      }
+      step_triggered = true;
+    } else {
+      output.step_off();
     }
-    step_triggered = true;
-  } else {
-    playing_note.off();
   }
 }
 
@@ -87,7 +92,7 @@ void Sequencer::advance() {
 void Sequencer::advance_running() {
   gate.trigger();
   step_triggered = false;
-  playing_note.off();
+  output.step_off();
   inc_current_step();
   manual_note.enabled = false;
   arp.advance();
@@ -139,4 +144,5 @@ bool Sequencer::tick_clock() {
     return false;
   }
 }
+
 } // namespace Sequencer

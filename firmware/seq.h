@@ -45,9 +45,18 @@ struct Callbacks {
   NoteOff note_off;
 };
 
-struct PlayingNote {
-  PlayingNote(Callbacks callbacks) : callbacks(callbacks){};
+struct Output {
+  Output(Callbacks callbacks) : callbacks(callbacks) {}
+  void live_note_on(const uint8_t note) { on(note); }
+  void live_note_off() {off();}
+  void step_on(const uint8_t note) { on(note); }
+  void step_off() { off(); }
 
+  const Callbacks callbacks;
+  bool playing = false;
+  uint8_t note = 0;
+
+private:
   void on(const uint8_t note) {
     if (playing && note != this->note) {
       off();
@@ -66,16 +75,12 @@ struct PlayingNote {
       playing = false;
     }
   }
-
-private:
-  const Callbacks callbacks;
-  bool playing = false;
-  uint8_t note = 0;
 };
 
 static const uint8_t NUM_STEPS = 8;
 static const unsigned PULSES_PER_QUARTER_NOTE = 24;
 static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
+
 enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
 
 struct Sequencer {
@@ -124,7 +129,6 @@ struct Sequencer {
   void set_gate_length(const uint32_t millis) { gate.length_millis = millis; }
 
 private:
-  void stop_playing_note();
   void record_note(uint8_t step, uint8_t note);
   void advance_running();
   uint8_t quantized_current_step();
@@ -138,8 +142,8 @@ private:
   uint8_t last_stack_size = 0;
   uint32_t clock = 0;
   Arpeggiator arp;
-  PlayingNote playing_note;
   Gate gate;
+  Output output;
 
   struct Step {
     uint8_t enabled = false;
