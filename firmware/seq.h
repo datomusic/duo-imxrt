@@ -9,6 +9,10 @@ namespace Sequencer {
 static const unsigned INITIAL_VELOCITY = 100;
 
 struct Arpeggiator {
+  void init() {
+    held_notes.Init();
+    index = 0;
+  }
   void advance() {
     index++;
     if (index >= held_notes.size()) {
@@ -16,6 +20,8 @@ struct Arpeggiator {
     }
   }
 
+  uint8_t recent_note() { return held_notes.most_recent_note().note; }
+  uint8_t current_note() { return held_notes.sorted_note(index).note; }
   uint8_t count() const { return held_notes.size(); }
   inline void hold_note(uint8_t note, uint8_t velocity) {
     held_notes.NoteOn(note, velocity);
@@ -23,6 +29,7 @@ struct Arpeggiator {
   inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
   inline void release_all_notes() { held_notes.Clear(); };
 
+private:
   uint8_t index = 0;
   NoteStack<10> held_notes;
 };
@@ -30,7 +37,7 @@ struct Arpeggiator {
 struct Gate {
   void update(const uint32_t delta_millis) { elapsed_millis += delta_millis; }
   void trigger() { elapsed_millis = 0; }
-  bool active() const { return elapsed_millis <= length_millis; }
+  bool open() const { return elapsed_millis <= length_millis; }
 
   uint32_t length_millis = 1;
 
@@ -47,8 +54,9 @@ struct Callbacks {
 
 struct Output {
   Output(Callbacks callbacks) : callbacks(callbacks) {}
+
   void live_note_on(const uint8_t note) { on(note); }
-  void live_note_off() {off();}
+  void live_note_off() { off(); }
   void step_on(const uint8_t note) { on(note); }
   void step_off() { off(); }
 
@@ -95,18 +103,21 @@ struct Sequencer {
   bool tick_clock();
   void update_notes(uint32_t delta_millis);
   void align_clock();
-  inline void hold_note(uint8_t note, uint8_t velocity) {
-    arp.hold_note(note, velocity);
-  }
-  inline void release_note(uint8_t note) { arp.release_note(note); }
-  inline void release_all_notes() { arp.release_all_notes(); };
   inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
+  void hold_note(uint8_t note, uint8_t velocity);
+  void release_note(uint8_t note);
+  inline void release_all_notes() {
+    arp.release_all_notes();
+    if (!running) {
+      output.live_note_off();
+    }
+  };
   inline bool is_running() const { return running; }
   inline uint8_t cur_step_index() const {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return gate.active(); }
+  inline bool gate_active() const { return gate.open(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
@@ -137,7 +148,6 @@ private:
   }
 
   bool running = false;
-  bool step_triggered = false;
   uint8_t current_step = 0;
   uint8_t last_stack_size = 0;
   uint32_t clock = 0;
