@@ -53,18 +53,18 @@ void holds_note_if_not_running() {
   ASSERT_EQ(seq.is_running(), false);
 
   seq.hold_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
   ASSERT_EQ(1, NoteTracker::played_notes);
   ASSERT_TRUE(NoteTracker::note_active);
   const uint32_t long_delta = 1000000;
-  seq.update_notes(long_delta);
+  seq.update_gate(long_delta);
 
   // Note should still be on after gate length has passed.
   ASSERT_TRUE(NoteTracker::note_active);
   ASSERT_EQ(1, NoteTracker::played_notes);
 
   seq.release_note(1);
-  seq.update_notes(long_delta);
+  seq.update_gate(long_delta);
   ASSERT_EQ(false, NoteTracker::note_active);
 }
 
@@ -82,13 +82,13 @@ void stops_playing_note_after_gate_duration() {
 
   tick_to_next_step(seq);
   ASSERT_EQ(1, seq.cur_step_index());
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_NOTE_PLAYING(true);
-  seq.update_notes(gate_len - 1);
+  seq.update_gate(gate_len - 1);
   ASSERT_NOTE_PLAYING(true);
 
-  seq.update_notes(1);
+  seq.update_gate(1);
   ASSERT_PLAYED_COUNT(1);
   ASSERT_NOTE_PLAYING(false);
 }
@@ -102,9 +102,9 @@ void records_early_live_note() {
   ASSERT_EQ(0, seq.cur_step_index());
   const auto note = 1;
   seq.hold_note(note);
-  seq.update_notes(1);
+  seq.update_gate(1);
   seq.release_note(note);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
   ASSERT_NOTE_PLAYING(true);
@@ -129,9 +129,9 @@ void records_late_live_note() {
 
   const auto note = 1;
   seq.hold_note(note);
-  seq.update_notes(1);
+  seq.update_gate(1);
   seq.release_note(note);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
   ASSERT_NOTE_PLAYING(true);
@@ -146,9 +146,9 @@ void records_step_and_advances_when_not_running() {
   auto seq = make_cleared_sequencer();
   ASSERT_FALSE(seq.is_running());
   seq.hold_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
   seq.release_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 0);
   ASSERT_EQ(1, seq.cur_step_index());
@@ -161,18 +161,18 @@ void retriggers_held_notes_on_advance() {
   seq.start();
 
   seq.hold_note(1);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_NOTE_PLAYING(true);
   ASSERT_PLAYED_COUNT(1);
 
   tick_to_next_step(seq);
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_NOTE_PLAYING(true);
   ASSERT_PLAYED_COUNT(2);
 
-  seq.update_notes(gate_len);
+  seq.update_gate(gate_len);
 
   ASSERT_PLAYED_COUNT(2);
   ASSERT_NOTE_PLAYING(false);
@@ -191,14 +191,14 @@ void respects_step_offset_during_playback() {
   ASSERT_PLAYED_COUNT(0);
 
   seq.advance();
-  seq.update_notes(1);
+  seq.update_gate(1);
 
   ASSERT_PLAYED_COUNT(1);
   ASSERT_EQ(1, NoteTracker::last_note);
   seq.step_offset = 2;
 
   seq.advance();
-  seq.update_notes(1);
+  seq.update_gate(1);
   ASSERT_EQ(2, NoteTracker::played_notes);
   ASSERT_EQ(4, NoteTracker::last_note);
   ASSERT_EQ(4, seq.cur_step_index());

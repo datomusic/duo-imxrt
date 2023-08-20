@@ -55,24 +55,6 @@ struct Callbacks {
 struct Output {
   Output(Callbacks callbacks) : callbacks(callbacks) {}
 
-  bool live_active = false;
-  void live_note_on(const uint8_t note) {
-    on(note);
-    live_active = true;
-  }
-  void live_note_off() {
-    off();
-    live_active = false;
-  }
-
-  void step_on(const uint8_t note) { on(note); }
-  void step_off() { off(); }
-
-  const Callbacks callbacks;
-  bool output_active = false;
-  uint8_t active_note = 0;
-
-private:
   void on(const uint8_t note) {
     if (output_active && note != active_note) {
       off();
@@ -89,6 +71,11 @@ private:
       output_active = false;
     }
   }
+
+private:
+  const Callbacks callbacks;
+  bool output_active = false;
+  uint8_t active_note = 0;
 };
 
 static const uint8_t NUM_STEPS = 8;
@@ -98,7 +85,6 @@ static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
 enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
 
 struct Sequencer {
-
   static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
 
   Sequencer(Callbacks callbacks);
@@ -107,7 +93,7 @@ struct Sequencer {
   void stop();
   void advance();
   bool tick_clock();
-  void update_notes(uint32_t delta_millis);
+  void update_gate(uint32_t delta_millis);
   void align_clock();
   inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
   void hold_note(uint8_t note, uint8_t velocity);
@@ -115,7 +101,7 @@ struct Sequencer {
   inline void release_all_notes() {
     arp.release_all_notes();
     if (!running) {
-      output.live_note_off();
+      output.off();
     }
   };
   inline bool is_running() const { return running; }
@@ -123,7 +109,7 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return gate.open(); }
+  inline bool gate_active() const { return step_gate.open(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
@@ -143,7 +129,9 @@ struct Sequencer {
   uint8_t step_offset = 0;
   SpeedModifier speed_mod = NormalSpeed;
 
-  void set_gate_length(const uint32_t millis) { gate.length_millis = millis; }
+  void set_gate_length(const uint32_t millis) {
+    step_gate.length_millis = live_gate.length_millis = millis;
+  }
 
 private:
   void record_note(uint8_t step, uint8_t note);
@@ -158,7 +146,8 @@ private:
   uint32_t clock = 0;
   uint8_t last_recorded_step = -1;
   Arpeggiator arp;
-  Gate gate;
+  Gate step_gate;
+  Gate live_gate;
   Output output;
 
   struct Step {
