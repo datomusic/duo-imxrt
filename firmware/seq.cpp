@@ -131,10 +131,12 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
 
 void Sequencer::release_note(uint8_t note) {
   arp.release_note(note);
-  if (arp.count() > 0) {
-    output.on(arp.current_note());
-  } else if (!running) {
-    output.off();
+  if (!running) {
+    if (arp.count() > 0) {
+      output.on(arp.recent_note());
+    } else if (!running) {
+      output.off();
+    }
   }
 }
 
