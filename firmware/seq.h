@@ -149,7 +149,6 @@ private:
 
   bool running = false;
   uint8_t current_step = 0;
-  uint8_t last_stack_size = 0;
   uint32_t clock = 0;
   Arpeggiator arp;
   Gate gate;
@@ -160,7 +159,6 @@ private:
     uint8_t note = 0;
   };
   Step steps[NUM_STEPS];
-  Step manual_note;
 };
 } // namespace Sequencer
 
