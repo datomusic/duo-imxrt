@@ -5,8 +5,10 @@
 #include <cstdint>
 
 namespace Sequencer {
-
 static const unsigned INITIAL_VELOCITY = 100;
+static const uint8_t NUM_STEPS = 8;
+static const unsigned PULSES_PER_QUARTER_NOTE = 24;
+static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
 
 struct Arpeggiator {
   void init() {
@@ -82,10 +84,6 @@ private:
   bool output_active = false;
   uint8_t active_note = 0;
 };
-
-static const uint8_t NUM_STEPS = 8;
-static const unsigned PULSES_PER_QUARTER_NOTE = 24;
-static const unsigned TICKS_PER_STEP = (PULSES_PER_QUARTER_NOTE / 2);
 
 enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
 
