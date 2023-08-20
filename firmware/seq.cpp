@@ -55,10 +55,11 @@ void Sequencer::advance_running() {
 
   if (arp.count() > 0) {
     arp.advance();
-    record_note(current_step, arp.current_note());
+    record_note(current_step + step_offset, arp.current_note());
   }
 
-  const Step cur_step = steps[wrapped_step(current_step + step_offset)];
+  const auto step_index = current_step + step_offset; 
+  const Step cur_step = steps[wrapped_step(step_index)];
   if (cur_step.enabled) {
     output.step_on(cur_step.note);
   }
@@ -110,8 +111,8 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   arp.hold_note(note, velocity);
   const auto arp_note = arp.recent_note();
 
+  record_note(quantized_current_step() + step_offset, arp_note);
   if (!running) {
-    record_note(quantized_current_step() + step_offset, arp_note);
     inc_current_step();
   }
 

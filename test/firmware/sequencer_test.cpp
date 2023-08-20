@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-// #define SINGLE_TEST stops_playing_note_after_gate_duration
+// #define SINGLE_TEST records_late_live_note
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -118,7 +118,7 @@ void records_early_live_note() {
 
 void records_late_live_note() {
   auto seq = make_cleared_sequencer();
-  seq.set_gate_length(10);
+  seq.set_gate_length(5);
   seq.start();
 
   ASSERT_EQ(0, seq.cur_step_index());
@@ -135,11 +135,13 @@ void records_late_live_note() {
   seq.update_notes(1);
 
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
-  ASSERT_NOTE_PLAYING(false);
   ASSERT_PLAYED_COUNT(1);
 
   tick_to_next_step(seq);
+  ASSERT_NOTE_PLAYING(true);
+  seq.update_notes(6);
   ASSERT_ONLY_ENABLED_STEP(seq, 1);
+  ASSERT_NOTE_PLAYING(false);
 }
 
 void records_step_and_advances_when_not_running() {
