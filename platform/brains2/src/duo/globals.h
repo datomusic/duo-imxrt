@@ -15,6 +15,7 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 #define INITIAL_VELOCITY 100
 
 #define EEPROM_MIDI_CHANNEL 0
+#define USB_STARTUP_DELAY_MS 280
 
 // Globals that should not be globals
 int gate_length_msec = 40;
@@ -41,20 +42,8 @@ int random_offset = 0;
 uint32_t midi_clock = 0;
 uint16_t audio_peak_values = 0UL;
 
-void keys_scan();
-void pots_read();
-void drum_init();
-void drum_read();
-void print_log();
-
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
-
-void keyboard_to_note();
-float detune(int note, int amount);
-
-int tempo_interval_msec();
-
 void enter_dfu();
 
 #include "firmware/synth_params.h"

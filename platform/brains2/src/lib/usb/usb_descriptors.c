@@ -54,7 +54,7 @@ enum { ITF_NUM_MIDI = 0, ITF_NUM_MIDI_STREAMING, ITF_NUM_TOTAL };
 uint8_t const desc_fs_configuration[] = {
     // Config number, interface count, string index, total length, attribute,
     // power in mA
-    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
+    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 500),
 
     // Interface number, string index, EP Out & EP In address, EP size
     TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, (0x80 | EPNUM_MIDI_IN),
@@ -64,7 +64,7 @@ uint8_t const desc_fs_configuration[] = {
 uint8_t const desc_hs_configuration[] = {
     // Config number, interface count, string index, total length, attribute,
     // power in mA
-    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
+    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 500),
 
     // Interface number, string index, EP Out & EP In address, EP size
     TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, (0x80 | EPNUM_MIDI_IN),
@@ -91,13 +91,18 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 //--------------------------------------------------------------------+
 
 // array of pointer to string descriptors
-char const *string_desc_arr[3] = {
+char const *string_desc_arr[8] = {
     (const char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
     "Dato",                     // 1: Manufacturer
-    "Dato DUO"                  // 2: Product
-};
+    "Dato DUO",                 // 2: Product
+    NULL,                       // 3: Serial. Built upon request.
+    GIT_TAG,
+    GIT_BRANCH,
+    GIT_HASH,
+    DATO_BOARD};
 
-static uint16_t _desc_str[32];
+#define DESC_STR_LEN 32
+static uint16_t _desc_str[DESC_STR_LEN];
 
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long
@@ -116,8 +121,8 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     const uint32_t ID_1 = OCOTP->CFG1;
     char tmp_serial[32];
     chr_count = snprintf(tmp_serial, sizeof(tmp_serial), "%li-%li", ID_0, ID_1);
-    if (chr_count > 31) {
-      chr_count = 31;
+    if (chr_count > DESC_STR_LEN - 1) {
+      chr_count = DESC_STR_LEN - 1;
     }
 
     for (uint8_t i = 0; i < chr_count; i++) {
@@ -135,8 +140,8 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
 
     // Cap at max char
     chr_count = strlen(str);
-    if (chr_count > 31)
-      chr_count = 31;
+    if (chr_count > DESC_STR_LEN - 1)
+      chr_count = DESC_STR_LEN - 1;
 
     // Convert ASCII string into UTF-16
     for (uint8_t i = 0; i < chr_count; i++) {

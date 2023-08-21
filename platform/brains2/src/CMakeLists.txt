@@ -8,7 +8,7 @@ ENABLE_LANGUAGE(ASM)
 set(EXECUTABLE_NAME duo-imxrt.elf)
 
 if(NOT DEFINED BOARD)
-    set(BOARD "DUO_BRAINS_2.0")
+    set(BOARD "DUO_BRAINS_2.1")
 endif(NOT DEFINED BOARD)
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/duo/main.cpp
@@ -28,6 +28,6 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
 )
 
 set(WITH_USB true)
+add_definitions("-DDATO_BOARD=\"${BOARD}\"")
 include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/build_app.cmake)
-
 
