@@ -46,6 +46,8 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
 void enter_dfu();
 
+bool power_flag = true;
+
 #include "firmware/synth_params.h"
 synth_parameters synth;
 

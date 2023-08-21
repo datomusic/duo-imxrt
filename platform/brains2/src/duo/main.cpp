@@ -68,7 +68,6 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define SK6812 1
 #include "duo-firmware/src/Leds.h"
 #include "firmware/Pitch.h"
-#include "stubs/power_stubs.h"
 
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
@@ -133,7 +132,31 @@ static void pots_read() {
   synth.delay = pinRead(DELAY_PIN);
 }
 
-bool power_check() { return true; }
+static void power_off() {
+  // Stop sequencer
+  MIDI.sendControlChange(123,0,MIDI_CHANNEL);
+  AudioNoInterrupts();
+  // fade out audio
+  // fade out leds
+  // turn off audio
+  Audio::amp_disable();
+  Audio::headphone_disable();
+  // turn off leds
+  // de-enumerate usb (?)
+  DatoUSB::disconnect(); 
+  led_deinit();
+  power_flag = false;
+  
+  /* pinMode(row_pins[powerbutton_row],INPUT_PULLUP); */
+  /* pinMode(col_pins[powerbutton_col],OUTPUT); */
+  /* digitalWrite(col_pins[powerbutton_col],LOW); */
+  while(keys_scan_powerbutton()) {
+  /*   // wait for release of the power button */
+  }
+  delay(100);
+}
+
+bool is_power_on() { return power_flag; }
 
 static void process_key(const char k, const char state) {
   switch (state) { // Report active key state : IDLE,
@@ -285,24 +308,27 @@ static void main_loop(){
     digitalWrite(GPIO_SD_13, pinState);
     pinState = !pinState;
 
-    DatoUSB::background_update();
-
-    if (power_check()) {
+    if (is_power_on()) {
       if (millis() - frame_time > frame_interval) {
         frame_time = millis();
         led_update();
         FastLED.show();
       } else {
+        DatoUSB::background_update();
+        midi_handle();
         keyboard_to_note();
         pitch_update(); // ~30us
         synth_update(); // ~ 100us
         midi_send_cc();
         Drums::update(); // ~ 700us
-        midi_handle();
         sequencer_update();
         headphone_jack_check();
         pots_read();
         keys_scan(); // 14 or 175us (depending on debounce)
+      }
+    } else {
+      if(keys_scan_powerbutton()) { 
+        NVIC_SystemReset();
       }
     }
   }

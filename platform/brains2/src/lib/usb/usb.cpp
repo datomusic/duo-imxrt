@@ -18,6 +18,10 @@ bool DatoUSB::background_update(void) {
   }
 }
 
+void DatoUSB::disconnect() {
+  tud_disconnect();
+}
+
 bool DatoUSB::midi_read(uint8_t packet[4]) {
   bool ret = false;
   if (tud_midi_available()) {
