@@ -15,6 +15,7 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 #define INITIAL_VELOCITY 100
 
 #define EEPROM_MIDI_CHANNEL 0
+#define USB_STARTUP_DELAY_MS 280
 
 // Globals that should not be globals
 int gate_length_msec = 40;

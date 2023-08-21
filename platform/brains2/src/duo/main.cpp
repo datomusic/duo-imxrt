@@ -358,6 +358,7 @@ int main(void) {
   LEDs::init();
   pins_init();
   Drums::init();
+  delay(USB_STARTUP_DELAY_MS);
   DatoUSB::init();
 
   //This is needed to configure the UART peripheral correctly (used for MIDI).
