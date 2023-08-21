@@ -318,12 +318,15 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   // }
   midi_set_channel(stored_midi_channel);
 
+  const uint64_t previous_frame_time = millis();
   // The order sequencer_init, button_matrix_init, led_init and midi_init is
   // important Hold a button of the keyboard at startup to select MIDI channel
   sequencer_init();
   button_matrix_init();
-  keys_scan();
-  DatoUSB::background_update();
+  while(millis() - previous_frame_time < 100) {
+    keys_scan();
+    /* DatoUSB::background_update(); */
+  }
   midi_init();
   led_init();
 
