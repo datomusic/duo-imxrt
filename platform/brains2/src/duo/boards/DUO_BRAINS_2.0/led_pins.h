@@ -14,4 +14,14 @@
 #define write_env_led(value)                                                   \
   analogWrite(PIN_LED_3, (value * 254.0f) + 1);
 
+#define blank_env_led() \
+  analogWrite(PIN_LED_3, 0);
+
+#define blank_osc_led() \
+  analogWrite(PIN_LED_1, 0);
+
+#define blank_filter_led() \
+  analogWrite(PIN_LED_2, 0);
+
+
 #endif /* end of include guard: LED_PINS_H_ZSKLTGQH */
