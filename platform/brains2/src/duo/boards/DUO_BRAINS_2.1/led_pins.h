@@ -14,4 +14,13 @@
 #define write_filter_led(value)                                                \
   analogWrite(PIN_LED_2, 254 - (uint16_t)((value * value) / 4128));
 
+#define blank_env_led() \
+  analogWrite(PIN_LED_3, 255);
+
+#define blank_osc_led() \
+  analogWrite(PIN_LED_1, 255);
+
+#define blank_filter_led() \
+  analogWrite(PIN_LED_2, 255);
+
 #endif /* end of include guard: LED_PINS_H_ZSKLTGQH */

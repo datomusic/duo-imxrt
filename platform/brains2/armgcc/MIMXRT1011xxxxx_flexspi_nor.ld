@@ -202,6 +202,7 @@ SECTIONS
     __ram_function_start__ = .;
     *(CodeQuickAccess)
     *(RamFunction)
+    *(.vectorTableRam)
     . = ALIGN(128);
     __ram_function_end__ = .;
   } > m_qacode

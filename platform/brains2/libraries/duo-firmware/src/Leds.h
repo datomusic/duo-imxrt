@@ -51,6 +51,7 @@ const CRGB COLORS[] = {
 void led_init();
 void led_update();
 void led_data_received();
+void led_deinit();
 
 void led_data_received() {
     FastLED.setBrightness(SK6805_BRIGHTNESS); 
@@ -99,6 +100,21 @@ void led_init() {
     delay(20);
     FastLED.show();
   }
+}
+
+// Fades out leds and sets them to a low power state if possible
+void led_deinit() {
+  for(int i = 32; i > 1; i = (i*7)>>3) {
+    FastLED.setBrightness(i);
+    FastLED.show();
+    delay(20);
+  }
+
+  blank_env_led();
+  blank_filter_led();
+  blank_osc_led();
+  FastLED.clear();
+  FastLED.show();
 }
 
 // Updates the LED colour and brightness to match the stored sequence
