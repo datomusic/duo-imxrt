@@ -23,6 +23,7 @@ AudioEffectCustomEnvelope envelope2;      //xy=227.10000610351562,149
 AudioMixer4              mixer1;         //xy=255.10000610351562,83
 AudioFilterStateVariable filter1;        //xy=403.1000061035156,91
 AudioEffectCustomEnvelope envelope1;      //xy=560.1000061035156,81
+AudioEffectCustomEnvelope delay_envelope;      //xy=560.1000061035156,81
 AudioAnalyzePeak         peak1;          //xy=705.1000061035156,37
 AudioEffectDelay         delay1;         //xy=712.0999755859375,174.10000610351562
 AudioFilterStateVariable delay_filter;         //xy=712.0999755859375,174.10000610351562
@@ -49,16 +50,17 @@ AudioConnection          patchCord7(envelope1, peak1);
 AudioConnection          patchCord8(envelope1, bitcrusher1);
 
 // Feedback path
-AudioConnection          patchCord14(mixer_delay, delay1);
 AudioConnection          patchCord9(delay1, 0, delay_filter, 0);
-AudioConnection          patchCord15(delay_filter, 2, delay_fader, 0);
 AudioConnection          patchCord10(delay_fader, 0, mixer_delay, 1);
-
 AudioConnection          patchCord11(delay1, 0, mixer_output, 1); 
+AudioConnection          patchCord12(mixer_delay, delay1);
+AudioConnection          patchCord13(delay_filter, 2, delay_fader, 0);
 
 
-AudioConnection          patchCord12(bitcrusher1, 0, mixer_output, 0);
-AudioConnection          patchCord13(bitcrusher1, 0, mixer_delay, 0);
+
+AudioConnection          patchCord14(bitcrusher1, 0, mixer_output, 0);
+AudioConnection          patchCord15(bitcrusher1, 0, delay_envelope, 0);
+AudioConnection          patchCord16(delay_envelope, 0, mixer_delay, 0);
 // AudioConnection          patchCord13(mixer_delay, delay1);
 
 AudioConnection          patchCord21(hat_noise1, hat_envelope1);
@@ -119,7 +121,11 @@ void audio_init() {
 
   delay1.delay(0, 350); // Delay time
   delay_filter.frequency(400); // High pass filter in feedback
-  mixer_delay.gain(0, 0.0f); // Delay input
+
+  delay_envelope.attack(15);
+  delay_envelope.sustain(1.0f);
+  delay_envelope.release(15);
+  mixer_delay.gain(0, 0.5f); // Delay input
   mixer_delay.gain(1, 0.4f); // Delay feedback
 
   mixer_output.gain(0, MAIN_GAIN);

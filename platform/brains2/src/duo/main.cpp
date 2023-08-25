@@ -262,12 +262,12 @@ static void keys_scan() {
   if (pinRead(DELAY_PIN) && synth.delay == true) {
     synth.delay = false;
     delay_fader.fadeOut(3*440);
-    mixer_delay.gain(0, 0.0f); // Delay input
+    delay_envelope.noteOff();
     mixer_delay.gain(3, 0.0f);
   } else if(!pinRead(DELAY_PIN) && synth.delay == false) {
     synth.delay = true;
     delay_fader.fadeIn(10);
-    mixer_delay.gain(0, 0.5f); // Delay input
+    delay_envelope.noteOn();
     mixer_delay.gain(3, 0.4f); // Hat delay input
   }
   AudioInterrupts();
