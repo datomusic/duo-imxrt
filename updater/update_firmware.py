@@ -10,7 +10,27 @@ from spsdk.sdp import SDP
 import spsdk.sdp.interfaces.usb as sdp_usb
 import spsdk.mboot.interfaces.usb as mboot_usb
 from spsdk.mboot import McuBoot
+import usb
+from typing import NamedTuple
 
+class FirmwareInfo(NamedTuple):
+    tag: str
+    branch: str
+    commit: str
+    board: str
+
+def get_firmware_info():
+    dev = usb.core.find(idVendor=0x16d0, idProduct=0x10a7)
+    if dev is None:
+        print('No DUO connected.')
+        return None
+    else:
+        return FirmwareInfo(
+                tag = usb.util.get_string(dev, 4),
+                branch = usb.util.get_string(dev, 5),
+                commit = usb.util.get_string(dev, 6),
+                board = usb.util.get_string(dev, 7))
+    
 def find_duo_midi_port():
     for (index, name) in enumerate(rtmidi.MidiOut().get_ports()):
         if "duo" in name.lower():
@@ -65,9 +85,8 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
                 input("Please enter bootloader manually, then press Enter.")
         time.sleep(1)
     else:
-        if find_duo_midi_port() is not None:
-            print("but not entering bootloader as skip_enter_bootloader is set")
-
+        print("not entering bootloader as skip_enter_bootloader is set")
+           
     interface = find_sdp_interface()
     if not interface:
         return False
