@@ -21,5 +21,6 @@ def get_firmware_info():
 
 if __name__ == "__main__":
     info = get_firmware_info()
-    for k, v in info._asdict().items():
-        print(f"{k}: {v}")
+    if info is not None:
+        for k, v in info._asdict().items():
+            print(f"{k}: {v}")
