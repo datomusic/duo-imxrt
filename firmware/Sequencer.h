@@ -8,7 +8,7 @@
 uint32_t last_sequencer_update;
 bool double_speed = false;
 
-static void sequencer_update() {
+void sequencer_update() {
   sequencer.set_gate_length(map(synth.gateLength, 0, 1023, 10, 200));
   tempo_handler.update();
 
@@ -18,11 +18,11 @@ static void sequencer_update() {
   sequencer.update_gate(delta);
 }
 
-static void reset_midi_clock() {
+void reset_midi_clock() {
   tempo_handler.midi_clock_reset();
 }
 
-static void sequencer_stop() {
+void sequencer_stop() {
   if (sequencer.is_running()) {
     usbMIDI.sendControlChange(123, 0, MIDI_CHANNEL);
     MIDI.sendControlChange(123, 0, MIDI_CHANNEL);
@@ -34,14 +34,14 @@ static void sequencer_stop() {
   tempo_handler.midi_clock_reset();
 }
 
-static void sequencer_start() {
+void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
   reset_midi_clock();
   sequencer.start();
 }
 
-static void sequencer_toggle_start() {
+void sequencer_toggle_start() {
   if (sequencer.is_running()) {
     sequencer_stop();
   } else {
@@ -70,7 +70,7 @@ static void sequencer_tick_clock() {
   }
 }
 
-static void sequencer_randomize_step_offset() {
+void sequencer_randomize_step_offset() {
   sequencer.set_step_offset(random(1, (Sequencer::NUM_STEPS - 2)));
   if (!sequencer.is_running()) {
     sequencer.advance();
@@ -92,7 +92,7 @@ static void sequencer_init() {
   double_speed = false;
 }
 
-static void sequencer_restart() {
+void sequencer_restart() {
   MIDI.sendRealTime(midi::Start);
   delay(1);
   reset_midi_clock();
