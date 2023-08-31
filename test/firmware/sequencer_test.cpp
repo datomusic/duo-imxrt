@@ -165,7 +165,10 @@ void does_not_record_middle_live_notes() {
   seq.set_gate_length(gate_len);
   seq.start();
 
-  // Tick to end of current step
+  // Tick to next step to make sure clock is note 0.
+  tick_to_next_step(seq);
+
+  // Tick to middle of current step
   for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP / 2; ++i) {
     seq.tick_clock();
   }
