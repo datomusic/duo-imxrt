@@ -1,12 +1,15 @@
 #include "seq.h"
 
-enum Zone { Early, Late };
+enum Zone { Early, Middle, Late };
 
 Zone get_zone(uint32_t clock) {
-  if (clock <= Sequencer::TICKS_PER_STEP / 2) {
+  const auto third = Sequencer::TICKS_PER_STEP / 3;
+  if (clock <= third) {
     return Early;
-  } else {
+  } else if (clock >= 2 * third) {
     return Late;
+  } else {
+    return Middle;
   }
 }
 
@@ -134,18 +137,29 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
 
   const auto active_note_count = arp.count();
   if (active_note_count > 0) {
-    const auto arp_note = arp.recent_note();
-    const auto step_index =
-        (get_zone(clock) == Early ? current_step : (current_step + 1)) +
-        step_offset;
+    int rec_step = NUM_STEPS;
+    switch (get_zone(clock)) {
+    case Early:
+      rec_step = current_step + step_offset;
+      break;
+    case Late:
+      rec_step = current_step + step_offset + 1;
+      break;
+    case Middle:
+      break;
+    }
 
-    record_note(step_index, arp_note);
+    const auto arp_note = arp.recent_note();
+
+    if (rec_step != NUM_STEPS) {
+      record_note(rec_step, arp_note);
+    }
 
     if (running) {
       if (active_note_count == 1) {
         output.on(arp_note);
         live_gate.trigger();
-        last_played_step = step_index;
+        last_played_step = rec_step;
         step_played_live = true;
       }
     } else {

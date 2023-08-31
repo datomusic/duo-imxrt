@@ -159,6 +159,27 @@ void records_late_live_note() {
   ASSERT_NOTE_PLAYING(false);
 }
 
+void does_not_record_middle_live_notes() {
+  auto seq = make_cleared_sequencer();
+  const uint8_t gate_len = 5;
+  seq.set_gate_length(gate_len);
+  seq.start();
+
+  // Tick to end of current step
+  for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP / 2; ++i) {
+    seq.tick_clock();
+  }
+
+  const auto note = 1;
+  seq.hold_note(note);
+
+  ASSERT_NOTE_PLAYING(true);
+  ASSERT_PLAYED_COUNT(1);
+
+  seq.update_gate(1);
+  ASSERT_EQ(0, count_enabled_steps(seq));
+}
+
 void records_step_and_advances_when_not_running() {
   auto seq = make_cleared_sequencer();
   ASSERT_FALSE(seq.is_running());
@@ -252,6 +273,7 @@ int main() {
   RUN_TEST(Tests::stops_playing_note_after_gate_duration);
   RUN_TEST(Tests::records_early_live_note);
   RUN_TEST(Tests::records_late_live_note);
+  RUN_TEST(Tests::does_not_record_middle_live_notes);
   RUN_TEST(Tests::records_step_and_advances_when_not_running);
   RUN_TEST(Tests::retriggers_held_notes_on_advance);
   RUN_TEST(Tests::respects_step_offset_during_playback);
