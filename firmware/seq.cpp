@@ -14,10 +14,6 @@ static Zone get_zone(uint32_t clock) {
   }
 }
 
-static bool zone_should_play(const Zone zone) {
-  return zone == Early || zone == Middle;
-}
-
 namespace Sequencer {
 
 Sequencer::Sequencer(Callbacks callbacks) : output(callbacks) {
@@ -85,7 +81,7 @@ void Sequencer::advance_running() {
     step_played_live = false;
     if (arp.count() > 0) {
       const uint8_t note = arp.current_note();
-      record_note(current_step + step_offset, note);
+      record_note(note, current_step + step_offset);
       output.on(note);
     } else if (cur_step.enabled) {
       output.on(cur_step.note);
@@ -95,7 +91,7 @@ void Sequencer::advance_running() {
   last_played_step = step_index;
 }
 
-void Sequencer::record_note(uint8_t step, const uint8_t note) {
+void Sequencer::record_note(const uint8_t note, uint8_t step) {
   step = wrapped_step(step);
   steps[step].enabled = true;
   steps[step].note = note;
@@ -137,6 +133,13 @@ bool Sequencer::tick_clock() {
   }
 }
 
+void Sequencer::play_live_note(const uint8_t note, const uint8_t step) {
+  output.on(note);
+  step_played_live = true;
+  live_gate.trigger();
+  last_played_step = step;
+}
+
 void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   arp.hold_note(note, velocity);
 
@@ -146,33 +149,33 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
     const auto zone = get_zone(clock);
 
     if (running) {
-      int rec_step = NUM_STEPS;
+      bool play_note = false;
+      bool rec_note = false;
+      uint8_t rec_step = current_step + step_offset;
+
       switch (zone) {
-      case Early:
-        rec_step = current_step + step_offset;
-        break;
+      case Early: {
+        rec_note = true;
+        play_note = true;
+      } break;
       case Late:
-        rec_step = current_step + step_offset + 1;
+        rec_note = true;
+        rec_step++;
         break;
       case Middle:
+        play_note = true;
         break;
       }
 
-      if (rec_step != NUM_STEPS) {
-        record_note(rec_step, arp_note);
+      if (rec_note) {
+        record_note(arp_note, rec_step);
       }
 
-      if (active_note_count == 1) {
-        if (zone_should_play(zone)) {
-          output.on(arp_note);
-        }
-
-        live_gate.trigger();
-        last_played_step = rec_step;
-        step_played_live = true;
+      if (play_note && active_note_count == 1) {
+        play_live_note(arp_note, current_step + step_offset);
       }
     } else {
-      record_note(current_step + step_offset, arp_note);
+      record_note(arp_note, current_step + step_offset);
       output.on(arp_note);
       inc_current_step();
     }

@@ -141,7 +141,8 @@ struct Sequencer {
   SpeedModifier speed_mod = NormalSpeed;
 
 private:
-  void record_note(uint8_t step, uint8_t note);
+  void record_note(uint8_t note, uint8_t step);
+  void play_live_note(uint8_t note, uint8_t step);
   void advance_running();
   uint8_t quantized_current_step();
   inline void inc_current_step() {
