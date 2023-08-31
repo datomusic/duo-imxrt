@@ -298,7 +298,7 @@ static void headphone_jack_check() {
 
 static void main_loop(){
   static unsigned long frame_time = millis();
-  static unsigned long frame_interval = 20;
+  static unsigned long frame_interval = 11;
   bool pinState = LOW;
   while (true) {
     digitalWrite(GPIO_SD_13, pinState);
