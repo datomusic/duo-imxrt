@@ -3,9 +3,11 @@
 enum Zone { Early, Middle, Late };
 
 Zone get_zone(uint32_t clock) {
-  if (clock <= 2) {
+  const auto third = Sequencer::TICKS_PER_STEP / 3;
+  clock = clock % Sequencer::TICKS_PER_STEP;
+  if (clock <= third) {
     return Early;
-  } else if (clock > Sequencer::TICKS_PER_STEP - 2) {
+  } else if (clock >= 2 * third) {
     return Late;
   } else {
     return Middle;
