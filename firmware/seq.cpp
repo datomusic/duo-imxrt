@@ -133,13 +133,6 @@ bool Sequencer::tick_clock() {
   }
 }
 
-void Sequencer::play_live_note(const uint8_t note, const uint8_t step) {
-  output.on(note);
-  step_played_live = true;
-  live_gate.trigger();
-  last_played_step = step;
-}
-
 void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   arp.hold_note(note, velocity);
 
@@ -149,30 +142,19 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
     const auto zone = get_zone(clock);
 
     if (running) {
-      bool play_note = false;
-      bool rec_note = false;
-      uint8_t rec_step = current_step + step_offset;
+      const uint8_t rec_step = current_step + step_offset;
 
-      switch (zone) {
-      case Early: {
-        rec_note = true;
-        play_note = true;
-      } break;
-      case Late:
-        rec_note = true;
-        rec_step++;
-        break;
-      case Middle:
-        play_note = true;
-        break;
+      if ((zone == Early || zone == Middle) && active_note_count == 1) {
+        output.on(note);
+        step_played_live = true;
+        live_gate.trigger();
+        last_played_step = rec_step;
       }
 
-      if (rec_note) {
+      if (zone == Early) {
         record_note(arp_note, rec_step);
-      }
-
-      if (play_note && active_note_count == 1) {
-        play_live_note(arp_note, current_step + step_offset);
+      } else if (zone == Late) {
+        record_note(arp_note, rec_step + 1);
       }
     } else {
       record_note(arp_note, current_step + step_offset);
