@@ -2,7 +2,7 @@
 
 enum Zone { Early, Middle, Late };
 
-Zone get_zone(uint32_t clock) {
+static Zone get_zone(uint32_t clock) {
   const auto third = Sequencer::TICKS_PER_STEP / 3;
   clock = clock % Sequencer::TICKS_PER_STEP;
   if (clock <= third) {
@@ -12,6 +12,10 @@ Zone get_zone(uint32_t clock) {
   } else {
     return Middle;
   }
+}
+
+static bool zone_should_play(const Zone zone) {
+  return zone == Early || zone == Middle;
 }
 
 namespace Sequencer {
@@ -139,10 +143,11 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   const auto active_note_count = arp.count();
   if (active_note_count > 0) {
     const auto arp_note = arp.recent_note();
+    const auto zone = get_zone(clock);
 
     if (running) {
       int rec_step = NUM_STEPS;
-      switch (get_zone(clock)) {
+      switch (zone) {
       case Early:
         rec_step = current_step + step_offset;
         break;
@@ -158,7 +163,10 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
       }
 
       if (active_note_count == 1) {
-        output.on(arp_note);
+        if (zone_should_play(zone)) {
+          output.on(arp_note);
+        }
+
         live_gate.trigger();
         last_played_step = rec_step;
         step_played_live = true;
