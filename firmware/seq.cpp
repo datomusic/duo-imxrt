@@ -1,5 +1,15 @@
 #include "seq.h"
 
+enum Zone { Early, Late };
+
+Zone get_zone(uint32_t clock) {
+  if (clock <= Sequencer::TICKS_PER_STEP / 2) {
+    return Early;
+  } else {
+    return Late;
+  }
+}
+
 namespace Sequencer {
 
 Sequencer::Sequencer(Callbacks callbacks) : output(callbacks) {
@@ -23,14 +33,6 @@ void Sequencer::stop() {
   if (running) {
     running = false;
     output.off();
-  }
-}
-
-uint8_t Sequencer::quantized_current_step() {
-  if (!running || (clock % TICKS_PER_STEP < TICKS_PER_STEP / 2)) {
-    return current_step;
-  } else {
-    return current_step + 1;
   }
 }
 
@@ -133,7 +135,10 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   const auto active_note_count = arp.count();
   if (active_note_count > 0) {
     const auto arp_note = arp.recent_note();
-    const auto step_index = quantized_current_step() + step_offset;
+    const auto step_index =
+        (get_zone(clock) == Early ? current_step : (current_step + 1)) +
+        step_offset;
+
     record_note(step_index, arp_note);
 
     if (running) {
