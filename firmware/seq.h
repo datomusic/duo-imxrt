@@ -54,8 +54,8 @@ private:
 struct Callbacks {
   typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
   typedef void (&NoteOff)(void);
-  const NoteOn note_on;
-  const NoteOff note_off;
+  NoteOn note_on;
+  NoteOff note_off;
 };
 
 struct Output {
