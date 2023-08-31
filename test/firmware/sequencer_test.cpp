@@ -183,6 +183,25 @@ void does_not_record_middle_live_notes() {
   ASSERT_EQ(0, count_enabled_steps(seq));
 }
 
+void always_records_note_when_stopped() {
+  auto seq = make_cleared_sequencer();
+  const uint8_t gate_len = 5;
+  seq.set_gate_length(gate_len);
+
+  for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP; ++i) {
+    const auto note = 1;
+    seq.hold_note(note);
+    seq.release_note(note);
+    char msg[64];
+    snprintf(msg, 64, "Step not recorded when clock == %u.", i);
+    TEST_ASSERT_EQUAL_MESSAGE(1, count_enabled_steps(seq), msg);
+    clear_steps(seq);
+    seq.tick_clock();
+  }
+
+  ASSERT_EQ(0, count_enabled_steps(seq));
+}
+
 void records_step_and_advances_when_not_running() {
   auto seq = make_cleared_sequencer();
   ASSERT_FALSE(seq.is_running());
@@ -281,6 +300,7 @@ int main() {
   RUN_TEST(Tests::retriggers_held_notes_on_advance);
   RUN_TEST(Tests::respects_step_offset_during_playback);
   RUN_TEST(Tests::arp_does_not_replay_note_when_lower_added);
+  RUN_TEST(Tests::always_records_note_when_stopped);
 #endif
   return UNITY_END();
 }

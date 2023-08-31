@@ -138,25 +138,25 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
 
   const auto active_note_count = arp.count();
   if (active_note_count > 0) {
-    int rec_step = NUM_STEPS;
-    switch (get_zone(clock)) {
-    case Early:
-      rec_step = current_step + step_offset;
-      break;
-    case Late:
-      rec_step = current_step + step_offset + 1;
-      break;
-    case Middle:
-      break;
-    }
-
     const auto arp_note = arp.recent_note();
 
-    if (rec_step != NUM_STEPS) {
-      record_note(rec_step, arp_note);
-    }
-
     if (running) {
+      int rec_step = NUM_STEPS;
+      switch (get_zone(clock)) {
+      case Early:
+        rec_step = current_step + step_offset;
+        break;
+      case Late:
+        rec_step = current_step + step_offset + 1;
+        break;
+      case Middle:
+        break;
+      }
+
+      if (rec_step != NUM_STEPS) {
+        record_note(rec_step, arp_note);
+      }
+
       if (active_note_count == 1) {
         output.on(arp_note);
         live_gate.trigger();
@@ -164,6 +164,7 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
         step_played_live = true;
       }
     } else {
+      record_note(current_step + step_offset, arp_note);
       output.on(arp_note);
       inc_current_step();
     }
