@@ -15,20 +15,19 @@ struct Arpeggiator {
     held_notes.Init();
     index = 0;
   }
+
   void advance() { index++; }
 
-  uint8_t recent_note() { return held_notes.most_recent_note().note; }
+  uint8_t recent_note() const { return held_notes.most_recent_note().note; }
   uint8_t current_note() {
-    if (index >= held_notes.size()) {
-      index = 0;
-    }
+    index = index % held_notes.size();
 
     return held_notes.sorted_note(index).note;
   }
   uint8_t count() const { return held_notes.size(); }
   inline void hold_note(uint8_t note, uint8_t velocity) {
     if (count() > 0 && note < current_note()) {
-      ++index;
+      index++;
     }
 
     held_notes.NoteOn(note, velocity);
@@ -55,8 +54,8 @@ private:
 struct Callbacks {
   typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
   typedef void (&NoteOff)(void);
-  NoteOn note_on;
-  NoteOff note_off;
+  const NoteOn note_on;
+  const NoteOff note_off;
 };
 
 struct Output {
@@ -129,8 +128,6 @@ struct Sequencer {
     steps[wrapped_step(step)].note = note;
   }
 
-  SpeedModifier speed_mod = NormalSpeed;
-
   void set_gate_length(const uint32_t millis) {
     step_gate.length_millis = live_gate.length_millis = millis;
   }
@@ -140,6 +137,8 @@ struct Sequencer {
     last_played_step = UINT8_MAX;
     step_played_live = false;
   }
+
+  SpeedModifier speed_mod = NormalSpeed;
 
 private:
   void record_note(uint8_t step, uint8_t note);
