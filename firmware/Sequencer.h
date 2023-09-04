@@ -55,12 +55,15 @@ static void sequencer_tick_clock() {
       sequencer.speed_mod = Sequencer::DoubleSpeed;
     } else if (synth.speed < 127) {
       sequencer.speed_mod = Sequencer::HalfSpeed;
+    }else{
+      sequencer.speed_mod = Sequencer::NormalSpeed;
     }
   } else if (double_speed) {
     sequencer.speed_mod = Sequencer::DoubleSpeed;
   } else {
     sequencer.speed_mod = Sequencer::NormalSpeed;
   }
+
   if (sequencer.tick_clock()) {
     if (random_flag) {
       sequencer.set_step_offset(random(1, (Sequencer::NUM_STEPS - 2)));
