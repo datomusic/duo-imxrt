@@ -139,12 +139,6 @@ void led_update() {
       leds(Sequencer::wrapped_step(cur_seq_step - 1)) = LED_WHITE;
     } else {
       if (((seq_clock % 24) < 12)) {
-        if (cur_step_enabled) {
-          leds(cur_seq_step) =
-              COLORS[sequencer.get_step_note(cur_seq_step) % 24];
-        } else {
-          leds(cur_seq_step) = CRGB::Black;
-        }
         led_play = LED_WHITE;
         led_play.fadeLightBy((seq_clock % 12) * 16);
       } else {
