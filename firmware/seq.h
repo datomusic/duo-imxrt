@@ -113,6 +113,7 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
+  inline bool gate_active() const { return step_gate.open(); }
   inline bool note_playing() const { return output.active(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;

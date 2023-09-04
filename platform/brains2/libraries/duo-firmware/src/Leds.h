@@ -134,7 +134,13 @@ void led_update() {
   const bool cur_step_enabled = sequencer.get_step_enabled(cur_seq_step);
   const auto seq_clock = sequencer.get_clock();
 
-  if (!sequencer.is_running()) {
+  if (sequencer.gate_active()) {
+    leds(cur_seq_step) = LED_WHITE;
+  }
+
+  if (sequencer.is_running()) {
+    led_play = LED_WHITE;
+  } else {
     if (sequencer.note_playing()) {
       leds(Sequencer::wrapped_step(cur_seq_step - 1)) = LED_WHITE;
     } else {
@@ -154,8 +160,6 @@ void led_update() {
         }
       }
     }
-  } else {
-    led_play = LED_WHITE;
   }
 
   write_env_led(peak1.read());
