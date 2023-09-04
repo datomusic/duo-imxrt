@@ -131,20 +131,15 @@ void led_update() {
   }
 
   const auto cur_seq_step = sequencer.cur_step_index();
-  const bool step_enabled = sequencer.get_step_enabled(cur_seq_step);
+  const bool cur_step_enabled = sequencer.get_step_enabled(cur_seq_step);
+  const auto seq_clock = sequencer.get_clock();
 
-  if (sequencer.gate_active()) {
-    leds(cur_seq_step) = LED_WHITE;
-  } else {
-    if (!step_enabled) {
-      leds(cur_seq_step) = CRGB::Black;
-    }
-
-    const auto seq_clock = sequencer.get_clock();
-
-    if (!sequencer.is_running()) {
+  if (!sequencer.is_running()) {
+    if (sequencer.note_playing()) {
+      leds(Sequencer::wrapped_step(cur_seq_step - 1)) = LED_WHITE;
+    } else {
       if (((seq_clock % 24) < 12)) {
-        if (step_enabled) {
+        if (cur_step_enabled) {
           leds(cur_seq_step) =
               COLORS[sequencer.get_step_note(cur_seq_step) % 24];
         } else {
@@ -154,7 +149,7 @@ void led_update() {
         led_play.fadeLightBy((seq_clock % 12) * 16);
       } else {
         led_play = CRGB::Black;
-        if (step_enabled) {
+        if (cur_step_enabled) {
           leds(cur_seq_step) = blend(
               LED_WHITE, COLORS[sequencer.get_step_note(cur_seq_step) % 24],
               (seq_clock % 12) * 16);
@@ -164,9 +159,9 @@ void led_update() {
               leds(cur_seq_step).fadeLightBy((seq_clock % 12) * 16);
         }
       }
-    } else {
-      led_play = LED_WHITE;
     }
+  } else {
+    led_play = LED_WHITE;
   }
 
   write_env_led(peak1.read());

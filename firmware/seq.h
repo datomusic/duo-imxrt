@@ -78,6 +78,8 @@ struct Output {
     }
   }
 
+  bool active() const { return output_active; }
+
 private:
   const Callbacks callbacks;
   bool output_active = false;
@@ -86,9 +88,9 @@ private:
 
 enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
 
-struct Sequencer {
-  static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
+static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
 
+struct Sequencer {
   Sequencer(Callbacks callbacks);
   void start();
   void restart();
@@ -111,7 +113,7 @@ struct Sequencer {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return step_gate.open(); }
+  inline bool note_playing() const { return output.active(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
