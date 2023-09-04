@@ -60,6 +60,7 @@ void Sequencer::advance() {
     advance_running();
   } else {
     inc_current_step();
+    step_gate.trigger();
   }
 }
 
