@@ -5,11 +5,13 @@ import sys
 import time
 import rtmidi
 from rtmidi.midiutil import open_midioutput
-from os.path import basename,dirname,abspath
+from os.path import basename,dirname,abspath,exists
 from spsdk.sdp import SDP
 import spsdk.sdp.interfaces.usb as sdp_usb
 import spsdk.mboot.interfaces.usb as mboot_usb
 from spsdk.mboot import McuBoot
+from typing import NamedTuple
+from firmware_info import print_firmware_info
 
 def find_duo_midi_port():
     for (index, name) in enumerate(rtmidi.MidiOut().get_ports()):
@@ -26,6 +28,7 @@ def enter_bootloader():
         print("Could not detect DUO midi port.")
         return False
     else:
+        print_firmware_info()
         midiout, portname = open_midioutput(duo_port, use_virtual=False)
         print(f"Sending reset signal to {portname} at port {duo_port}")
         reset_syx = [0xF0, 0x7d, 0x64, 0x0b, 0xF7]
@@ -54,8 +57,12 @@ def find_mboot_interface():
 
 def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=False):
     
-    with open(firmware_path, "rb") as firmware:
-        firmware_bytes = firmware.read()
+    if exists(firmware_path):
+        with open(firmware_path, "rb") as firmware:
+            firmware_bytes = firmware.read()
+    else:
+        print("Firmware file duo_firmware.bin not found. Please specify a file location.")
+        return False
 
     if not skip_enter_bootloader:
         if not enter_bootloader():
@@ -65,9 +72,8 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
                 input("Please enter bootloader manually, then press Enter.")
         time.sleep(1)
     else:
-        if find_duo_midi_port() is not None:
-            print("but not entering bootloader as skip_enter_bootloader is set")
-
+        print("not entering bootloader as skip_enter_bootloader is set")
+           
     interface = find_sdp_interface()
     if not interface:
         return False

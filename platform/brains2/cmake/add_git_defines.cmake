@@ -20,9 +20,9 @@ execute_process(
 )
 
 if ("${GIT_DIFF_OUTPUT}" STREQUAL "")
-  SET(GIT_DIRTY_STATE "clean")
+  SET(GIT_DIRTY_STATE "")
 else()
-  SET(GIT_DIRTY_STATE "dirty")
+  SET(GIT_DIRTY_STATE "[edited] ")
 endif()
 
 
@@ -41,4 +41,4 @@ endif()
 
 add_definitions("-DGIT_TAG=\"${GIT_TAG}\"")
 add_definitions("-DGIT_HASH=\"${GIT_HASH}\"")
-add_definitions("-DGIT_BRANCH=\"[${GIT_DIRTY_STATE}] ${GIT_BRANCH}\"")
+add_definitions("-DGIT_BRANCH=\"${GIT_DIRTY_STATE}${GIT_BRANCH}\"")

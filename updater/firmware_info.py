@@ -19,7 +19,11 @@ def get_firmware_info():
                 commit = usb.util.get_string(dev, 6),
                 board = usb.util.get_string(dev, 7))
 
-if __name__ == "__main__":
+def print_firmware_info():
     info = get_firmware_info()
-    for k, v in info._asdict().items():
-        print(f"{k}: {v}")
+    if info is not None:
+        for k, v in info._asdict().items():
+            print(f"{k}: {v}")
+
+if __name__ == "__main__":
+    print_firmware_info()
