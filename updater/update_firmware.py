@@ -10,27 +10,9 @@ from spsdk.sdp import SDP
 import spsdk.sdp.interfaces.usb as sdp_usb
 import spsdk.mboot.interfaces.usb as mboot_usb
 from spsdk.mboot import McuBoot
-import usb
 from typing import NamedTuple
+from firmware_info import print_firmware_info
 
-class FirmwareInfo(NamedTuple):
-    tag: str
-    branch: str
-    commit: str
-    board: str
-
-def get_firmware_info():
-    dev = usb.core.find(idVendor=0x16d0, idProduct=0x10a7)
-    if dev is None:
-        print('No DUO connected.')
-        return None
-    else:
-        return FirmwareInfo(
-                tag = usb.util.get_string(dev, 4),
-                branch = usb.util.get_string(dev, 5),
-                commit = usb.util.get_string(dev, 6),
-                board = usb.util.get_string(dev, 7))
-    
 def find_duo_midi_port():
     for (index, name) in enumerate(rtmidi.MidiOut().get_ports()):
         if "duo" in name.lower():
@@ -46,6 +28,7 @@ def enter_bootloader():
         print("Could not detect DUO midi port.")
         return False
     else:
+        print_firmware_info()
         midiout, portname = open_midioutput(duo_port, use_virtual=False)
         print(f"Sending reset signal to {portname} at port {duo_port}")
         reset_syx = [0xF0, 0x7d, 0x64, 0x0b, 0xF7]
