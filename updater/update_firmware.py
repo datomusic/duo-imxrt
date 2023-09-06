@@ -5,7 +5,7 @@ import sys
 import time
 import rtmidi
 from rtmidi.midiutil import open_midioutput
-from os.path import basename,dirname,abspath
+from os.path import basename,dirname,abspath,exists
 from spsdk.sdp import SDP
 import spsdk.sdp.interfaces.usb as sdp_usb
 import spsdk.mboot.interfaces.usb as mboot_usb
@@ -57,8 +57,12 @@ def find_mboot_interface():
 
 def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=False):
     
-    with open(firmware_path, "rb") as firmware:
-        firmware_bytes = firmware.read()
+    if exists(firmware_path):
+        with open(firmware_path, "rb") as firmware:
+            firmware_bytes = firmware.read()
+    else:
+        print("Firmware file duo_firmware.bin not found. Please specify a file location.")
+        return False
 
     if not skip_enter_bootloader:
         if not enter_bootloader():
