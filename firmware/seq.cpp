@@ -147,7 +147,7 @@ bool Sequencer::tick_clock() {
   clock++;
 
   if (running) {
-    const auto divider = divider_from_speed_mod(speed_mod);
+    const uint8_t divider = divider_from_speed_mod(speed_mod);
     const bool should_advance = (clock % divider) == 0;
     if (should_advance) {
       advance_running();
@@ -162,10 +162,10 @@ bool Sequencer::tick_clock() {
 void Sequencer::hold_note(const uint8_t note, const uint8_t velocity) {
   arp.hold_note(note, velocity);
 
-  const auto active_note_count = arp.count();
+  const uint8_t active_note_count = arp.count();
   if (active_note_count > 0) {
-    const auto arp_note = arp.recent_note();
-    const auto zone = get_zone(clock, speed_mod);
+    const uint8_t arp_note = arp.recent_note();
+    const Zone zone = get_zone(clock, speed_mod);
     if (running) {
       const uint8_t rec_step = current_step + step_offset;
 
