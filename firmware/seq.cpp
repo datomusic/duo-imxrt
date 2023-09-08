@@ -2,9 +2,32 @@
 
 enum Zone { Early, Middle, Late };
 
-static Zone get_zone(uint32_t clock) {
-  const auto third = Sequencer::TICKS_PER_STEP / 3;
-  clock = clock % Sequencer::TICKS_PER_STEP;
+namespace Sequencer {
+
+static uint8_t divider_from_speed_mod(const SpeedModifier mod) {
+  unsigned ret = TICKS_PER_STEP;
+  switch (mod) {
+  case HalfSpeed:
+    ret *= 2;
+    break;
+  case DoubleSpeed:
+    ret /= 2;
+    break;
+  case QuadSpeed:
+    ret /= 4;
+    break;
+  default:
+    break;
+  }
+
+  return ret;
+}
+
+static Zone get_zone(uint32_t clock, const SpeedModifier speed_mod) {
+  const uint32_t ticks = divider_from_speed_mod(speed_mod);
+  const uint32_t third = ticks / 3;
+  clock = clock % ticks;
+
   if (clock <= third) {
     return Early;
   } else if (clock >= 2 * third) {
@@ -13,8 +36,6 @@ static Zone get_zone(uint32_t clock) {
     return Middle;
   }
 }
-
-namespace Sequencer {
 
 Sequencer::Sequencer(Callbacks callbacks) : output(callbacks) {
   arp.init();
@@ -40,9 +61,9 @@ void Sequencer::stop() {
   }
 }
 
-void Sequencer::update_gate(const uint32_t delta_millis) {
-  step_gate.update(delta_millis);
-  live_gate.update(delta_millis);
+void Sequencer::update_gate(const uint32_t delta_micros) {
+  step_gate.update(delta_micros);
+  live_gate.update(delta_micros);
 
   if (running) {
     if (step_played_live) {
@@ -100,10 +121,14 @@ void Sequencer::record_note(const uint8_t note, uint8_t step) {
 
 void Sequencer::align_clock() {
   // round sequencer_clock to the nearest 12
-  if (clock % 12 > 6) {
-    clock += 12 - (clock % 12);
+  const unsigned remainder = clock % 12;
+  if (remainder > 6) {
+    const unsigned ticks = 12 - remainder;
+    for (unsigned i = 0; i < ticks; ++i) {
+      tick_clock();
+    }
   } else {
-    clock -= (clock % 12);
+    clock -= remainder;
   }
 }
 
@@ -111,19 +136,8 @@ bool Sequencer::tick_clock() {
   clock++;
 
   if (running) {
-    uint8_t divider = TICKS_PER_STEP;
-    switch (speed_mod) {
-    case HalfSpeed:
-      divider *= 2;
-      break;
-    case DoubleSpeed:
-      divider /= 2;
-      break;
-    case NormalSpeed:
-      break;
-    }
-
-    const bool should_advance = running && (clock % divider) == 0;
+    const auto divider = divider_from_speed_mod(speed_mod);
+    const bool should_advance = ((clock % divider) == 0);
     if (should_advance) {
       advance_running();
     }
@@ -134,14 +148,13 @@ bool Sequencer::tick_clock() {
   }
 }
 
-void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
+void Sequencer::hold_note(const uint8_t note, const uint8_t velocity) {
   arp.hold_note(note, velocity);
 
   const auto active_note_count = arp.count();
   if (active_note_count > 0) {
     const auto arp_note = arp.recent_note();
-    const auto zone = get_zone(clock);
-
+    const auto zone = get_zone(clock, speed_mod);
     if (running) {
       const uint8_t rec_step = current_step + step_offset;
 
@@ -165,7 +178,8 @@ void Sequencer::hold_note(uint8_t note, uint8_t velocity) {
   }
 }
 
-void Sequencer::release_note(uint8_t note) {
+
+void Sequencer::release_note(const uint8_t note) {
   arp.release_note(note);
   step_played_live = false;
   if (!running) {

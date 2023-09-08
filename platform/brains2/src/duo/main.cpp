@@ -48,7 +48,7 @@ RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
 #include "lib/sync.h"
 #include "lib/elapsedMillis.h"
 #include "firmware/TempoHandler.h"
-TempoHandler tempo_handler(synth);
+TempoHandler tempo_handler;
 
 void midi_send_realtime(const midi::MidiType message){
     MIDI.sendRealTime(message);

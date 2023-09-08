@@ -41,14 +41,14 @@ private:
 };
 
 struct Gate {
-  void update(const uint32_t delta_millis) { elapsed_millis += delta_millis; }
-  void trigger() { elapsed_millis = 0; }
-  bool open() const { return elapsed_millis <= length_millis; }
+  void update(const uint32_t delta_millis) { elapsed += delta_millis; }
+  void trigger() { elapsed = 0; }
+  bool open() const { return elapsed <= length; }
 
-  uint32_t length_millis = 1;
+  uint32_t length = 1;
 
 private:
-  uint16_t elapsed_millis = 0;
+  uint32_t elapsed = 0;
 };
 
 struct Callbacks {
@@ -86,7 +86,12 @@ private:
   uint8_t active_note = 0;
 };
 
-enum SpeedModifier { NormalSpeed, HalfSpeed, DoubleSpeed };
+enum SpeedModifier {
+  HalfSpeed = 1,
+  NormalSpeed = 2,
+  DoubleSpeed = 3,
+  QuadSpeed = 4
+};
 
 static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
 
@@ -97,7 +102,7 @@ struct Sequencer {
   void stop();
   void advance();
   bool tick_clock();
-  void update_gate(uint32_t delta_millis);
+  void update_gate(uint32_t delta_micros);
   void align_clock();
   inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
   void hold_note(uint8_t note, uint8_t velocity);
@@ -131,8 +136,8 @@ struct Sequencer {
     steps[wrapped_step(step)].note = note;
   }
 
-  void set_gate_length(const uint32_t millis) {
-    step_gate.length_millis = live_gate.length_millis = millis;
+  void set_gate_length(const uint32_t micros) {
+    step_gate.length = live_gate.length = micros;
   }
 
   void set_step_offset(const uint8_t offset) {
