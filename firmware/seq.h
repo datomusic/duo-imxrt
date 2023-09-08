@@ -43,7 +43,7 @@ private:
 struct Gate {
   void update(const uint32_t delta_millis) { elapsed += delta_millis; }
   void trigger() { elapsed = 0; }
-  bool open() const { return elapsed <= length; }
+  bool is_open() const { return elapsed <= length; }
 
   uint32_t length = 1;
 
@@ -114,11 +114,12 @@ struct Sequencer {
     }
   };
   inline bool is_running() const { return running; }
+  inline bool note_held() const { return arp.count() > 0; }
+  inline uint8_t current_held_note() const { return arp.recent_note(); }
   inline uint8_t cur_step_index() const {
     return (current_step + step_offset) % NUM_STEPS;
   }
   inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return step_gate.open(); }
   inline bool note_playing() const { return output.active(); }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
