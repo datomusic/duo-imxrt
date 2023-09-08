@@ -20,16 +20,12 @@
 #ifndef TempoHandler_h
 #define TempoHandler_h
 
-#define TEMPO_SOURCE_INTERNAL 0
-#define TEMPO_SOURCE_MIDI     1
-#define TEMPO_SOURCE_SYNC     2
-#define TEMPO_SYNC_DIVIDER   12
-#define TEMPO_SYNC_PULSE_MS  12
+#define TEMPO_SYNC_DIVIDER   (Sequencer::PULSES_PER_QUARTER_NOTE / 2)
 
 #include <MIDI.h>
 #include "lib/tempo.h"
 #include "lib/sync.h"
-#include "firmware/synth_params.h"
+#include "firmware/seq.h"
 #include "lib/elapsedMillis.h"
 
 void midi_send_realtime(const midi::MidiType message);
@@ -39,7 +35,7 @@ class TempoHandler
   friend class Tempo;
 
   public:
-    TempoHandler(synth_parameters &synth_params): synth_params(synth_params){
+    TempoHandler() {
       tempo.reset();
     }
 
@@ -49,89 +45,75 @@ class TempoHandler
     inline void setHandleAlignEvent(void (*fptr)()) {
       tAlignCallback = fptr;
     }
-    void setPPQN(int ppqn) {
-      _ppqn = ppqn;
-    }
-    void update() {
-      // Determine which source is selected for tempo
-      uint8_t new_source = _source;
-
-      if(Sync::detect()) {
-        new_source = TEMPO_SOURCE_SYNC;
-      } else if (_midi_clock_received_flag) { 
-        new_source = TEMPO_SOURCE_MIDI;
-      } else {
-        new_source = TEMPO_SOURCE_INTERNAL;
+    void update(const uint32_t synth_speed) {
+      if(_source != TEMPO_SOURCE_SYNC && Sync::detect()){
+        _source = TEMPO_SOURCE_SYNC;
       }
-
-      if (new_source != _source) {
-        _source = new_source;
-        _midi_clock_received_flag = 0;
-        tempo.reset();
-      }
-
 
       switch(_source) {
         case TEMPO_SOURCE_INTERNAL:
-          tempo.update_internal(*this, synth_params.speed);
-          break;
-        case TEMPO_SOURCE_MIDI:
-          update_midi(midi_clock);
+          tempo.update_internal(*this, synth_speed);
           break;
         case TEMPO_SOURCE_SYNC:
           update_sync();
           break;
+        case TEMPO_SOURCE_MIDI:
+          break;
       }
 
-      if(syncStart >= TEMPO_SYNC_PULSE_MS) {
+      if(syncStart >= TEMPO_SYNC_DIVIDER) {
         Sync::write(LOW);
       }
     }
 
     void midi_clock_received() {
-      midi_clock++;
-      _midi_clock_received_flag = 1;
-    }
-    void midi_clock_reset() {
-      _previous_midi_clock = 0;
-      midi_clock = 0;
+      if (_source != TEMPO_SOURCE_MIDI) {
+        _source = TEMPO_SOURCE_MIDI;
+      }
+
+      _previous_clock_time = micros();
+      trigger();
     }
     void reset_clock_source() {
-      _midi_clock_received_flag = 0;
       _source = TEMPO_SOURCE_INTERNAL;
+      tempo.reset();
+      reset_clock();
     }
-    bool is_clock_source_internal() {
+    bool is_clock_source_internal() const {
       return _source == TEMPO_SOURCE_INTERNAL;
     }
   private:
-    synth_parameters& synth_params;
+
+    enum Source{
+      TEMPO_SOURCE_MIDI,
+      TEMPO_SOURCE_SYNC,
+      TEMPO_SOURCE_INTERNAL
+    };
+
+
     Tempo tempo;
     elapsedMillis syncStart;
     void (*tTempoCallback)();
     void (*tAlignCallback)();
-    int pot_pin;
-    uint8_t _source = 0;
-    uint32_t _previous_clock_time;
-    uint32_t _previous_sync_time;
-    uint32_t _tempo_interval;
-    bool _midi_clock_block = false;
-    uint32_t _previous_midi_clock = 0;
-    bool _midi_clock_received_flag = 0;
+    Source _source = TEMPO_SOURCE_INTERNAL;
+    uint32_t _previous_clock_time = 0;
+    uint32_t _previous_sync_time = 0;
+    uint32_t _tempo_interval = 0;
     uint16_t _clock = 0;
-    uint16_t _ppqn = 24;
-    uint32_t midi_clock;
 
-
-    void update_midi(const uint32_t midi_clock) { 
-      if(midi_clock != _previous_midi_clock) {
-        _previous_midi_clock = midi_clock;
-        _previous_clock_time = micros();
-        trigger();
-      }
+    void reset_clock(){
+      _previous_clock_time = micros();
+      _clock = 0;
     }
+
     void update_sync() {
+      if (!Sync::detect()) {
+        reset_clock_source();
+        return;
+      }
+
       static uint8_t _sync_pin_previous_value = 1;
-      uint8_t _sync_pin_value = Sync::read();
+      const uint8_t _sync_pin_value = Sync::read();
 
       if(_sync_pin_previous_value && !_sync_pin_value) {
         _tempo_interval = (micros() - _previous_sync_time) / TEMPO_SYNC_DIVIDER;
@@ -163,7 +145,7 @@ class TempoHandler
     void trigger() {
       midi_send_realtime(midi::Clock);
 
-      if((_clock % _ppqn) == 0) {
+      if((_clock % Sequencer::PULSES_PER_QUARTER_NOTE) == 0) {
         _clock = 0;
       }
       if((_clock % TEMPO_SYNC_DIVIDER) == 0) {
@@ -172,6 +154,9 @@ class TempoHandler
       } 
       if (tTempoCallback != 0) {
         tTempoCallback();
+      }
+      if (_source == TEMPO_SOURCE_MIDI) {
+        _previous_clock_time = micros();
       }
       _clock++;
     }
