@@ -45,7 +45,18 @@ Sequencer::Sequencer(Callbacks callbacks) : output(callbacks) {
   }
 }
 
-void Sequencer::start() { running = true; }
+void Sequencer::start() {
+  running = true;
+  const uint8_t divider = divider_from_speed_mod(speed_mod);
+  const uint8_t step_index = current_step + step_offset;
+  const Step cur_step = steps[wrapped_step(step_index)];
+  if (cur_step.enabled && (clock % divider) == 0) {
+    step_gate.trigger();
+    output.on(cur_step.note);
+    last_played_step = step_index;
+  }
+}
+
 void Sequencer::restart() {
   clock = 0;
   current_step = 0;
@@ -94,7 +105,7 @@ void Sequencer::advance_running() {
 
   inc_current_step();
 
-  const auto step_index = current_step + step_offset;
+  const uint8_t step_index = current_step + step_offset;
   const Step cur_step = steps[wrapped_step(step_index)];
 
   arp.advance();
@@ -137,7 +148,7 @@ bool Sequencer::tick_clock() {
 
   if (running) {
     const auto divider = divider_from_speed_mod(speed_mod);
-    const bool should_advance = ((clock % divider) == 0);
+    const bool should_advance = (clock % divider) == 0;
     if (should_advance) {
       advance_running();
     }
@@ -177,7 +188,6 @@ void Sequencer::hold_note(const uint8_t note, const uint8_t velocity) {
     }
   }
 }
-
 
 void Sequencer::release_note(const uint8_t note) {
   arp.release_note(note);
