@@ -84,6 +84,8 @@ void Sequencer::update_gate(const uint32_t delta_micros) {
     } else if (!step_gate.open()) {
       output.off();
     }
+  }else if(arp.count() == 0 && !step_gate.open()){
+    output.off();
   }
 }
 
@@ -93,6 +95,12 @@ void Sequencer::advance() {
   } else {
     inc_current_step();
     step_gate.trigger();
+    const uint8_t step_index = current_step + step_offset;
+    const Step cur_step = steps[wrapped_step(step_index)];
+    if (cur_step.enabled) {
+      output.on(cur_step.note);
+      last_played_step = step_index;
+    }
   }
 }
 
