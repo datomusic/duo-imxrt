@@ -327,6 +327,9 @@ static void main_loop(){
         keys_scan(); // 14 or 175us (depending on debounce)
       }
     } else {
+      AudioNoInterrupts();
+      Audio::amp_disable();
+      Audio::headphone_disable();
       if(keys_scan_powerbutton()) { 
         NVIC_SystemReset();
       }
