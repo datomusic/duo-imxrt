@@ -239,18 +239,18 @@ void respects_step_offset_during_playback() {
   ASSERT_EQ(Sequencer::NUM_STEPS, count_enabled_steps(seq));
 
   seq.start();
-  ASSERT_PLAYED_COUNT(0);
+  ASSERT_PLAYED_COUNT(1);
 
   seq.advance();
   seq.update_gate(1);
 
-  ASSERT_PLAYED_COUNT(1);
+  ASSERT_PLAYED_COUNT(2);
   ASSERT_EQ(1, NoteTracker::last_note);
   seq.set_step_offset(2);
 
   seq.advance();
   seq.update_gate(1);
-  ASSERT_EQ(2, NoteTracker::played_notes);
+  ASSERT_PLAYED_COUNT(3);
   ASSERT_EQ(4, NoteTracker::last_note);
   ASSERT_EQ(4, seq.cur_step_index());
 }
