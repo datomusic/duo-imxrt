@@ -4,52 +4,25 @@
 
 using LEDs::Pixel;
 
-extern "C" int32_t rtest(int32_t);
+const int PIXEL_COUNT = 19;
+Pixel pixels[PIXEL_COUNT];
+
+extern "C" {
+void rust_main();
+
+void show_pixels() { LEDs::show(pixels, PIXEL_COUNT); }
+void delay_mic(uint32_t mics) { delayMicroseconds(mics); };
+void set_pixel(uint8_t index, uint8_t r, uint8_t g, uint8_t b) {
+  if (index >= 0 && index < PIXEL_COUNT) {
+    pixels[index] = Pixel{r, g, b};
+  }
+}
+}
 
 int main(void) {
   board_init();
   LEDs::init();
 
-  const int PIXEL_COUNT = 19;
-  Pixel pixels[PIXEL_COUNT];
-
-  int led_index = 0;
-  int color = 0;
-
-  bool fast_speed = false;
-
-  while (true) {
-    if (rtest(++led_index)) {
-      led_index = 0;
-      fast_speed = !fast_speed;
-    }
-
-    for (int i = 0; i < PIXEL_COUNT; ++i) {
-      pixels[i] = Pixel{0, 0, 0};
-    }
-
-    switch (color) {
-      case 0:
-        pixels[led_index].r = 255;
-        break;
-      case 1:
-        pixels[led_index].g = 255;
-        break;
-      case 2:
-        pixels[led_index].b = 255;
-        break;
-    }
-
-    if (++color > 2) {
-      color = 0;
-    }
-
-    LEDs::show(pixels, PIXEL_COUNT);
-
-    if (fast_speed) {
-      delayMicroseconds(10000);
-    } else {
-      delayMicroseconds(100000);
-    }
-  }
+  rust_main();
+  return 0;
 }

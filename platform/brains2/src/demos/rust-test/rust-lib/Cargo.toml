@@ -5,8 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+
+[features]
+default = []
+
+
 [dependencies]
+ws2812-flexio = "0.1.0"
+imxrt-ral = "0.5.1"
 
 [lib]
 crate-type = ["staticlib"]
 path = "src/lib.rs"
+
