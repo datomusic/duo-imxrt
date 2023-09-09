@@ -2,7 +2,26 @@
 #![no_std]
 
 use core::panic::PanicInfo;
-// use ws2812_flexio::{IntoPixelStream, WS2812Driver};
+// use hal::iomuxc::flexio::*;
+use imxrt_hal as hal;
+use imxrt_ral as ral;
+use iomuxc::imxrt1010::Pads;
+use ral::Instances;
+mod flexio;
+mod pins;
+mod pixel;
+mod pixelstream;
+
+/// Possible errors that could happen.
+pub mod errors;
+
+// pub use flexio::{PreprocessedPixels, WS2812Driver, WriteDmaResult};
+pub use flexio::WS2812Driver;
+pub use pins::Pins;
+// pub use pixel::Pixel;
+// pub use pixelstream::IntoPixelStream;
+
+use imxrt_iomuxc as iomuxc;
 
 const PIXEL_COUNT: u8 = 19;
 
@@ -29,29 +48,82 @@ extern "C" {
     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
 
+struct Resources {
+    /// General purpose timer 1.
+    pub gpt1: hal::gpt::Gpt1,
+
+    /// Clock control module.
+    pub ccm: ral::ccm::CCM,
+
+    /// The FlexIO2 register block.
+    pub flexio: ral::flexio::FLEXIO,
+}
+
+// struct Pins {
+//     p1: iomuxc::imxrt1010::gpio_ad::GPIO_AD_00,
+//     p2: iomuxc::imxrt1010::gpio_ad::GPIO_AD_01,
+//     p3: iomuxc::imxrt1010::gpio_ad::GPIO_AD_02,
+// }
+//
+// const fn pins_from_pads(pads: Pads) -> Pins {
+//     Pins {
+//         p1: pads.gpio_ad.p00,
+//         p2: pads.gpio_ad.p01,
+//         p3: pads.gpio_ad.p02,
+//     }
+// }
+
+fn prepare_resources(mut instances: Instances) -> Resources {
+    // Stop timers in debug mode.
+    ral::modify_reg!(ral::pit, instances.PIT, MCR, FRZ: FRZ_1);
+    let pit = hal::pit::new(instances.PIT);
+    //
+    let mut gpt1 = hal::gpt::Gpt::new(instances.GPT1);
+    gpt1.disable();
+
+    Resources {
+        gpt1,
+        ccm: instances.CCM,
+        flexio: instances.FLEXIO1,
+    }
+}
+
 #[no_mangle]
-pub extern "C" fn rust_main() {
-    // let mut neopixel = WS2812Driver::init(flexio2, (pins.p6, pins.p7, pins.p8)).unwrap();
+pub unsafe extern "C" fn rust_main() {
+    let Resources {
+        gpt1: mut us_timer,
+        ccm,
+        flexio,
+    } = prepare_resources(Instances::instances());
+
+    us_timer.set_clock_source(hal::gpt::ClockSource::PeripheralClock);
+    us_timer.set_divider(1);
+    us_timer.set_mode(hal::gpt::Mode::FreeRunning);
+    us_timer.enable();
+    let time_us = move || us_timer.count();
+
+    // Set FlexIO clock to 16Mhz, as required by the driver
+    ral::modify_reg!(
+        ral::ccm,
+        ccm,
+        CS1CDR,
+        FLEXIO1_CLK_PRED: FLEXIO1_CLK_PRED_4,
+        FLEXIO1_CLK_PODF: DIVIDE_6,
+    );
+
+    // let pins = pins_from_pads(Pads::new());
+    let pads = Pads::new();
+    let xxx = (pads.gpio_ad.p00, pads.gpio_ad.p01, pads.gpio_ad.p02);
+    // let mut neopixel = WS2812Driver::init(flexio, xxx).unwrap();
 
     let mut count = 0;
-    let mut fast = false;
-
     loop {
         count += 1;
-        if count > PIXEL_COUNT {
-            fast = !fast;
-            count = 0;
-        }
-
         unsafe {
             clear();
-            set_pixel(count, 255, 0, 255);
+            set_pixel(count % PIXEL_COUNT, 255, 0, 255);
             show_pixels();
-            if fast {
-                delay_mic(10000);
-            } else {
-                delay_mic(100000);
-            }
+            delay_mic(100000);
         }
     }
 }
