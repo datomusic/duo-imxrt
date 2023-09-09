@@ -314,6 +314,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE " \
     ${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
     -mcpu=cortex-m7 \
     -Wall \
+    -z noexecstack \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
     --specs=nano.specs \
@@ -372,6 +373,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_FLEXSPI_NOR_RELEASE " \
     -mcpu=cortex-m7 \
     -Wall \
     -mfloat-abi=hard \
+    -z noexecstack \
     -mfpu=fpv5-sp-d16 \
     --specs=nano.specs \
     --specs=nosys.specs \
