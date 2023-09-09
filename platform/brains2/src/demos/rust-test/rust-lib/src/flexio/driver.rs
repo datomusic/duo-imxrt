@@ -1,11 +1,13 @@
 use imxrt_hal as hal;
 use imxrt_ral as ral;
 
+use imxrt_iomuxc as iomuxc;
+use crate::duopins::DuoPins;
 use ral::{flexio, Valid};
 
 use super::{
     dma::WS2812Dma, flexio_configurator::FlexIOConfigurator, interleaved_pixels::InterleavedPixels,
-    PreprocessedPixels, WS2812Driver, WriteDmaResult,
+    PreprocessedPixels, WS2812Driver, WS2812Driver2, WriteDmaResult,
 };
 use crate::{errors, pixelstream::PixelStreamRef, Pins};
 
@@ -260,3 +262,110 @@ where
         Ok(result)
     }
 }
+
+impl WS2812Driver2 {
+    pub fn init(
+        flexio: flexio::Instance<1>,
+        mut pins: DuoPins,
+    ) -> Result<Self, errors::WS2812InitError> {
+        // Parameter check
+        let (version_major, version_minor, available_feature_set) =
+            ral::read_reg!(ral::flexio, flexio, VERID, MAJOR, MINOR, FEATURE);
+        let (available_triggers, available_pins, available_timers, available_shifters) =
+            ral::read_reg!(ral::flexio, flexio, PARAM, TRIGGER, PIN, TIMER, SHIFTER);
+
+        // Always u8 because our pins list is &[u8].
+        let available_pins = available_pins as u8;
+
+
+        if available_shifters < 1 {
+            return Err(errors::WS2812InitError::NotEnoughShifters);
+        }
+
+        const PIN_COUNT : u32 = 3;
+
+        if available_timers < 2 + PIN_COUNT * 2 {
+            return Err(errors::WS2812InitError::NotEnoughTimers);
+        }
+
+        //////////// Configure FlexIO registers /////////////////
+        let mut flexio = FlexIOConfigurator::new(flexio);
+
+        // Find 4 consecutive pins for the shifter output
+        // let shifter_output_start_pin = {
+        //     let mut start = 0;
+        //     let mut found = false;
+        //     for i in 0..available_pins {
+        //         if PINS::FLEXIO_PIN_OFFSETS.contains(&i) {
+        //             start = i + 1;
+        //         } else if i - start >= 3 {
+        //             // We found 4 consecutive free pins!
+        //             found = true;
+        //             break;
+        //         }
+        //     }
+        //     if !found {
+        //         return Err(errors::WS2812InitError::NeedFourConsecutiveInternalPins);
+        //     }
+        //     start
+        // };
+
+        // // Find a free pin for the shift timer output
+        // let shift_timer_output_pin = {
+        //     let mut found_pin = None;
+        //
+        //     for i in 0..available_pins {
+        //         if !PINS::FLEXIO_PIN_OFFSETS.contains(&i)
+        //             && !(shifter_output_start_pin..shifter_output_start_pin + 4).contains(&i)
+        //         {
+        //             found_pin = Some(i);
+        //             break;
+        //         }
+        //     }
+        //
+        //     if let Some(pin) = found_pin {
+        //         pin
+        //     } else {
+        //         return Err(errors::WS2812InitError::NotEnoughPins);
+        //     }
+        // };
+        //
+        // let data_shifter = Self::get_shifter_id();
+        // let shifter_timer = Self::get_shifter_timer_id();
+        // let idle_timer = Self::get_idle_timer_id();
+        //
+        // flexio.configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
+        // flexio.configure_shift_timer(shifter_timer, data_shifter, shift_timer_output_pin);
+        // flexio.configure_idle_timer(idle_timer, shift_timer_output_pin, None);
+        //
+        // for (pin_pos, pin_id) in PINS::FLEXIO_PIN_OFFSETS.iter().copied().enumerate() {
+        //     let pin_pos = pin_pos.try_into().unwrap();
+        //     let low_bit_timer = Self::get_low_bit_timer_id(pin_pos);
+        //     let high_bit_timer = Self::get_high_bit_timer_id(pin_pos);
+        //
+        //     let neopixel_output_pin = pin_id;
+        //
+        //     flexio.configure_low_bit_timer(
+        //         low_bit_timer,
+        //         shift_timer_output_pin,
+        //         neopixel_output_pin,
+        //     );
+        //     flexio.configure_high_bit_timer(
+        //         high_bit_timer,
+        //         shifter_output_start_pin + pin_pos,
+        //         neopixel_output_pin,
+        //     );
+        // }
+
+        // Configure pins and create driver object
+        // pins.configure();
+
+        // iomuxc::flexio::prepare(&mut pins.p8);
+        // iomuxc::flexio::prepare(&mut p2);
+        // iomuxc::flexio::prepare(&mut p3);
+
+        Ok(Self {
+          pins,
+            flexio: flexio.finish(),
+        })
+    } }

@@ -1,12 +1,16 @@
 #![no_main]
 #![no_std]
 
+mod iomuxc {
+    pub use imxrt_iomuxc::imxrt1010::*;
+    pub use imxrt_iomuxc::ErasedPad;
+    pub use imxrt_iomuxc::Pad;
+}
+
 use core::panic::PanicInfo;
 // use hal::iomuxc::flexio::*;
 use imxrt_hal as hal;
 use imxrt_ral as ral;
-use iomuxc::imxrt1010::Pads;
-use ral::Instances;
 mod flexio;
 mod pins;
 mod pixel;
@@ -15,13 +19,16 @@ mod pixelstream;
 /// Possible errors that could happen.
 pub mod errors;
 
+mod duopins;
+mod board;
+
 // pub use flexio::{PreprocessedPixels, WS2812Driver, WriteDmaResult};
-pub use flexio::WS2812Driver;
+pub use flexio::WS2812Driver2;
 pub use pins::Pins;
 // pub use pixel::Pixel;
 // pub use pixelstream::IntoPixelStream;
 
-use imxrt_iomuxc as iomuxc;
+// use imxrt_iomuxc as iomuxc;
 
 const PIXEL_COUNT: u8 = 19;
 
@@ -73,28 +80,15 @@ struct Resources {
 //     }
 // }
 
-fn prepare_resources(mut instances: Instances) -> Resources {
-    // Stop timers in debug mode.
-    ral::modify_reg!(ral::pit, instances.PIT, MCR, FRZ: FRZ_1);
-    let pit = hal::pit::new(instances.PIT);
-    //
-    let mut gpt1 = hal::gpt::Gpt::new(instances.GPT1);
-    gpt1.disable();
-
-    Resources {
-        gpt1,
-        ccm: instances.CCM,
-        flexio: instances.FLEXIO1,
-    }
-}
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_main() {
-    let Resources {
+    let board::Resources {
         gpt1: mut us_timer,
         ccm,
         flexio,
-    } = prepare_resources(Instances::instances());
+        pins,
+    } = board::duo(board::instances());
 
     us_timer.set_clock_source(hal::gpt::ClockSource::PeripheralClock);
     us_timer.set_divider(1);
@@ -112,9 +106,11 @@ pub unsafe extern "C" fn rust_main() {
     );
 
     // let pins = pins_from_pads(Pads::new());
-    let pads = Pads::new();
-    let xxx = (pads.gpio_ad.p00, pads.gpio_ad.p01, pads.gpio_ad.p02);
+    // let pads = Pads::new();
+    // let xxx = (pads.gpio_ad.p00, pads.gpio_ad.p01, pads.gpio_ad.p02);
     // let mut neopixel = WS2812Driver::init(flexio, xxx).unwrap();
+    // let erased = (pins.p8.erase(), pins.p9.erase(), pins.p10.erase());
+    let mut neopixel = WS2812Driver2::init(flexio, pins).unwrap();
 
     let mut count = 0;
     loop {
