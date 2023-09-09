@@ -7,7 +7,6 @@ mod driver;
 mod flexio_configurator;
 mod interleaved_pixels;
 mod preprocessed_pixels;
-use crate::duopins::DuoPins;
 
 use crate::Pins;
 
@@ -20,11 +19,6 @@ where
 {
     flexio: flexio::Instance<N>,
     _pins: PINS,
-}
-
-pub struct WS2812Driver2 {
-    flexio: flexio::Instance<1>,
-    pins: DuoPins
 }
 
 /// The result of [WS2812Driver::write_dma()][WS2812Driver::write_dma].

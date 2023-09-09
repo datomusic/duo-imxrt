@@ -23,7 +23,7 @@ mod duopins;
 mod board;
 
 // pub use flexio::{PreprocessedPixels, WS2812Driver, WriteDmaResult};
-pub use flexio::WS2812Driver2;
+pub use flexio::WS2812Driver;
 pub use pins::Pins;
 // pub use pixel::Pixel;
 // pub use pixelstream::IntoPixelStream;
@@ -110,7 +110,7 @@ pub unsafe extern "C" fn rust_main() {
     // let xxx = (pads.gpio_ad.p00, pads.gpio_ad.p01, pads.gpio_ad.p02);
     // let mut neopixel = WS2812Driver::init(flexio, xxx).unwrap();
     // let erased = (pins.p8.erase(), pins.p9.erase(), pins.p10.erase());
-    let mut neopixel = WS2812Driver2::init(flexio, pins).unwrap();
+    // let mut neopixel = WS2812Driver2::init(flexio, pins).unwrap();
 
     let mut count = 0;
     loop {
