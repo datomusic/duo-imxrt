@@ -36,6 +36,9 @@ fn prepare_resources<Pins>(
         let mut gpt1 = hal::gpt::Gpt::new(instances.GPT1);
         gpt1.disable();
 
+        let mut gpt2 = hal::gpt::Gpt::new(instances.GPT2);
+        gpt2.disable();
+
         Resources {
             gpt1,
             pins,

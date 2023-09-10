@@ -89,8 +89,8 @@ struct Resources {
 //     }
 // }
 
-static mut FRAMEBUFFER_0: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
-static mut FRAMEBUFFER_1: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+// static mut FRAMEBUFFER_0: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+// static mut FRAMEBUFFER_1: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 static mut FRAMEBUFFER_2: [[u8; 3]; NUM_PIXELS] = [[0; 3]; NUM_PIXELS];
 
 fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
@@ -123,29 +123,29 @@ pub unsafe extern "C" fn rust_main() {
 
     let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
 
-    let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
+    // let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
     // let framebuffer_1 = unsafe { &mut FRAMEBUFFER_1 };
-    // let framebuffer_2 = unsafe { &mut FRAMEBUFFER_2 };
+    let framebuffer_2 = unsafe { &mut FRAMEBUFFER_2 };
 
-    let mut count = 0;
-    let mut t = 0;
+    // let mut count = 0;
+    // let mut t = 0;
     loop {
-        effects::running_dots(t, framebuffer_0);
-        t += 1;
+        effects::test_pattern(framebuffer_2);
+        // t += 1;
 
         neopixel.write([
-            &mut framebuffer_0
-                .iter()
-                .map(linearize_color)
-                .into_pixel_stream(),
+            // &mut framebuffer_0
+            //     .iter()
+            //     .map(linearize_color)
+            //     .into_pixel_stream(),
             // &mut framebuffer_1
             //     .iter()
             //     .map(linearize_color)
             //     .into_pixel_stream(),
-            // &mut framebuffer_2.into_pixel_stream(),
+            &mut framebuffer_2.into_pixel_stream(),
         ]);
 
-        count += 1;
+        // count += 1;
         unsafe {
             //     clear();
             //     set_pixel(count % PIXEL_COUNT, 255, 0, 255);

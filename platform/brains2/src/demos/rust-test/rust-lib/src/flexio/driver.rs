@@ -36,15 +36,15 @@ where
         // Always u8 because our pins list is &[u8].
         let available_pins = available_pins as u8;
 
-        log::debug!("Initializing FlexIO #{}.", N);
-        log::debug!("    Version: {}.{}", version_major, version_minor);
-        log::debug!("    Feature Set: {}", available_feature_set);
-        log::debug!("    Peripherals:");
-        log::debug!("        {} triggers", available_triggers);
-        log::debug!("        {} pins", available_pins);
-        log::debug!("        {} timers", available_timers);
-        log::debug!("        {} shifters", available_shifters);
-        log::debug!("Output pins: {:?}", PINS::FLEXIO_PIN_OFFSETS);
+        // log::debug!("Initializing FlexIO #{}.", N);
+        // log::debug!("    Version: {}.{}", version_major, version_minor);
+        // log::debug!("    Feature Set: {}", available_feature_set);
+        // log::debug!("    Peripherals:");
+        // log::debug!("        {} triggers", available_triggers);
+        // log::debug!("        {} pins", available_pins);
+        // log::debug!("        {} timers", available_timers);
+        // log::debug!("        {} shifters", available_shifters);
+        // log::debug!("Output pins: {:?}", PINS::FLEXIO_PIN_OFFSETS);
 
         if available_shifters < 1 {
             return Err(errors::WS2812InitError::NotEnoughShifters);
