@@ -2,7 +2,7 @@
 set -e
 
 SCRIPT_PATH=$(dirname "$(realpath $0)")
-APP_PATH="$SCRIPT_PATH/$1"
+APP_PATH="$1"
 TOOLCHAIN_FILE=${TOOLCHAIN_FILE:-"$SCRIPT_PATH/../armgcc/arm-none-eabi-gcc.cmake"}
 
 shift
