@@ -37,23 +37,11 @@ use pixelstream::IntoPixelStream;
 const PIXEL_COUNT: u8 = 19;
 const NUM_PIXELS: usize = PIXEL_COUNT as usize;
 
-// unsafe fn clear() {
-//     for i in 0..PIXEL_COUNT {
-//         set_pixel(i, 0, 0, 0);
-//     }
-// }
-
 #[panic_handler]
 fn panic(_panic: &PanicInfo) -> ! {
-    // unsafe {
-    //     for i in 0..PIXEL_COUNT {
-    //         set_pixel(i, 255, 255, 255);
-    //     }
-    // }
-
     loop {
         unsafe {
-            delay_mic(100000);
+            delay_mic(1000000);
         }
     }
 }
@@ -98,59 +86,48 @@ fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn rust_main() {
+pub extern "C" fn rust_main() {
     let board::Resources {
-        gpt1: mut us_timer,
+        // gpt1: mut gpt1,
         ccm,
         flexio,
         pins,
+        ..
     } = board::duo(board::instances());
 
-    us_timer.set_clock_source(hal::gpt::ClockSource::PeripheralClock);
-    us_timer.set_divider(1);
-    us_timer.set_mode(hal::gpt::Mode::FreeRunning);
-    us_timer.enable();
-    let time_us = move || us_timer.count();
-
     // Set FlexIO clock to 16Mhz, as required by the driver
-    ral::modify_reg!(
-        ral::ccm,
-        ccm,
-        CS1CDR,
-        FLEXIO1_CLK_PRED: FLEXIO1_CLK_PRED_4,
-        FLEXIO1_CLK_PODF: DIVIDE_6,
-    );
+    // ral::modify_reg!(
+    //     ral::ccm,
+    //     ccm,
+    //     CS1CDR,
+    //     FLEXIO1_CLK_PRED: FLEXIO1_CLK_PRED_4,
+    //     FLEXIO1_CLK_PODF: DIVIDE_6,
+    // );
 
-    let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
+    // let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
 
     // let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
     // let framebuffer_1 = unsafe { &mut FRAMEBUFFER_1 };
-    let framebuffer_2 = unsafe { &mut FRAMEBUFFER_2 };
+    // let framebuffer_2 = unsafe { &mut FRAMEBUFFER_2 };
 
-    // let mut count = 0;
-    // let mut t = 0;
     loop {
-        effects::test_pattern(framebuffer_2);
+        // effects::test_pattern(framebuffer_2);
         // t += 1;
 
-        neopixel.write([
-            // &mut framebuffer_0
-            //     .iter()
-            //     .map(linearize_color)
-            //     .into_pixel_stream(),
-            // &mut framebuffer_1
-            //     .iter()
-            //     .map(linearize_color)
-            //     .into_pixel_stream(),
-            &mut framebuffer_2.into_pixel_stream(),
-        ]);
+        // neopixel.write([
+        //     // &mut framebuffer_0
+        //     //     .iter()
+        //     //     .map(linearize_color)
+        //     //     .into_pixel_stream(),
+        //     // &mut framebuffer_1
+        //     //     .iter()
+        //     //     .map(linearize_color)
+        //     //     .into_pixel_stream(),
+        //     &mut framebuffer_2.into_pixel_stream(),
+        // ]);
 
-        // count += 1;
         unsafe {
-            //     clear();
-            //     set_pixel(count % PIXEL_COUNT, 255, 0, 255);
-            //     show_pixels();
-            delay_mic(100000);
+            delay_mic(1000);
         }
     }
 }

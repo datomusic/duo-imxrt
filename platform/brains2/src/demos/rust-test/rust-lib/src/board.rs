@@ -5,7 +5,7 @@ use ral::Instances;
 
 #[non_exhaustive]
 pub struct Resources<Pins> {
-    pub gpt1: hal::gpt::Gpt1,
+    // pub gpt1: hal::gpt::Gpt1,
     /// Clock control module.
     pub ccm: ral::ccm::CCM,
     /// All available pins.
@@ -30,17 +30,17 @@ fn prepare_resources<Pins>(
         let pins = from_pads(iomuxc);
 
         // Stop timers in debug mode.
-        ral::modify_reg!(ral::pit, instances.PIT, MCR, FRZ: FRZ_1);
-        let pit = hal::pit::new(instances.PIT);
+        // ral::modify_reg!(ral::pit, instances.PIT, MCR, FRZ: FRZ_1);
+        // let pit = hal::pit::new(instances.PIT);
         //
-        let mut gpt1 = hal::gpt::Gpt::new(instances.GPT1);
-        gpt1.disable();
+        // let mut gpt1 = hal::gpt::Gpt::new(instances.GPT1);
+        // gpt1.disable();
 
-        let mut gpt2 = hal::gpt::Gpt::new(instances.GPT2);
-        gpt2.disable();
+        // let mut gpt2 = hal::gpt::Gpt::new(instances.GPT2);
+        // gpt2.disable();
 
         Resources {
-            gpt1,
+            // gpt1,
             pins,
             ccm: instances.CCM,
             flexio: instances.FLEXIO1,
