@@ -8,9 +8,12 @@ mod iomuxc {
 }
 
 use core::panic::PanicInfo;
+use palette::LinSrgb;
+use palette::Srgb;
 // use hal::iomuxc::flexio::*;
 use imxrt_hal as hal;
 use imxrt_ral as ral;
+mod effects;
 mod flexio;
 mod pins;
 mod pixel;
@@ -19,18 +22,20 @@ mod pixelstream;
 /// Possible errors that could happen.
 pub mod errors;
 
-mod duopins;
 mod board;
+mod duopins;
 
 // pub use flexio::{PreprocessedPixels, WS2812Driver, WriteDmaResult};
 pub use flexio::WS2812Driver;
 pub use pins::Pins;
+use pixelstream::IntoPixelStream;
 // pub use pixel::Pixel;
 // pub use pixelstream::IntoPixelStream;
 
 // use imxrt_iomuxc as iomuxc;
 
 const PIXEL_COUNT: u8 = 19;
+const NUM_PIXELS: usize = PIXEL_COUNT as usize;
 
 unsafe fn clear() {
     for i in 0..PIXEL_COUNT {
@@ -80,6 +85,13 @@ struct Resources {
 //     }
 // }
 
+static mut FRAMEBUFFER_0: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+static mut FRAMEBUFFER_1: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+static mut FRAMEBUFFER_2: [[u8; 3]; NUM_PIXELS] = [[0; 3]; NUM_PIXELS];
+
+fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
+    col.into_linear().into_format()
+}
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_main() {
@@ -105,15 +117,30 @@ pub unsafe extern "C" fn rust_main() {
         FLEXIO1_CLK_PODF: DIVIDE_6,
     );
 
-    // let pins = pins_from_pads(Pads::new());
-    // let pads = Pads::new();
-    // let xxx = (pads.gpio_ad.p00, pads.gpio_ad.p01, pads.gpio_ad.p02);
-    // let mut neopixel = WS2812Driver::init(flexio, xxx).unwrap();
-    // let erased = (pins.p8.erase(), pins.p9.erase(), pins.p10.erase());
-    // let mut neopixel = WS2812Driver2::init(flexio, pins).unwrap();
+    let mut neopixel = WS2812Driver::init(flexio, (pins.p8,)).unwrap();
+
+    let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
+    // let framebuffer_1 = unsafe { &mut FRAMEBUFFER_1 };
+    // let framebuffer_2 = unsafe { &mut FRAMEBUFFER_2 };
 
     let mut count = 0;
+    let mut t = 0;
     loop {
+        effects::running_dots(t, framebuffer_0);
+        t += 1;
+
+        neopixel.write([
+            &mut framebuffer_0
+                .iter()
+                .map(linearize_color)
+                .into_pixel_stream(),
+            // &mut framebuffer_1
+            //     .iter()
+            //     .map(linearize_color)
+            //     .into_pixel_stream(),
+            // &mut framebuffer_2.into_pixel_stream(),
+        ]);
+
         count += 1;
         unsafe {
             clear();

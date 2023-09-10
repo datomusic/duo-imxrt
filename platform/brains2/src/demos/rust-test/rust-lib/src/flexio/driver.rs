@@ -1,8 +1,6 @@
 use imxrt_hal as hal;
 use imxrt_ral as ral;
 
-use imxrt_iomuxc as iomuxc;
-use crate::duopins::DuoPins;
 use ral::{flexio, Valid};
 
 use super::{

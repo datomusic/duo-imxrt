@@ -20,7 +20,8 @@ log = "0.4.19"
 # version = "0.1.0"
 
 [dependencies.imxrt-hal]
-version = "0.5.3"
+path = "../imxrt-hal"
+# version = "0.5.3"
 
 
 [dependencies.imxrt-ral]
@@ -28,7 +29,8 @@ version = "0.5"
 features = ["imxrt1011"]
 
 [dependencies.imxrt-iomuxc]
-version = "0.2"
+# version = "0.2"
+path = "../imxrt-iomuxc"
 features = ["imxrt1010"]
 
 [lib]

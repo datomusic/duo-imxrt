@@ -44,7 +44,7 @@ macro_rules! impl_pins {
     };
 }
 
-// impl_pins!(0);
-// impl_pins!(0 1);
-// impl_pins!(0 1 2);
-// impl_pins!(0 1 2 3);
+impl_pins!(0);
+impl_pins!(0 1);
+impl_pins!(0 1 2);
+impl_pins!(0 1 2 3);

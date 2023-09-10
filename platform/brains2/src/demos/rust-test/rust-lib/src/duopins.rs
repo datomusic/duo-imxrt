@@ -1,7 +1,7 @@
 // pub use crate::common::*;
 // use crate::iomuxc::{gpio_sd::*, ErasedPad};
 // use crate::iomuxc::{gpio_ad_b0::*, gpio_ad_b1::*, gpio_b0::*, gpio_b1::*, gpio_emc::*};
-use crate::iomuxc::ErasedPad;
+// use crate::iomuxc::ErasedPad;
 // use crate::iomuxc::gpio_ad::*;
 use crate::iomuxc::gpio::*;
 // use crate::iomuxc::gpio_ad::*;
@@ -24,11 +24,11 @@ use crate::iomuxc::gpio::*;
 // /// Pin 7 (common)
 // pub type P7 = GPIO_01;
 /// Pin 8 (common)
-pub type P8 = GPIO_00;
+pub type P8 = GPIO_08;
 /// Pin 9 (common)
-pub type P9 = GPIO_01;
+pub type P9 = GPIO_09;
 /// Pin 10 (common)
-pub type P10 = GPIO_02;
+pub type P10 = GPIO_10;
 // /// Pin 11 (common)
 // pub type P11 = GPIO_B0_02;
 // /// Pin 12 (common)
@@ -90,8 +90,7 @@ pub type P10 = GPIO_02;
 // /// Pin 39 (4.0)
 // pub type P39 = GPIO_SD_B0_04;
 
-// pub type ErasedPins = [ErasedPad; 40];
-pub type ErasedPins = [ErasedPad; 3];
+// pub type ErasedPins = [ErasedPad; 3];
 
 pub struct DuoPins {
     // /// Pin 0
@@ -189,9 +188,9 @@ pub const fn from_pads(iomuxc: crate::iomuxc::Pads) -> DuoPins {
         // p5: iomuxc.gpio_emc.p08,
         // p6: iomuxc.gpio.p10,
         // p7: iomuxc.gpio.p01,
-        p8: iomuxc.gpio.p00,
-        p9: iomuxc.gpio.p01,
-        p10: iomuxc.gpio.p02,
+        p8: iomuxc.gpio.p08,
+        p9: iomuxc.gpio.p09,
+        p10: iomuxc.gpio.p10,
         // p11: iomuxc.gpio_b0.p02,
         // p12: iomuxc.gpio_b0.p01,
         // p13: iomuxc.gpio_b0.p03,
@@ -242,51 +241,51 @@ impl DuoPins {
         from_pads(crate::iomuxc::Pads::new())
     }
 
-    /// Erase the types of all pins
-    #[inline]
-    pub fn erase(self) -> ErasedPins {
-        [
-            // self.p0.erase(),
-            // self.p1.erase(),
-            // self.p2.erase(),
-            // self.p3.erase(),
-            // self.p4.erase(),
-            // self.p5.erase(),
-            // self.p6.erase(),
-            // self.p7.erase(),
-            self.p8.erase(),
-            self.p9.erase(),
-            self.p10.erase(),
-            // self.p11.erase(),
-            // self.p12.erase(),
-            // self.p13.erase(),
-            // self.p14.erase(),
-            // self.p15.erase(),
-            // self.p16.erase(),
-            // self.p17.erase(),
-            // self.p18.erase(),
-            // self.p19.erase(),
-            // self.p20.erase(),
-            // self.p21.erase(),
-            // self.p22.erase(),
-            // self.p23.erase(),
-            // self.p24.erase(),
-            // self.p25.erase(),
-            // self.p26.erase(),
-            // self.p27.erase(),
-            // self.p28.erase(),
-            // self.p29.erase(),
-            // self.p30.erase(),
-            // self.p31.erase(),
-            // self.p32.erase(),
-            // self.p33.erase(),
-            // // END OF COMMON PINS
-            // self.p34.erase(),
-            // self.p35.erase(),
-            // self.p36.erase(),
-            // self.p37.erase(),
-            // self.p38.erase(),
-            // self.p39.erase(),
-        ]
-    }
+    // /// Erase the types of all pins
+    // #[inline]
+    // pub fn erase(self) -> ErasedPins {
+    //     [
+    //         // self.p0.erase(),
+    //         // self.p1.erase(),
+    //         // self.p2.erase(),
+    //         // self.p3.erase(),
+    //         // self.p4.erase(),
+    //         // self.p5.erase(),
+    //         // self.p6.erase(),
+    //         // self.p7.erase(),
+    //         self.p8.erase(),
+    //         self.p9.erase(),
+    //         self.p10.erase(),
+    //         // self.p11.erase(),
+    //         // self.p12.erase(),
+    //         // self.p13.erase(),
+    //         // self.p14.erase(),
+    //         // self.p15.erase(),
+    //         // self.p16.erase(),
+    //         // self.p17.erase(),
+    //         // self.p18.erase(),
+    //         // self.p19.erase(),
+    //         // self.p20.erase(),
+    //         // self.p21.erase(),
+    //         // self.p22.erase(),
+    //         // self.p23.erase(),
+    //         // self.p24.erase(),
+    //         // self.p25.erase(),
+    //         // self.p26.erase(),
+    //         // self.p27.erase(),
+    //         // self.p28.erase(),
+    //         // self.p29.erase(),
+    //         // self.p30.erase(),
+    //         // self.p31.erase(),
+    //         // self.p32.erase(),
+    //         // self.p33.erase(),
+    //         // // END OF COMMON PINS
+    //         // self.p34.erase(),
+    //         // self.p35.erase(),
+    //         // self.p36.erase(),
+    //         // self.p37.erase(),
+    //         // self.p38.erase(),
+    //         // self.p39.erase(),
+    //     ]
+    // }
 }

@@ -103,8 +103,6 @@ dependencies = [
 [[package]]
 name = "imxrt-hal"
 version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b48e06b1cd447190708b1e25c3bdc9bb34ef35d5930d39a03d36a3e788fffd81"
 dependencies = [
  "bitflags",
  "cfg-if",
@@ -120,9 +118,7 @@ dependencies = [
 
 [[package]]
 name = "imxrt-iomuxc"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d820e66fcb3010c8a1e33059c2b285ef9fa27dca70715178e5ea7ae7d667ac7c"
+version = "0.3.0"
 
 [[package]]
 name = "imxrt-ral"
