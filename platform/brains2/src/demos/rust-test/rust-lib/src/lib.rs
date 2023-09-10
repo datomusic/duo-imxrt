@@ -37,27 +37,31 @@ use pixelstream::IntoPixelStream;
 const PIXEL_COUNT: u8 = 19;
 const NUM_PIXELS: usize = PIXEL_COUNT as usize;
 
-unsafe fn clear() {
-    for i in 0..PIXEL_COUNT {
-        set_pixel(i, 0, 0, 0);
-    }
-}
+// unsafe fn clear() {
+//     for i in 0..PIXEL_COUNT {
+//         set_pixel(i, 0, 0, 0);
+//     }
+// }
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo) -> ! {
-    unsafe {
-        for i in 0..PIXEL_COUNT {
-            set_pixel(i, 255, 255, 255);
+    // unsafe {
+    //     for i in 0..PIXEL_COUNT {
+    //         set_pixel(i, 255, 255, 255);
+    //     }
+    // }
+
+    loop {
+        unsafe {
+            delay_mic(100000);
         }
     }
-
-    loop {}
 }
 
 extern "C" {
-    fn show_pixels();
+    //     fn show_pixels();
     fn delay_mic(mics: u32);
-    fn set_pixel(index: u8, r: u8, g: u8, b: u8);
+    //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
 
 struct Resources {
@@ -117,7 +121,7 @@ pub unsafe extern "C" fn rust_main() {
         FLEXIO1_CLK_PODF: DIVIDE_6,
     );
 
-    let mut neopixel = WS2812Driver::init(flexio, (pins.p8,)).unwrap();
+    let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
 
     let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
     // let framebuffer_1 = unsafe { &mut FRAMEBUFFER_1 };
@@ -143,9 +147,9 @@ pub unsafe extern "C" fn rust_main() {
 
         count += 1;
         unsafe {
-            clear();
-            set_pixel(count % PIXEL_COUNT, 255, 0, 255);
-            show_pixels();
+            //     clear();
+            //     set_pixel(count % PIXEL_COUNT, 255, 0, 255);
+            //     show_pixels();
             delay_mic(100000);
         }
     }
