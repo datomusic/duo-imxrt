@@ -25,7 +25,6 @@ static uint8_t divider_from_speed_mod(const SpeedModifier mod) {
 
 static Zone get_zone(uint32_t clock, const SpeedModifier speed_mod) {
   const uint32_t ticks = divider_from_speed_mod(speed_mod);
-  const uint32_t third = ticks / 3;
   const uint32_t fourth = ticks / 4;
   clock = clock % ticks;
 
