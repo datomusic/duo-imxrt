@@ -7,6 +7,7 @@ set(EXECUTABLE_NAME rust-test.elf)
 
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/rust_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/fsl_flexio.c
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE

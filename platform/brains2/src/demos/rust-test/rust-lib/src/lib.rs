@@ -78,9 +78,9 @@ struct Resources {
 //     }
 // }
 
-// static mut FRAMEBUFFER_0: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+static mut FRAMEBUFFER_0: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 // static mut FRAMEBUFFER_1: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
-static mut FRAMEBUFFER_2: [[u8; 3]; NUM_PIXELS] = [[0; 3]; NUM_PIXELS];
+// static mut FRAMEBUFFER_2: [[u8; 3]; NUM_PIXELS] = [[0; 3]; NUM_PIXELS];
 
 fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
     col.into_linear().into_format()
@@ -106,10 +106,10 @@ pub extern "C" fn rust_main() {
     );
 
 
-    // let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
+    let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
     unsafe {flash_led()};
 
-    // let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
+    let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
     // let framebuffer_1 = unsafe { &mut FRAMEBUFFER_1 };
     // let framebuffer_2 = unsafe { &mut FRAMEBUFFER_2 };
 
@@ -117,20 +117,21 @@ pub extern "C" fn rust_main() {
         // effects::test_pattern(framebuffer_2);
         // t += 1;
 
-        // neopixel.write([
-        //     // &mut framebuffer_0
-        //     //     .iter()
-        //     //     .map(linearize_color)
-        //     //     .into_pixel_stream(),
-        //     // &mut framebuffer_1
-        //     //     .iter()
-        //     //     .map(linearize_color)
-        //     //     .into_pixel_stream(),
-        //     &mut framebuffer_2.into_pixel_stream(),
-        // ]);
+        neopixel.write([
+            &mut framebuffer_0
+                .iter()
+                .map(linearize_color)
+                .into_pixel_stream(),
+            // &mut framebuffer_1
+            //     .iter()
+            //     .map(linearize_color)
+            //     .into_pixel_stream(),
+            // &mut framebuffer_2.into_pixel_stream(),
+        ]);
 
         unsafe {
-            delay_mic(1000);
+          flash_led();
+            delay_mic(1000 * 50);
         }
     }
 }
