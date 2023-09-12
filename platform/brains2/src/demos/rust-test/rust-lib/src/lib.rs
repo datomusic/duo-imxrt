@@ -49,6 +49,7 @@ fn panic(_panic: &PanicInfo) -> ! {
 extern "C" {
     //     fn show_pixels();
     fn delay_mic(mics: u32);
+    fn flash_led();
     //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
 
@@ -96,15 +97,17 @@ pub extern "C" fn rust_main() {
     } = board::duo(board::instances());
 
     // Set FlexIO clock to 16Mhz, as required by the driver
-    // ral::modify_reg!(
-    //     ral::ccm,
-    //     ccm,
-    //     CS1CDR,
-    //     FLEXIO1_CLK_PRED: FLEXIO1_CLK_PRED_4,
-    //     FLEXIO1_CLK_PODF: DIVIDE_6,
-    // );
+    ral::modify_reg!(
+        ral::ccm,
+        ccm,
+        CS1CDR,
+        FLEXIO1_CLK_PRED: FLEXIO1_CLK_PRED_4,
+        FLEXIO1_CLK_PODF: DIVIDE_6,
+    );
+
 
     // let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
+    unsafe {flash_led()};
 
     // let framebuffer_0 = unsafe { &mut FRAMEBUFFER_0 };
     // let framebuffer_1 = unsafe { &mut FRAMEBUFFER_1 };
