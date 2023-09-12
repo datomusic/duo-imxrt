@@ -9,6 +9,15 @@ use super::{
 };
 use crate::{errors, pixelstream::PixelStreamRef, Pins};
 
+
+extern "C" {
+    //     fn show_pixels();
+    fn delay_mic(mics: u32);
+    fn flash_led();
+    //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
+}
+
+
 impl<const N: u8, const L: usize, PINS: Pins<N, L>> WS2812Driver<N, L, PINS>
 where
     flexio::Instance<N>: Valid,
