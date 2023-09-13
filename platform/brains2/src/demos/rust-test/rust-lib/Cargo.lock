@@ -153,6 +153,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7012b1bbb0719e1097c47611d3898568c546d597c2e74d66f6087edd5233ff4"
 
 [[package]]
+name = "log"
+version = "0.4.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
+
+[[package]]
 name = "nb"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -223,13 +229,10 @@ checksum = "46b71a9d9206e8b46714c74255adcaea8b11e0350c1d8456165073c3f75fc81a"
 name = "rust-lib"
 version = "0.1.0"
 dependencies = [
- "cassette",
- "imxrt-hal",
  "imxrt-iomuxc",
  "imxrt-ral",
  "palette",
- "paste",
- "snafu",
+ "ws2812-flexio",
 ]
 
 [[package]]
@@ -331,4 +334,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ee8f19f9d74293faf70901bc20ad067dc1ad390d2cbf1e3f75f721ffee908b6"
 dependencies = [
  "vcell",
+]
+
+[[package]]
+name = "ws2812-flexio"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c12442186b8a5e54fd6fb858a2d35ebf35fdeb3b7c256dab692f44ca621783c6"
+dependencies = [
+ "cassette",
+ "imxrt-hal",
+ "imxrt-ral",
+ "log",
+ "palette",
+ "paste",
+ "snafu",
 ]

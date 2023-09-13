@@ -1,32 +1,19 @@
 #![no_main]
 #![no_std]
 
-mod iomuxc {
-    pub use imxrt_iomuxc::imxrt1010::*;
-    pub use imxrt_iomuxc::ErasedPad;
-    pub use imxrt_iomuxc::Pad;
-}
-
-use core::panic::PanicInfo;
-use imxrt_hal as hal;
-use imxrt_ral as ral;
-use palette::LinSrgb;
-use palette::Srgb;
-mod effects;
-mod flexio;
-mod pins;
-mod pixel;
-mod pixelstream;
-
-/// Possible errors that could happen.
-pub mod errors;
-
 mod board;
 mod duopins;
+mod effects;
 
-pub use flexio::WS2812Driver;
-pub use pins::Pins;
-use pixelstream::IntoPixelStream;
+use core::panic::PanicInfo;
+
+mod iomuxc {
+    pub use imxrt_iomuxc::imxrt1010::*;
+}
+
+use imxrt_ral as ral;
+use palette::{LinSrgb, Srgb};
+use ws2812_flexio::{IntoPixelStream, WS2812Driver};
 
 const PIXEL_COUNT: u8 = 19;
 const NUM_PIXELS: usize = PIXEL_COUNT as usize;
@@ -45,17 +32,6 @@ extern "C" {
     fn flash_led();
 }
 
-struct Resources {
-    /// General purpose timer 1.
-    pub gpt1: hal::gpt::Gpt1,
-
-    /// Clock control module.
-    pub ccm: ral::ccm::CCM,
-
-    /// The FlexIO register block.
-    pub flexio: ral::flexio::FLEXIO,
-}
-
 static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 
 fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
@@ -65,10 +41,7 @@ fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
 #[no_mangle]
 pub extern "C" fn rust_main() {
     let board::Resources {
-        ccm,
-        flexio,
-        pins,
-        ..
+        ccm, flexio, pins, ..
     } = board::duo(board::instances());
 
     // Set FlexIO clock to 16Mhz, as required by the driver
