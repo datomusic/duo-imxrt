@@ -26,7 +26,7 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 #include "firmware/MidiFunctions.h"
 
 void midi_usb_sysex_callback(byte *data, unsigned length) {
-  midi_usb_sysex(data, length);
+  midi_handle_sysex(data, length);
 }
 
 void PlatformMidi::init(){

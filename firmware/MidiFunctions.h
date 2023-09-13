@@ -67,6 +67,7 @@ void midi_note_off(uint8_t channel, uint8_t note, uint8_t velocity);
 void midi_handle();
 void midi_send_cc();
 void midi_handle_clock();
+void midi_handle_sysex(MIDI_SYSEX_DATA_TYPE *data, unsigned length);
 void midi_handle_realtime(uint8_t type);
 void midi_print_firmware_version();
 void midi_print_serial_number();
@@ -160,6 +161,7 @@ void midi_init() {
   usbMIDI.setHandleNoteOn(midi_note_on);
   usbMIDI.setHandleNoteOff(midi_note_off);
 
+  MIDI.setHandleSystemExclusive(midi_handle_sysex);
   MIDI.setHandleControlChange(midi_handle_cc);
   PlatformMidi::init();
 }
@@ -204,7 +206,7 @@ void midi_note_off(uint8_t channel, uint8_t note, uint8_t velocity) {
   note_stack.NoteOff(note);
 }
 
-void midi_usb_sysex(MIDI_SYSEX_DATA_TYPE *data, unsigned length) {
+void midi_handle_sysex(MIDI_SYSEX_DATA_TYPE *data, unsigned length) {
 
   if(data[1] == SYSEX_DATO_ID && data[2] == SYSEX_DUO_ID) {
     switch(data[3]) {
@@ -251,6 +253,7 @@ void midi_print_identity() {
     0xf7 };
 
   usbMIDI.sendSysEx(sizeof(sysex), sysex);
+  MIDI.sendSysEx(sizeof(sysex), sysex);
 }
 
 void midi_print_firmware_version() {
@@ -265,6 +268,7 @@ void midi_print_firmware_version() {
     0xf7 };
 
   usbMIDI.sendSysEx(7, sysex);
+  MIDI.sendSysEx(7, sysex);
 }
 
 void midi_print_serial_number() {
@@ -302,5 +306,6 @@ void midi_print_serial_number() {
   sysex[23]= 0xf7;
 
   usbMIDI.sendSysEx(24, sysex);
+  MIDI.sendSysEx(24, sysex);
 }
 #endif
