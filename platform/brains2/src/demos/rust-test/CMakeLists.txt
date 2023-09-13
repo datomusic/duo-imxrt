@@ -23,12 +23,11 @@ ExternalProject_Add(
   BUILD_COMMAND cargo build --release  --target=thumbv7em-none-eabihf
   BINARY_DIR "${CMAKE_SOURCE_DIR}/rust-lib"
   INSTALL_COMMAND ""
-  LOG_BUILD ON
 )
+
 
 add_dependencies(${EXECUTABLE_NAME} rust-lib)
 
-find_library(LIB_RUST librust_lib.a ${CMAKE_CURRENT_SOURCE_DIR}/rust-lib/target/thumbv7em-none-eabihf/release)
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/rust-lib/target/thumbv7em-none-eabihf/release/librust_lib.a
 )
