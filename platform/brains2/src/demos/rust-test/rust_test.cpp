@@ -8,9 +8,13 @@
 
 extern "C" {
 void rust_main();
+void show_pixels(uint32_t size, const uint8_t *bytes);
 
 void delay_mic(uint32_t mics) { delayMicroseconds(mics); };
 }
+
+
+uint8_t bytes[300];
 
 void flash_led(const uint32_t ms) {
   IOMUXC_SetPinMux(LED2_PINMUX, 0U);
@@ -46,8 +50,14 @@ int main(void) {
   // flash_led(1000);
   // delayMicroseconds(1000 * 2000);
 
-
   init_flexio();
+  bytes[0] = 200;
+  bytes[1] = 0;
+  bytes[2] = 0;
+  bytes[3] = 200;
+  bytes[4] = 0;
+  bytes[5] = 100;
+  show_pixels(200, bytes);
   rust_main();
   return 0;
 }

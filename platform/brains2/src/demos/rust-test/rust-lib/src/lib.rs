@@ -4,8 +4,7 @@
 mod board;
 mod duopins;
 mod effects;
-
-use core::panic::PanicInfo;
+mod panic_handler;
 
 mod iomuxc {
     pub use imxrt_iomuxc::imxrt1010::*;
@@ -15,24 +14,42 @@ use imxrt_ral as ral;
 use palette::{LinSrgb, Srgb};
 use ws2812_flexio::{IntoPixelStream, WS2812Driver};
 
-const PIXEL_COUNT: u8 = 19;
-const NUM_PIXELS: usize = PIXEL_COUNT as usize;
+const NUM_PIXELS: usize = 19 as usize;
+static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+static mut PIXS: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 
-#[panic_handler]
-fn panic(_panic: &PanicInfo) -> ! {
-    loop {
-        unsafe {
-            delay_mic(1000000);
+fn build_pix_buffer(rgb_bytes: &[u8]) -> [Srgb; NUM_PIXELS] {
+    let mut buf = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+
+    for i in 0..(rgb_bytes.len() / 3) {
+        if i >= NUM_PIXELS {
+            break;
+        } else {
+            let ind = i * 3;
+            let r = rgb_bytes[ind];
+            let g = rgb_bytes[ind + 1];
+            let b = rgb_bytes[ind + 2];
+            buf[i].red = r as f32;
+            buf[i].green = g as f32;
+            buf[i].blue = b as f32;
         }
     }
+    return buf;
+}
+
+#[no_mangle]
+pub extern "C" fn show_pixels(size: u32, array_pointer: *const u8) {
+    unsafe {
+        let rgb_bytes = core::slice::from_raw_parts(array_pointer as *const u8, size as usize);
+        PIXS = build_pix_buffer(rgb_bytes);
+    };
 }
 
 extern "C" {
     fn delay_mic(mics: u32);
     fn flash_led();
-}
 
-static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+}
 
 fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
     col.into_linear().into_format()
@@ -57,6 +74,7 @@ pub extern "C" fn rust_main() {
     unsafe { flash_led() };
 
     let framebuffer = unsafe { &mut PIXEL_BUFFER };
+    let pixs_buffer = unsafe { &mut PIXS };
 
     let mut t = 1;
     loop {
@@ -68,10 +86,16 @@ pub extern "C" fn rust_main() {
         //
 
         neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
+        neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+        // let pixs = [0, 100, 0];
+        // neopixel.write([&mut build_pix_buffer(&pixs)
+        //     .iter()
+        //     .map(linearize_color)
+        //     .into_pixel_stream()]);
 
         unsafe {
             // flash_led();
-            delay_mic(10000);
+            delay_mic(1000);
         }
     }
 }
