@@ -20,7 +20,7 @@ ExternalProject_Add(
  rust-lib
   DOWNLOAD_COMMAND ""
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND cargo build --release
+  BUILD_COMMAND cargo build --release  --target=thumbv7em-none-eabihf
   BINARY_DIR "${CMAKE_SOURCE_DIR}/rust-lib"
   INSTALL_COMMAND ""
   LOG_BUILD ON
