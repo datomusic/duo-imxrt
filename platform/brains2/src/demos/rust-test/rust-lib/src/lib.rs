@@ -82,7 +82,7 @@ pub extern "C" fn rust_main() {
     );
 
     let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
-    let mut neopixel_dma = dma[0].take().unwrap();
+    let mut neopixel_dma = dma[1].take().unwrap();
 
     unsafe { flash_led() };
 
@@ -108,12 +108,12 @@ pub extern "C" fn rust_main() {
 
                 effects::rainbow(t, framebuffer);
 
-                // render_buffer.prepare_pixels([&mut framebuffer
-                //     .iter()
-                //     .map(linearize_color)
-                //     .into_pixel_stream()]);
+                render_buffer.prepare_pixels([&mut framebuffer
+                    .iter()
+                    .map(linearize_color)
+                    .into_pixel_stream()]);
 
-                render_buffer.prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+                // render_buffer.prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
             })
             .unwrap()
             .lagged;
