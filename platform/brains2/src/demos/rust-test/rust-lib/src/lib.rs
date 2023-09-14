@@ -11,12 +11,19 @@ mod iomuxc {
 }
 
 use imxrt_ral as ral;
+
+// use imxrt_hal as hal;
 use palette::{LinSrgb, Srgb};
-use ws2812_flexio::{IntoPixelStream, WS2812Driver};
+use ws2812_flexio::{IntoPixelStream, PreprocessedPixels, WS2812Driver};
 
 const NUM_PIXELS: usize = 19 as usize;
 static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 static mut PIXS: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+
+static mut BUFFERS: (
+    PreprocessedPixels<NUM_PIXELS, 1>,
+    PreprocessedPixels<NUM_PIXELS, 1>,
+) = (PreprocessedPixels::new(), PreprocessedPixels::new());
 
 fn build_pix_buffer(rgb_bytes: &[u8]) -> [Srgb; NUM_PIXELS] {
     let mut buf = [Srgb::new(0., 0., 0.); NUM_PIXELS];
@@ -58,7 +65,11 @@ fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
 #[no_mangle]
 pub extern "C" fn rust_main() {
     let board::Resources {
-        ccm, flexio, pins, ..
+        ccm,
+        flexio,
+        pins,
+        mut dma,
+        ..
     } = board::duo(board::instances());
 
     // Set FlexIO clock to 16Mhz, as required by the driver
@@ -71,31 +82,39 @@ pub extern "C" fn rust_main() {
     );
 
     let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
+    let mut neopixel_dma = dma[0].take().unwrap();
+
     unsafe { flash_led() };
 
     let framebuffer = unsafe { &mut PIXEL_BUFFER };
     let pixs_buffer = unsafe { &mut PIXS };
 
-    let mut t = 1;
+    let mut t = 0;
+    let buffers = unsafe { &mut BUFFERS };
+    let mut flip_buffers = false;
+
     loop {
-        t += 1;
+        let (render_buffer, display_buffer) = if flip_buffers {
+            (&mut buffers.0, &buffers.1)
+        } else {
+            (&mut buffers.1, &buffers.0)
+        };
+        flip_buffers = !flip_buffers;
 
-        // effects::running_dots(t, framebuffer_0);
-        effects::rainbow(t, framebuffer);
-        // effects::test_pattern(framebuffer_2);
-        //
+        let lagged = neopixel
+            .write_dma(display_buffer, &mut neopixel_dma, 0, || {
+                t += 1;
 
-        neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
-        neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
-        // let pixs = [0, 100, 0];
-        // neopixel.write([&mut build_pix_buffer(&pixs)
-        //     .iter()
-        //     .map(linearize_color)
-        //     .into_pixel_stream()]);
+                effects::rainbow(t, framebuffer);
 
-        unsafe {
-            // flash_led();
-            delay_mic(1000);
-        }
+                // render_buffer.prepare_pixels([&mut framebuffer
+                //     .iter()
+                //     .map(linearize_color)
+                //     .into_pixel_stream()]);
+
+                render_buffer.prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+            })
+            .unwrap()
+            .lagged;
     }
 }

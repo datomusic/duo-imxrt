@@ -13,10 +13,12 @@ default = []
 # paste = "1.0.12"
 # snafu = { version = "0.7.4", default-features = false }
 palette = { version = "0.7.2", default-features = false, features = ["libm"] }
+imxrt-hal = { version = "0.5", features = ["imxrt1010"] }
 # cassette = "0.2.3"
 
 [dependencies.ws2812-flexio]
 version = "0.1.0"
+
 
 [dependencies.imxrt-ral]
 version = "0.5"
