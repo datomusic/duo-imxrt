@@ -319,6 +319,7 @@ extern "C" void c_update_callback(){
     if (millis() - frame_time > frame_interval) {
       frame_time = millis();
       led_update();
+      FastLED.show();
     } else {
       DatoUSB::background_update();
       midi_handle();
@@ -332,7 +333,6 @@ extern "C" void c_update_callback(){
       pots_read();
       keys_scan(); // 14 or 175us (depending on debounce)
     }
-      FastLED.show();
   } else {
     if(keys_scan_powerbutton()) { 
       NVIC_SystemReset();

@@ -105,19 +105,12 @@ pub extern "C" fn rust_main() {
 
         flip_buffers = !flip_buffers;
 
-        let dma_data = render_buffer
-            .prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+        render_buffer.prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
 
-        // unsafe {
-        //     no_interrupts();
-        // }
         neopixel
-            .write_dma(display_buffer, &mut neopixel_dma, 0, || dma_data)
+            .write_dma(display_buffer, &mut neopixel_dma, 0)
             .unwrap();
 
-        // unsafe {
-        //     yes_interrupts();
-        // }
 
         unsafe {
             c_update_callback();
