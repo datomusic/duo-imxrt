@@ -15,7 +15,7 @@ use palette::{LinSrgb, Srgb};
 use ws2812_flexio::{IntoPixelStream, WS2812Driver};
 
 const NUM_PIXELS: usize = 19 as usize;
-static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+// static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 static mut PIXS: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 
 fn build_pix_buffer(rgb_bytes: &[u8]) -> [Srgb; NUM_PIXELS] {
@@ -38,7 +38,7 @@ fn build_pix_buffer(rgb_bytes: &[u8]) -> [Srgb; NUM_PIXELS] {
 }
 
 #[no_mangle]
-pub extern "C" fn show_pixels(size: u32, array_pointer: *const u8) {
+pub extern "C" fn show_pixels_bytes(size: u32, array_pointer: *const u8) {
     unsafe {
         let rgb_bytes = core::slice::from_raw_parts(array_pointer as *const u8, size as usize);
         PIXS = build_pix_buffer(rgb_bytes);
@@ -46,8 +46,7 @@ pub extern "C" fn show_pixels(size: u32, array_pointer: *const u8) {
 }
 
 extern "C" {
-    fn delay_mic(mics: u32);
-    fn flash_led();
+    fn c_update_callback();
 
 }
 
@@ -72,32 +71,23 @@ pub extern "C" fn rust_main() {
 
     let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
 
-    unsafe { flash_led() };
-
-
-    let framebuffer = unsafe { &mut PIXEL_BUFFER };
+    // let framebuffer = unsafe { &mut PIXEL_BUFFER };
     let pixs_buffer = unsafe { &mut PIXS };
 
-    let mut t = 1;
+    // let mut t = 1;
     loop {
-        t += 1;
+        // t += 1;
 
         // effects::running_dots(t, framebuffer_0);
-        effects::rainbow(t, framebuffer);
+        // effects::rainbow(t, framebuffer);
         // effects::test_pattern(framebuffer_2);
-        //
 
-        neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
-        neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
-        // let pixs = [0, 100, 0];
-        // neopixel.write([&mut build_pix_buffer(&pixs)
-        //     .iter()
-        //     .map(linearize_color)
-        //     .into_pixel_stream()]);
+        // neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
 
         unsafe {
-            // flash_led();
-            delay_mic(1000);
+            c_update_callback();
         }
+
+        neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
     }
 }

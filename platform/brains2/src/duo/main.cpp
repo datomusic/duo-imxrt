@@ -300,36 +300,36 @@ static void headphone_jack_check() {
   }
 }
 
-static void main_loop(){
-  static unsigned long frame_time = millis();
-  static unsigned long frame_interval = 11;
-  bool pinState = LOW;
-  while (true) {
-    digitalWrite(GPIO_SD_13, pinState);
-    pinState = !pinState;
+static unsigned long frame_time = millis();
+static unsigned long frame_interval = 11;
+bool pinState = LOW;
 
-    if (is_power_on()) {
-      if (millis() - frame_time > frame_interval) {
-        frame_time = millis();
-        led_update();
-        FastLED.show();
-      } else {
-        DatoUSB::background_update();
-        midi_handle();
-        keyboard_to_note();
-        pitch_update(); // ~30us
-        synth_update(); // ~ 100us
-        midi_send_cc();
-        Drums::update(); // ~ 700us
-        sequencer_update();
-        headphone_jack_check();
-        pots_read();
-        keys_scan(); // 14 or 175us (depending on debounce)
-      }
+
+extern "C" void c_update_callback(){
+  digitalWrite(GPIO_SD_13, pinState);
+  pinState = !pinState;
+
+  if (is_power_on()) {
+    if (millis() - frame_time > frame_interval) {
+      frame_time = millis();
+      led_update();
+      FastLED.show();
     } else {
-      if(keys_scan_powerbutton()) { 
-        NVIC_SystemReset();
-      }
+      DatoUSB::background_update();
+      midi_handle();
+      keyboard_to_note();
+      pitch_update(); // ~30us
+      synth_update(); // ~ 100us
+      midi_send_cc();
+      Drums::update(); // ~ 700us
+      sequencer_update();
+      headphone_jack_check();
+      pots_read();
+      keys_scan(); // 14 or 175us (depending on debounce)
+    }
+  } else {
+    if(keys_scan_powerbutton()) { 
+      NVIC_SystemReset();
     }
   }
 }
@@ -377,6 +377,8 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   in_setup = false;
 }
 
+extern "C" void rust_main();
+
 int main(void) {
   board_init();
 
@@ -402,7 +404,7 @@ int main(void) {
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
   main_init(headphone_preamp, speaker_preamp);
-  main_loop();
+  rust_main();
   return 0;
 }
 

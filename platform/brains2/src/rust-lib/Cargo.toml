@@ -28,5 +28,5 @@ features = ["imxrt1010"]
 
 [lib]
 crate-type = ["staticlib"]
-path = "src/lib.rs"
+path = "src/duolib.rs"
 

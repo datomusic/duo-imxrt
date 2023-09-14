@@ -8,7 +8,7 @@ namespace LEDs {
 typedef CRGB Pixel;
 
 void init();
-void show(const Pixel *const pixels, int count);
+void show(const Pixel *const pixels, uint8_t count);
 void setBrightness(int brightness);
 
 } // namespace LEDs
