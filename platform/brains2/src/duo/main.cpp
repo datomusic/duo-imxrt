@@ -301,7 +301,7 @@ static void headphone_jack_check() {
 }
 
 static unsigned long frame_time = millis();
-static unsigned long frame_interval = 11;
+static const unsigned long frame_interval = 11;
 bool pinState = LOW;
 
 
@@ -404,7 +404,12 @@ int main(void) {
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
   main_init(headphone_preamp, speaker_preamp);
+
   rust_main();
+
+  // while(true){
+  //   c_update_callback();
+  // }
   return 0;
 }
 

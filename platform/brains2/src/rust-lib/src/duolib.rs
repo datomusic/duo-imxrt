@@ -15,7 +15,7 @@ use palette::{LinSrgb, Srgb};
 use ws2812_flexio::{IntoPixelStream, WS2812Driver};
 
 const NUM_PIXELS: usize = 19 as usize;
-// static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 static mut PIXS: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 
 fn build_pix_buffer(rgb_bytes: &[u8]) -> [Srgb; NUM_PIXELS] {
@@ -47,6 +47,8 @@ pub extern "C" fn show_pixels_bytes(size: u32, array_pointer: *const u8) {
 
 extern "C" {
     fn c_update_callback();
+    fn yes_interrupts();
+    fn no_interrupts();
 
 }
 
@@ -71,23 +73,35 @@ pub extern "C" fn rust_main() {
 
     let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
 
-    // let framebuffer = unsafe { &mut PIXEL_BUFFER };
+    let framebuffer = unsafe { &mut PIXEL_BUFFER };
     let pixs_buffer = unsafe { &mut PIXS };
 
-    // let mut t = 1;
+    let mut t = 1;
+    let mut x = 0;
     loop {
-        // t += 1;
+        if x > 10 {
+            x = 0;
+            t += 1;
+        } else {
+            x += 1;
+        }
 
         // effects::running_dots(t, framebuffer_0);
-        // effects::rainbow(t, framebuffer);
+        effects::rainbow(t, framebuffer);
         // effects::test_pattern(framebuffer_2);
 
+        unsafe {
+            no_interrupts();
+        }
         // neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
+        neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+        unsafe {
+            yes_interrupts();
+        }
 
         unsafe {
             c_update_callback();
         }
 
-        neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
     }
 }

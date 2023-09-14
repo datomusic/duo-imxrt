@@ -20,25 +20,32 @@ static void init_flexio() {
 
 extern "C" void show_pixels_bytes(uint32_t size, const uint8_t *bytes);
 
+extern "C" void no_interrupts() {
+  DisableIRQ(DMA0_IRQn);
+  __disable_irq();
+}
+
+extern "C" void yes_interrupts() {
+  EnableIRQ(DMA0_IRQn);
+  __enable_irq();
+}
+
 namespace LEDs {
+
+static uint8_t bytes[300];
 
 void init(void) { init_flexio(); }
 void setBrightness(int brightness) { _brightness = brightness; }
 void show(const Pixel *const pixels, uint8_t pixel_count) {
-  const uint8_t MAX_PIXELS = 19;
-  static uint8_t bytes[MAX_PIXELS];
-
-  if (pixel_count > MAX_PIXELS) {
-    pixel_count = MAX_PIXELS;
-  }
-
-  for (int i = 0; i < pixel_count; ++i) {
-    const uint8_t ind = i * 3;
-    bytes[ind] = pixels[i].r;
-    bytes[ind + 1] = pixels[i].g;
-    bytes[ind + 2] = pixels[i].b;
-  }
-
-  show_pixels_bytes(pixel_count * 3, bytes);
+  bytes[0] = 200;
+  bytes[1] = 0;
+  bytes[2] = 0;
+  bytes[3] = 200;
+  bytes[4] = 0;
+  bytes[5] = 100;
+  bytes[6] = 200;
+  bytes[7] = 0;
+  bytes[8] = 100;
+  show_pixels_bytes(9, bytes);
 }
 } // namespace LEDs

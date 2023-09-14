@@ -15,8 +15,12 @@ default = []
 palette = { version = "0.7.2", default-features = false, features = ["libm"] }
 # cassette = "0.2.3"
 
+# [dependencies.ws2812-flexio]
+# version = "0.1.0"
+
 [dependencies.ws2812-flexio]
-version = "0.1.0"
+# version = "0.2"
+path = "../ws2812-flexio"
 
 [dependencies.imxrt-ral]
 version = "0.5"

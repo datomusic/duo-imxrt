@@ -339,8 +339,6 @@ dependencies = [
 [[package]]
 name = "ws2812-flexio"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c12442186b8a5e54fd6fb858a2d35ebf35fdeb3b7c256dab692f44ca621783c6"
 dependencies = [
  "cassette",
  "imxrt-hal",
