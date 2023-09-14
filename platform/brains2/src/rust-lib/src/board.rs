@@ -1,6 +1,7 @@
 use crate::{duopins, iomuxc, ral};
 use core::sync::atomic::{AtomicBool, Ordering};
 
+use imxrt_hal as hal;
 use ral::Instances;
 
 #[non_exhaustive]
@@ -11,6 +12,7 @@ pub struct Resources<Pins> {
     pub pins: Pins,
     /// The FlexIO register block.
     pub flexio: ral::flexio::FLEXIO,
+    pub dma: [Option<hal::dma::channel::Channel>; hal::dma::CHANNEL_COUNT],
 }
 
 pub type DuoResources = Resources<duopins::DuoPins>;
@@ -31,6 +33,7 @@ fn prepare_resources<Pins>(
             pins,
             ccm: instances.CCM,
             flexio: instances.FLEXIO1,
+            dma: hal::dma::channels(instances.DMA, instances.DMAMUX),
         }
     }
 }

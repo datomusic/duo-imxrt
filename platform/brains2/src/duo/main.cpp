@@ -405,6 +405,8 @@ int main(void) {
 
   main_init(headphone_preamp, speaker_preamp);
 
+  delay(2000);
+
   rust_main();
 
   // while(true){
