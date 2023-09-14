@@ -229,6 +229,7 @@ checksum = "46b71a9d9206e8b46714c74255adcaea8b11e0350c1d8456165073c3f75fc81a"
 name = "rust-lib"
 version = "0.1.0"
 dependencies = [
+ "imxrt-hal",
  "imxrt-iomuxc",
  "imxrt-ral",
  "palette",

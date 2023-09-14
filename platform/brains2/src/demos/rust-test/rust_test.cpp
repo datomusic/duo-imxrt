@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "fsl_flexio.h"
+#include "fsl_edma.h"
 #include "lib/board_init.h"
 
 #define LED2_PINMUX IOMUXC_GPIO_07_GPIOMUX_IO07
@@ -34,10 +35,17 @@ void init_debug_led() {
   GPIO_PinInit(LED2_PORT, LED2_PIN, &led2_config);
 }
 
+static edma_config_t dma_config = {0};
+
 void init_flexio() {
   flexio_config_t fxioUserConfig;
   FLEXIO_GetDefaultConfig(&fxioUserConfig);
   FLEXIO_Init(FLEXIO1, &fxioUserConfig);
+}
+
+void init_dma(){
+  EDMA_GetDefaultConfig(&dma_config);
+  EDMA_Init(DMA0, &dma_config);
 }
 
 int main(void) {
@@ -45,12 +53,13 @@ int main(void) {
 
   init_debug_led();
 
-  // flash_led(100);
-  // delayMicroseconds(1000 * 500);
-  // flash_led(1000);
-  // delayMicroseconds(1000 * 2000);
+  flash_led(100);
+  delayMicroseconds(1000 * 500);
+  flash_led(1000);
+  delayMicroseconds(1000 * 2000);
 
   init_flexio();
+  init_dma();
   bytes[0] = 200;
   bytes[1] = 0;
   bytes[2] = 0;
