@@ -47,7 +47,7 @@ bool AudioOutputMQS::update_responsibility = false;
 DMAMEM __attribute__((aligned(32)))
 
 static sai_transfer_t xfer;
-static edma_config_t dma_config = {0};
+// static edma_config_t dma_config = {0};
 static sai_transceiver_t transceiver_config;
 static edma_handle_t dma_handle = {0};
 AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t tx_handle) = {0};
@@ -121,8 +121,8 @@ void AudioOutputMQS::begin(void) {
   DMAMUX_EnableChannel(DMAMUX, EDMA_CHANNEL);
 
   // Create EDMA handle
-  EDMA_GetDefaultConfig(&dma_config);
-  EDMA_Init(DMA, &dma_config);
+  // EDMA_GetDefaultConfig(&dma_config);
+  // EDMA_Init(DMA, &dma_config);
   EDMA_CreateHandle(&dma_handle, DMA, EDMA_CHANNEL);
 
   // SAI init

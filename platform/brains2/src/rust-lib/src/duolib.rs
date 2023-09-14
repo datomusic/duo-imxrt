@@ -54,6 +54,7 @@ extern "C" {
     fn c_update_callback();
     fn yes_interrupts();
     fn no_interrupts();
+    fn start_dac();
 
 }
 
@@ -80,8 +81,8 @@ pub extern "C" fn rust_main() {
         FLEXIO1_CLK_PODF: DIVIDE_6,
     );
 
-    // let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
-    // let mut neopixel_dma = dma[1].take().unwrap();
+    let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
+    let mut neopixel_dma = dma[1].take().unwrap();
 
     let framebuffer = unsafe { &mut PIXEL_BUFFER };
     let pixs_buffer = unsafe { &mut PIXS };
@@ -90,6 +91,11 @@ pub extern "C" fn rust_main() {
     let buffers = unsafe { &mut BUFFERS };
     let mut flip_buffers = false;
     let mut x = 0;
+
+    unsafe {
+        start_dac();
+    }
+
     loop {
         if x > 10 {
             x = 0;
@@ -98,28 +104,36 @@ pub extern "C" fn rust_main() {
             x += 1;
         }
 
-        // let (render_buffer, display_buffer) = if flip_buffers {
-        //     (&mut buffers.0, &buffers.1)
-        // } else {
-        //     (&mut buffers.1, &buffers.0)
-        // };
-        // flip_buffers = !flip_buffers;
-        //
-        // let lagged = neopixel
-        //     .write_dma(display_buffer, &mut neopixel_dma, 0, || {
-        //         t += 1;
-        //
-        //         effects::rainbow(t, framebuffer);
-        //
-        //         render_buffer.prepare_pixels([&mut framebuffer
-        //             .iter()
-        //             .map(linearize_color)
-        //             .into_pixel_stream()]);
-        //
-        //         // render_buffer.prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
-        //     })
-        //     .unwrap()
-        //     .lagged;
+        let (render_buffer, display_buffer) = if flip_buffers {
+            (&mut buffers.0, &buffers.1)
+        } else {
+            (&mut buffers.1, &buffers.0)
+        };
+
+        flip_buffers = !flip_buffers;
+
+        // unsafe {
+        //     no_interrupts();
+        // }
+        let lagged = neopixel
+            .write_dma(display_buffer, &mut neopixel_dma, 0, || {
+                t += 1;
+
+                effects::rainbow(t, framebuffer);
+
+                render_buffer.prepare_pixels([&mut framebuffer
+                    .iter()
+                    .map(linearize_color)
+                    .into_pixel_stream()]);
+
+                // render_buffer.prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+            })
+            .unwrap()
+            .lagged;
+
+        // unsafe {
+        //     yes_interrupts();
+        // }
 
         // unsafe {
         //     no_interrupts();

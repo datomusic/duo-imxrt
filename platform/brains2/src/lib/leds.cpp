@@ -4,6 +4,7 @@
 #include "fsl_iomuxc.h"
 #include "teensy_audio_config.h"
 #include "fsl_flexio.h"
+#include "fsl_edma.h"
 #include <Arduino.h>
 #include <Audio.h>
 
@@ -57,6 +58,13 @@ extern "C" void yes_interrupts() {
 
 extern "C" void show_pixels_bytes(uint32_t size, const uint8_t *bytes);
 
+static edma_config_t dma_config = {0};
+
+void init_dma(){
+  EDMA_GetDefaultConfig(&dma_config);
+  EDMA_Init(DMA0, &dma_config);
+}
+
 static void init_flexio() {
   flexio_config_t fxioUserConfig;
   FLEXIO_GetDefaultConfig(&fxioUserConfig);
@@ -81,7 +89,8 @@ namespace LEDs {
 
 void init(void) {
   init_flexio();
-  init_old();
+  init_dma();
+  // init_old();
 }
 
 static inline void send_byte(uint8_t byte, register uint32_t &last_mark,
@@ -177,19 +186,20 @@ namespace LEDs {
 static uint8_t bytes[300];
 
 static void show_new(const Pixel *const pixels, uint8_t pixel_count) {
-  bytes[0] = 200;
-  bytes[1] = 0;
-  bytes[2] = 0;
-  bytes[3] = 200;
-  bytes[4] = 0;
-  bytes[5] = 100;
-  bytes[6] = 200;
-  bytes[7] = 0;
-  bytes[8] = 100;
-  show_pixels_bytes(9, bytes);
+  // bytes[0] = 200;
+  // bytes[1] = 0;
+  // bytes[2] = 0;
+  // bytes[3] = 200;
+  // bytes[4] = 0;
+  // bytes[5] = 100;
+  // bytes[6] = 200;
+  // bytes[7] = 0;
+  // bytes[8] = 100;
+  // show_pixels_bytes(9, bytes);
 }
 
 void show(const Pixel *const pixels, uint8_t pixel_count) {
-  show_old(pixels, pixel_count);
+  // show_old(pixels, pixel_count);
+  show_new(pixels, pixel_count);
 }
 } // namespace LEDs

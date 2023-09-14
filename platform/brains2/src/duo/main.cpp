@@ -304,6 +304,12 @@ static unsigned long frame_time = millis();
 static const unsigned long frame_interval = 11;
 bool pinState = LOW;
 
+BoardAudioOutput dac1;
+
+extern "C" void start_dac(){
+  dac1.begin();
+}
+
 
 extern "C" void c_update_callback(){
   digitalWrite(GPIO_SD_13, pinState);
@@ -395,7 +401,6 @@ int main(void) {
   Audio::amp_disable();
   Audio::headphone_disable();
 
-  BoardAudioOutput dac1; // xy=988.1000061035156,100
   AudioAmplifier headphone_preamp;
   AudioAmplifier speaker_preamp;
   AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
@@ -403,9 +408,9 @@ int main(void) {
   AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
-  main_init(headphone_preamp, speaker_preamp);
-
   delay(2000);
+
+  main_init(headphone_preamp, speaker_preamp);
 
   rust_main();
 
