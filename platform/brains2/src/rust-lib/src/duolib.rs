@@ -3,7 +3,7 @@
 
 mod board;
 mod duopins;
-mod effects;
+// mod effects;
 mod panic_handler;
 
 mod iomuxc {
@@ -15,7 +15,7 @@ use palette::{LinSrgb, Srgb};
 use ws2812_flexio::{IntoPixelStream, PreprocessedPixels, WS2812Driver};
 
 const NUM_PIXELS: usize = 19 as usize;
-static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
+// static mut PIXEL_BUFFER: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 static mut PIXS: [Srgb; NUM_PIXELS] = [Srgb::new(0., 0., 0.); NUM_PIXELS];
 
 static mut BUFFERS: (
@@ -84,26 +84,19 @@ pub extern "C" fn rust_main() {
     let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
     let mut neopixel_dma = dma[1].take().unwrap();
 
-    let framebuffer = unsafe { &mut PIXEL_BUFFER };
+    // let framebuffer = unsafe { &mut PIXEL_BUFFER };
     let pixs_buffer = unsafe { &mut PIXS };
 
-    let mut t = 0;
+    // let mut t = 0;
+    // let mut x = 0;
     let buffers = unsafe { &mut BUFFERS };
     let mut flip_buffers = false;
-    let mut x = 0;
 
     unsafe {
         start_dac();
     }
 
     loop {
-        if x > 10 {
-            x = 0;
-            t += 1;
-        } else {
-            x += 1;
-        }
-
         let (render_buffer, display_buffer) = if flip_buffers {
             (&mut buffers.0, &buffers.1)
         } else {
@@ -112,34 +105,16 @@ pub extern "C" fn rust_main() {
 
         flip_buffers = !flip_buffers;
 
-        // unsafe {
-        //     no_interrupts();
-        // }
-        let lagged = neopixel
-            .write_dma(display_buffer, &mut neopixel_dma, 0, || {
-                t += 1;
-
-                effects::rainbow(t, framebuffer);
-
-                render_buffer.prepare_pixels([&mut framebuffer
-                    .iter()
-                    .map(linearize_color)
-                    .into_pixel_stream()]);
-
-                // render_buffer.prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
-            })
-            .unwrap()
-            .lagged;
-
-        // unsafe {
-        //     yes_interrupts();
-        // }
+        let dma_data = render_buffer
+            .prepare_pixels([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
 
         // unsafe {
         //     no_interrupts();
         // }
-        // // neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
-        // neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+        neopixel
+            .write_dma(display_buffer, &mut neopixel_dma, 0, || dma_data)
+            .unwrap();
+
         // unsafe {
         //     yes_interrupts();
         // }
