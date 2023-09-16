@@ -15,6 +15,7 @@ extern "C" {
     fn flash_led();
     fn write_data();
     fn configure_shifter(a: u8, b: u8, c: u8);
+    fn configure_shift_timer(a: u8, b: u8, c: u8);
     //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
 
@@ -38,19 +39,18 @@ where
     ) -> Result<Self, errors::WS2812InitError> {
         let mut flexio = FlexIOConfigurator::new(flexio);
 
-        let shifter_output_start_pin = 0;
-        let shift_timer_output_pin = 4;
+        let shifter_output_start_pin = 3;
+        let shift_timer_output_pin = shifter_output_start_pin + 4;
 
         let data_shifter = Self::get_shifter_id();
         let shifter_timer = Self::get_shifter_timer_id();
         let idle_timer = Self::get_idle_timer_id();
 
+
         unsafe {
             configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
+            configure_shift_timer(data_shifter, shifter_timer, shift_timer_output_pin);
         }
-        // flexio.configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
-
-        flexio.configure_shift_timer(shifter_timer, data_shifter, shift_timer_output_pin);
         flexio.configure_idle_timer(idle_timer, shift_timer_output_pin, None);
 
         let pin_id = PINS::FLEXIO_PIN_OFFSETS[0];

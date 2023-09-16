@@ -67,38 +67,37 @@ where
         // 32 bits, and we need 2 cycles per bit.
         // However, we shift out 4 bits per cycle,
         // so it's 32*2/4 = 16.
-        const CYCLES_PER_SHIFTBUFFER: u32 = 16;
+        // const CYCLES_PER_SHIFTBUFFER: u32 = 16;
+        //
+        // ral::write_reg!(
+        //     ral::flexio,
+        //     self.flexio,
+        //     TIMCMP[usize::from(timer_id)],
+        //     ((CYCLES_PER_SHIFTBUFFER - 1) << 8) | (u32::from(CLOCK_DIVIDER) - 1)
+        // );
 
-        ral::write_reg!(
-            ral::flexio,
-            self.flexio,
-            TIMCMP[usize::from(timer_id)],
-            ((CYCLES_PER_SHIFTBUFFER - 1) << 8) | (u32::from(CLOCK_DIVIDER) - 1)
-        );
-        ral::write_reg!(
-            ral::flexio,
-            self.flexio,
-            TIMCTL[usize::from(timer_id)],
-            TRGSEL: u32::from(shifter_id) * 4 + 1, // Use shifter flag as trigger
-            TRGPOL: TRGPOL_1,                      // Trigger when shifter got filled
-            TRGSRC: TRGSRC_1,                      // Internal trigger
-            PINSEL: u32::from(output_pin),
-            PINCFG: PINCFG_3, // Pin output enabled
-            PINPOL: PINPOL_0, // Active high
-            TIMOD: TIMOD_1,   // 8-bit dual counter baud/bit mode
-        );
-        ral::write_reg!(
-            ral::flexio,
-            self.flexio,
-            TIMCFG[usize::from(timer_id)],
-            TIMOUT: TIMOUT_1, // Zero when enabled, not affected by reset
-            TIMDEC: TIMDEC_0, // Input clock from FlexIO clock
-            TIMRST: TIMRST_0, // Never reset
-            TIMDIS: TIMDIS_2, // Disabled on timer compare (upper 8 bits match and decrement)
-            TIMENA: TIMENA_2, // Enabled on trigger high
-            TSTOP: TSTOP_0,   // No stop bit
-            TSTART: TSTART_0, // No start bit
-        );
+        // let offset: u32 = 8;
+        // let mask: u32 = 0x1f << offset;
+        // self.flexio.TIMCTL[usize::from(timer_id)].write(u32::from(output_pin) << mask);
+
+        // ral::write_reg!(
+        //     ral::flexio,
+        //     self.flexio,
+        //     TIMCTL[usize::from(timer_id)],
+        //     PINSEL: u32::from(output_pin),
+        // );
+        // ral::write_reg!(
+        //     ral::flexio,
+        //     self.flexio,
+        //     TIMCFG[usize::from(timer_id)],
+        //     TIMOUT: TIMOUT_1, // Zero when enabled, not affected by reset
+        //     TIMDEC: TIMDEC_0, // Input clock from FlexIO clock
+        //     TIMRST: TIMRST_0, // Never reset
+        //     TIMDIS: TIMDIS_2, // Disabled on timer compare (upper 8 bits match and decrement)
+        //     TIMENA: TIMENA_2, // Enabled on trigger high
+        //     TSTOP: TSTOP_0,   // No stop bit
+        //     TSTART: TSTART_0, // No start bit
+        // );
     }
 
     pub fn configure_low_bit_timer(&mut self, timer_id: u8, shift_timer_pin: u8, output_pin: u8) {

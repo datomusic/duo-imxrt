@@ -22,13 +22,39 @@ void configure_shifter(const uint8_t shifter_id, const uint8_t input_timer,
       FLEXIO_SHIFTCTL_PINCFG(3) | // shifter_id pin output
       FLEXIO_SHIFTCTL_PINSEL(output_start_pin) |
       FLEXIO_SHIFTCTL_PINPOL(0) | // pin is active high
-      FLEXIO_SHIFTCTL_SMOD(2);            // shifter_id mode: transmitter
+      FLEXIO_SHIFTCTL_SMOD(2);    // shifter_id mode: transmitter
 
   FLEXIO1->SHIFTCFG[shifter_id] =
       FLEXIO_SHIFTCFG_PWIDTH(3) | // NA
-      FLEXIO_SHIFTCFG_INSRC(0) | // NA
-      FLEXIO_SHIFTCFG_SSTOP(0) | // STOP bit disabled
+      FLEXIO_SHIFTCFG_INSRC(0) |  // NA
+      FLEXIO_SHIFTCFG_SSTOP(0) |  // STOP bit disabled
       FLEXIO_SHIFTCFG_SSTART(1); // START bit disabled; load data on first shift
+}
+
+void configure_shift_timer(const uint8_t timer_id, const uint8_t shifter_id,
+                           const uint8_t output_pin) {
+  const uint32_t CYCLES_PER_SHIFTBUFFER = 16;
+
+  FLEXIO1->TIMCMP[timer_id] =
+      ((CYCLES_PER_SHIFTBUFFER - 1) << 8) | (CLOCK_DIVIDER - 1);
+
+  FLEXIO1->TIMCTL[timer_id] =
+      FLEXIO_TIMCTL_TRGSEL((uint32_t)(shifter_id * 4) + 1) |
+      FLEXIO_TIMCTL_TRGSRC(1) | // internal trigger
+      FLEXIO_TIMCTL_PINCFG(3) | // timer pin output
+      FLEXIO_TIMCTL_PINPOL(0) | // output active high
+      FLEXIO_TIMCTL_TIMOD(1) |  // dual 8-bit counter baud/bit mode
+      FLEXIO_TIMCTL_PINSEL((uint32_t)output_pin) |
+      FLEXIO_TIMCTL_TRGPOL(1); // trigger active low
+
+  FLEXIO1->TIMCFG[timer_id] =
+      FLEXIO_TIMCFG_TIMOUT(1) | // Zero when enabled, not affected by reset
+      FLEXIO_TIMCFG_TIMDEC(0) | // Input clock from FlexIO clock
+      FLEXIO_TIMCFG_TIMRST(0) | // never reset
+      FLEXIO_TIMCFG_TIMDIS(2) | // disable on timer compare
+      FLEXIO_TIMCFG_TIMENA(2) | // enabled on trigger high
+      FLEXIO_TIMCFG_TSTOP(0) |  // STOP bit disabled
+      FLEXIO_TIMCFG_TSTART(0);  // START bit disabled
 }
 }
 
