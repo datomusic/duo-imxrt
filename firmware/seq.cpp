@@ -78,13 +78,13 @@ void Sequencer::update_gate(const uint32_t delta_micros) {
 
   if (running) {
     if (step_played_live) {
-      if (!live_gate.is_open()) {
+      if (!live_gate.open()) {
         output.off();
       }
-    } else if (!step_gate.is_open()) {
+    } else if (!step_gate.open()) {
       output.off();
     }
-  }else if(arp.count() == 0 && !step_gate.is_open()){
+  }else if(arp.count() == 0 && !step_gate.open()){
     output.off();
   }
 }
@@ -107,7 +107,7 @@ void Sequencer::advance() {
 void Sequencer::advance_running() {
   step_gate.trigger();
 
-  if (!step_played_live || !live_gate.is_open()) {
+  if (!step_played_live || !live_gate.open()) {
     output.off();
   }
 
