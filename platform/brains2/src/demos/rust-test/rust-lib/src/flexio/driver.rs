@@ -14,6 +14,7 @@ extern "C" {
     //     fn show_pixels();
     fn delay_mic(mics: u32);
     fn flash_led();
+    fn write_data();
     //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
 
@@ -191,10 +192,12 @@ where
         self.reset_idle_timer_finished_flag();
 
         // Write data
-        for elem in InterleavedPixels::new(data) {
-            self.fill_shift_buffer(elem);
-            while !self.shift_buffer_empty() {}
-        }
+        // for elem in InterleavedPixels::new(data) {
+        //     self.fill_shift_buffer(elem);
+        //     while !self.shift_buffer_empty() {}
+        // }
+
+        unsafe{write_data();}
 
         // Wait for transfer finished
         while !self.idle_timer_finished() {}

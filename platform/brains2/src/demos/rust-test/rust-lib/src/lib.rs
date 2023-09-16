@@ -84,7 +84,6 @@ pub extern "C" fn rust_main() {
     //     FLEXIO1_CLK_PODF: DIVIDE_6,
     // );
 
-
     let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
     unsafe { flash_led() };
 
@@ -96,11 +95,11 @@ pub extern "C" fn rust_main() {
         t += 1;
 
         // effects::running_dots(t, framebuffer_0);
-        effects::rainbow(t, framebuffer);
+        // effects::rainbow(t, framebuffer);
         // effects::test_pattern(framebuffer_2);
         //
 
-        neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
+        // neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
         neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
         // let pixs = [0, 100, 0];
         // neopixel.write([&mut build_pix_buffer(&pixs)
