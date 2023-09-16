@@ -9,7 +9,6 @@ use super::{
 };
 use crate::{errors, pixelstream::PixelStreamRef, Pins};
 
-
 extern "C" {
     //     fn show_pixels();
     fn delay_mic(mics: u32);
@@ -17,7 +16,6 @@ extern "C" {
     fn write_data();
     //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
-
 
 impl<const N: u8, const L: usize, PINS: Pins<N, L>> WS2812Driver<N, L, PINS>
 where
@@ -68,43 +66,45 @@ where
         let mut flexio = FlexIOConfigurator::new(flexio);
 
         // Find 4 consecutive pins for the shifter output
-        let shifter_output_start_pin = {
-            let mut start = 0;
-            let mut found = false;
-            for i in 0..available_pins {
-                if PINS::FLEXIO_PIN_OFFSETS.contains(&i) {
-                    start = i + 1;
-                } else if i - start >= 3 {
-                    // We found 4 consecutive free pins!
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
-                return Err(errors::WS2812InitError::NeedFourConsecutiveInternalPins);
-            }
-            start
-        };
+        let shifter_output_start_pin = 0;
+        // let shifter_output_start_pin = {
+        //     let mut start = 0;
+        //     let mut found = false;
+        //     for i in 0..available_pins {
+        //         if PINS::FLEXIO_PIN_OFFSETS.contains(&i) {
+        //             start = i + 1;
+        //         } else if i - start >= 3 {
+        //             // We found 4 consecutive free pins!
+        //             found = true;
+        //             break;
+        //         }
+        //     }
+        //     if !found {
+        //         return Err(errors::WS2812InitError::NeedFourConsecutiveInternalPins);
+        //     }
+        //     start
+        // };
 
         // Find a free pin for the shift timer output
-        let shift_timer_output_pin = {
-            let mut found_pin = None;
-
-            for i in 0..available_pins {
-                if !PINS::FLEXIO_PIN_OFFSETS.contains(&i)
-                    && !(shifter_output_start_pin..shifter_output_start_pin + 4).contains(&i)
-                {
-                    found_pin = Some(i);
-                    break;
-                }
-            }
-
-            if let Some(pin) = found_pin {
-                pin
-            } else {
-                return Err(errors::WS2812InitError::NotEnoughPins);
-            }
-        };
+        let shift_timer_output_pin = 4;
+        // let shift_timer_output_pin = {
+        //     let mut found_pin = None;
+        //
+        //     for i in 0..available_pins {
+        //         if !PINS::FLEXIO_PIN_OFFSETS.contains(&i)
+        //             && !(shifter_output_start_pin..shifter_output_start_pin + 4).contains(&i)
+        //         {
+        //             found_pin = Some(i);
+        //             break;
+        //         }
+        //     }
+        //
+        //     if let Some(pin) = found_pin {
+        //         pin
+        //     } else {
+        //         return Err(errors::WS2812InitError::NotEnoughPins);
+        //     }
+        // };
 
         let data_shifter = Self::get_shifter_id();
         let shifter_timer = Self::get_shifter_timer_id();
@@ -114,24 +114,19 @@ where
         flexio.configure_shift_timer(shifter_timer, data_shifter, shift_timer_output_pin);
         flexio.configure_idle_timer(idle_timer, shift_timer_output_pin, None);
 
-        for (pin_pos, pin_id) in PINS::FLEXIO_PIN_OFFSETS.iter().copied().enumerate() {
-            let pin_pos = pin_pos.try_into().unwrap();
-            let low_bit_timer = Self::get_low_bit_timer_id(pin_pos);
-            let high_bit_timer = Self::get_high_bit_timer_id(pin_pos);
+        let pin_id = PINS::FLEXIO_PIN_OFFSETS[0];
+        let pin_pos = 0;
+        let low_bit_timer = Self::get_low_bit_timer_id(pin_pos);
+        let high_bit_timer = Self::get_high_bit_timer_id(pin_pos);
 
-            let neopixel_output_pin = pin_id;
+        let neopixel_output_pin = pin_id;
 
-            flexio.configure_low_bit_timer(
-                low_bit_timer,
-                shift_timer_output_pin,
-                neopixel_output_pin,
-            );
-            flexio.configure_high_bit_timer(
-                high_bit_timer,
-                shifter_output_start_pin + pin_pos,
-                neopixel_output_pin,
-            );
-        }
+        flexio.configure_low_bit_timer(low_bit_timer, shift_timer_output_pin, neopixel_output_pin);
+        flexio.configure_high_bit_timer(
+            high_bit_timer,
+            shifter_output_start_pin + pin_pos,
+            neopixel_output_pin,
+        );
 
         // Configure pins and create driver object
         pins.configure();
@@ -197,7 +192,9 @@ where
         //     while !self.shift_buffer_empty() {}
         // }
 
-        unsafe{write_data();}
+        unsafe {
+            write_data();
+        }
 
         // Wait for transfer finished
         // while !self.idle_timer_finished() {}
