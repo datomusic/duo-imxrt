@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "fsl_flexio.h"
 #include "lib/board_init.h"
+#include "flexio_configuration.h"
 
 #define LED2_PINMUX IOMUXC_GPIO_07_GPIOMUX_IO07
 #define LED2_PORT GPIO1
@@ -51,6 +52,8 @@ int main(void) {
   // delayMicroseconds(1000 * 2000);
 
   init_flexio();
+  configure_flexio_clock();
+
   bytes[0] = 200;
   bytes[1] = 0;
   bytes[2] = 0;
