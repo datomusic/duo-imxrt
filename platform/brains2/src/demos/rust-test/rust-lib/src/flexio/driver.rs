@@ -14,6 +14,7 @@ extern "C" {
     fn delay_mic(mics: u32);
     fn flash_led();
     fn write_data();
+    fn configure_shifter(a: u8, b: u8, c: u8);
     //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
 
@@ -35,82 +36,20 @@ where
         flexio: flexio::Instance<N>,
         mut pins: PINS,
     ) -> Result<Self, errors::WS2812InitError> {
-        // Parameter check
-        let (version_major, version_minor, available_feature_set) =
-            ral::read_reg!(ral::flexio, flexio, VERID, MAJOR, MINOR, FEATURE);
-        let (available_triggers, available_pins, available_timers, available_shifters) =
-            ral::read_reg!(ral::flexio, flexio, PARAM, TRIGGER, PIN, TIMER, SHIFTER);
-
-        // Always u8 because our pins list is &[u8].
-        let available_pins = available_pins as u8;
-
-        // log::debug!("Initializing FlexIO #{}.", N);
-        // log::debug!("    Version: {}.{}", version_major, version_minor);
-        // log::debug!("    Feature Set: {}", available_feature_set);
-        // log::debug!("    Peripherals:");
-        // log::debug!("        {} triggers", available_triggers);
-        // log::debug!("        {} pins", available_pins);
-        // log::debug!("        {} timers", available_timers);
-        // log::debug!("        {} shifters", available_shifters);
-        // log::debug!("Output pins: {:?}", PINS::FLEXIO_PIN_OFFSETS);
-
-        if available_shifters < 1 {
-            return Err(errors::WS2812InitError::NotEnoughShifters);
-        }
-
-        if available_timers < 2 + u32::from(PINS::PIN_COUNT) * 2 {
-            return Err(errors::WS2812InitError::NotEnoughTimers);
-        }
-
-        //////////// Configure FlexIO registers /////////////////
         let mut flexio = FlexIOConfigurator::new(flexio);
 
-        // Find 4 consecutive pins for the shifter output
         let shifter_output_start_pin = 0;
-        // let shifter_output_start_pin = {
-        //     let mut start = 0;
-        //     let mut found = false;
-        //     for i in 0..available_pins {
-        //         if PINS::FLEXIO_PIN_OFFSETS.contains(&i) {
-        //             start = i + 1;
-        //         } else if i - start >= 3 {
-        //             // We found 4 consecutive free pins!
-        //             found = true;
-        //             break;
-        //         }
-        //     }
-        //     if !found {
-        //         return Err(errors::WS2812InitError::NeedFourConsecutiveInternalPins);
-        //     }
-        //     start
-        // };
-
-        // Find a free pin for the shift timer output
         let shift_timer_output_pin = 4;
-        // let shift_timer_output_pin = {
-        //     let mut found_pin = None;
-        //
-        //     for i in 0..available_pins {
-        //         if !PINS::FLEXIO_PIN_OFFSETS.contains(&i)
-        //             && !(shifter_output_start_pin..shifter_output_start_pin + 4).contains(&i)
-        //         {
-        //             found_pin = Some(i);
-        //             break;
-        //         }
-        //     }
-        //
-        //     if let Some(pin) = found_pin {
-        //         pin
-        //     } else {
-        //         return Err(errors::WS2812InitError::NotEnoughPins);
-        //     }
-        // };
 
         let data_shifter = Self::get_shifter_id();
         let shifter_timer = Self::get_shifter_timer_id();
         let idle_timer = Self::get_idle_timer_id();
 
-        flexio.configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
+        unsafe {
+            configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
+        }
+        // flexio.configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
+
         flexio.configure_shift_timer(shifter_timer, data_shifter, shift_timer_output_pin);
         flexio.configure_idle_timer(idle_timer, shift_timer_output_pin, None);
 

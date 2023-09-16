@@ -12,6 +12,24 @@ void rust_main();
 void show_pixels(uint32_t size, const uint8_t *bytes);
 
 void delay_mic(uint32_t mics) { delayMicroseconds(mics); };
+
+void configure_shifter(const uint8_t shifter_id, const uint8_t input_timer,
+                       const uint8_t output_start_pin) {
+
+  FLEXIO1->SHIFTCTL[shifter_id] =
+      FLEXIO_SHIFTCTL_TIMSEL(input_timer) |
+      FLEXIO_SHIFTCTL_TIMPOL(0) | // shift on posedge of shift clock
+      FLEXIO_SHIFTCTL_PINCFG(3) | // shifter_id pin output
+      FLEXIO_SHIFTCTL_PINSEL(output_start_pin) |
+      FLEXIO_SHIFTCTL_PINPOL(0) | // pin is active high
+      FLEXIO_SHIFTCTL_SMOD(2);            // shifter_id mode: transmitter
+
+  FLEXIO1->SHIFTCFG[shifter_id] =
+      FLEXIO_SHIFTCFG_PWIDTH(3) | // NA
+      FLEXIO_SHIFTCFG_INSRC(0) | // NA
+      FLEXIO_SHIFTCFG_SSTOP(0) | // STOP bit disabled
+      FLEXIO_SHIFTCFG_SSTART(1); // START bit disabled; load data on first shift
+}
 }
 
 const unsigned PIXEL_COUNT = 19;
@@ -138,7 +156,7 @@ int main(void) {
   // bytes[7] = 200;
   show_pixels(BYTE_COUNT, bytes);
   init_neopixel();
-  for(;;){
+  for (;;) {
     write_data();
     delayMicroseconds(1000);
   }

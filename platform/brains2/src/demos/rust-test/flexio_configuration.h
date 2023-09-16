@@ -23,34 +23,6 @@ void configure_flexio_clock() {
   CLOCK_SetDiv(kCLOCK_Flexio1Div, kCLOCK_DivideBy6);
 }
 
-void configure_shifter(const uint8_t shifter_id, const uint8_t input_timer,
-                       const uint8_t output_start_pin) {
-  // shifter_id setup begin
-  // SPI (CPHA=1) master driven by shift_timer
-  // generator outputs data at ws2812_generator_data_fxio_pin
-  // this setup is based on the FlexIO SPI master example from the RM
-  //==================================================================
-  //------------------------------------
-  // FLEXIO1->SHIFTCTL[shifter_id] = 0; // disable shifter_id
-
-  FLEXIO1->SHIFTCFG[shifter_id] =
-      0 << FLEXIO_SHIFTCFG_INSRC_SHIFT | // NA
-      FLEXIO_SHIFTCFG_SSTOP(0) |         // STOP bit disabled
-      FLEXIO_SHIFTCFG_SSTART(1); // START bit disabled; load data on first shift
-                                 //
-
-  FLEXIO1->SHIFTCTL[shifter_id] =
-      // shift_timer controls shifter_id
-      FLEXIO_SHIFTCTL_TIMSEL(input_timer) |
-      0 << FLEXIO_SHIFTCTL_TIMPOL_SHIFT | // shift on posedge of shift clock
-      FLEXIO_SHIFTCTL_PINCFG(3) |         // shifter_id pin output
-      // output:
-      // ws2812_generator_data_fxio_pin
-      FLEXIO_SHIFTCTL_PINSEL(output_start_pin) |
-      0 << FLEXIO_SHIFTCTL_PINPOL_SHIFT | // pin is active high
-      FLEXIO_SHIFTCTL_SMOD(2);            // shifter_id mode: transmitter
-  // shifter_id setup end
-}
 
 void configure_shift_timer(const uint8_t timer_id, const uint8_t shifter_id,
                            const uint8_t output_pin) {
