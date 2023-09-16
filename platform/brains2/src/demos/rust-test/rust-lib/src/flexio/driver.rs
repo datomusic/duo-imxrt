@@ -17,7 +17,8 @@ extern "C" {
     fn configure_shifter(a: u8, b: u8, c: u8);
     fn configure_shift_timer(a: u8, b: u8, c: u8);
     fn configure_idle_timer(a: u8, b: u8);
-    //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
+    fn configure_high_bit_timer(timer_id: u8, shift_pin: u8, output_pin: u8);
+    fn configure_low_bit_timer(timer_id: u8, shift_timer_pin: u8, output_pin: u8);
 }
 
 impl<const N: u8, const L: usize, PINS: Pins<N, L>> WS2812Driver<N, L, PINS>
@@ -52,24 +53,25 @@ where
             configure_shift_timer(data_shifter, shifter_timer, shift_timer_output_pin);
             configure_idle_timer(idle_timer, shift_timer_output_pin);
         }
-        // flexio.configure_idle_timer(idle_timer, shift_timer_output_pin, None);
 
-        let pin_id = PINS::FLEXIO_PIN_OFFSETS[0];
         let pin_pos = 0;
         let low_bit_timer = Self::get_low_bit_timer_id(pin_pos);
         let high_bit_timer = Self::get_high_bit_timer_id(pin_pos);
 
+        let pin_id = PINS::FLEXIO_PIN_OFFSETS[0];
         let neopixel_output_pin = pin_id;
 
-        flexio.configure_low_bit_timer(low_bit_timer, shift_timer_output_pin, neopixel_output_pin);
-        flexio.configure_high_bit_timer(
-            high_bit_timer,
-            shifter_output_start_pin + pin_pos,
-            neopixel_output_pin,
-        );
+        unsafe {
+            configure_low_bit_timer(low_bit_timer, shift_timer_output_pin, neopixel_output_pin);
+            configure_high_bit_timer(
+                high_bit_timer,
+                shifter_output_start_pin + pin_pos,
+                neopixel_output_pin,
+            );
+        }
 
         // Configure pins and create driver object
-        pins.configure();
+        // pins.configure();
         Ok(Self {
             _pins: pins,
             flexio: flexio.finish(),

@@ -2,6 +2,10 @@
 #include "fsl_flexio.h"
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const uint32_t CLOCK_DIVIDER =
     10; // Timer toggles; meaning we need two cycles for one timer clock cycle,
         // so this is half the total cycle length
@@ -93,3 +97,6 @@ void configure_high_bit_timer(const uint8_t timer_id, const uint8_t shift_pin,
       FLEXIO_TIMCFG_TSTART(0);  // start bit disabled
 }
 
+#ifdef __cplusplus
+}
+#endif
