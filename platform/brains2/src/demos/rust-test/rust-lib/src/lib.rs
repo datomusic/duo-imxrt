@@ -1,7 +1,7 @@
-
 #![no_std]
 #![no_main]
 
+mod panic_handler;
 mod iomuxc {
     pub use imxrt_iomuxc::imxrt1010::*;
     pub use imxrt_iomuxc::ErasedPad;
@@ -63,18 +63,7 @@ pub extern "C" fn show_pixels(size: u32, array_pointer: *const u8) {
 extern "C" {
     fn delay_mic(mics: u32);
     fn flash_led();
-
-struct Resources {
-    /// General purpose timer 1.
-    pub gpt1: hal::gpt::Gpt1,
-
-    /// Clock control module.
-    pub ccm: ral::ccm::CCM,
-
-    /// The FlexIO register block.
-    pub flexio: ral::flexio::FLEXIO,
 }
-
 
 fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
     col.into_linear().into_format()
@@ -83,10 +72,7 @@ fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
 #[no_mangle]
 pub extern "C" fn rust_main() {
     let board::Resources {
-        ccm,
-        flexio,
-        pins,
-        ..
+        ccm, flexio, pins, ..
     } = board::duo(board::instances());
 
     // Set FlexIO clock to 16Mhz, as required by the driver
