@@ -10,3 +10,10 @@ pub const fn from_pads(iomuxc: crate::iomuxc::Pads) -> DuoPins {
         led_pin: iomuxc.gpio_sd.p05,
     }
 }
+
+impl DuoPins {
+    #[inline]
+    pub const unsafe fn new() -> Self {
+        from_pads(crate::iomuxc::Pads::new())
+    }
+}
