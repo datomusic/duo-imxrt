@@ -188,8 +188,8 @@ where
     /// the of the transmission.
     pub fn write(&mut self, data: [&mut dyn PixelStreamRef; L]) {
         // Wait for the buffer to idle and clear timer overflow flag
-        while !self.shift_buffer_empty() {}
-        self.reset_idle_timer_finished_flag();
+        // while !self.shift_buffer_empty() {}
+        // self.reset_idle_timer_finished_flag();
 
         // Write data
         // for elem in InterleavedPixels::new(data) {
@@ -200,7 +200,7 @@ where
         unsafe{write_data();}
 
         // Wait for transfer finished
-        while !self.idle_timer_finished() {}
+        // while !self.idle_timer_finished() {}
     }
 
     /// Writes pixels to an LED strip.

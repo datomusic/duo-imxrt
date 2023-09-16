@@ -63,6 +63,7 @@ pub extern "C" fn show_pixels(size: u32, array_pointer: *const u8) {
 extern "C" {
     fn delay_mic(mics: u32);
     fn flash_led();
+    fn write_data();
 }
 
 fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
@@ -100,7 +101,7 @@ pub extern "C" fn rust_main() {
         //
 
         // neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
-        neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
+        // neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
         // let pixs = [0, 100, 0];
         // neopixel.write([&mut build_pix_buffer(&pixs)
         //     .iter()
@@ -108,6 +109,7 @@ pub extern "C" fn rust_main() {
         //     .into_pixel_stream()]);
 
         unsafe {
+            write_data();
             // flash_led();
             delay_mic(1000);
         }

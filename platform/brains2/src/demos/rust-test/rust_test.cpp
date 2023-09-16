@@ -57,10 +57,25 @@ uint32_t spread4(uint8_t _x) {
 
   return x;
 }
+void reset_idle_timer_finished_flag() {
+  const uint32_t idle_timer_id = 1;
+  const uint32_t mask = 1 << idle_timer_id;
+  FLEXIO1->TIMSTAT = mask;
+}
+
+bool idle_timer_finished() {
+  const uint32_t idle_timer_id = 1;
+  const uint32_t mask = 1 << idle_timer_id;
+
+  return (FLEXIO1->TIMSTAT & mask) != 0;
+}
 
 uint8_t subcounter = 0;
 uint8_t counter = 0;
 extern "C" void write_data() {
+  while (!shift_buffer_empty()) {
+  }
+  reset_idle_timer_finished_flag();
 
   if (++subcounter > 3) {
     subcounter = 0;
@@ -70,7 +85,6 @@ extern "C" void write_data() {
   for (unsigned i = 0; i < BYTE_COUNT; ++i) {
     bytes[i] = (counter - i * 3);
   }
-
 
   const unsigned buf_id = 0;
   uint32_t next_data = 0;
@@ -87,6 +101,8 @@ extern "C" void write_data() {
       next_data = 0;
     }
   }
+
+  while(!idle_timer_finished()){}
 }
 
 int main(void) {
@@ -101,7 +117,6 @@ int main(void) {
 
   init_flexio();
   configure_flexio_clock();
-
 
   bytes[0] = 0;
   bytes[4] = 0;
