@@ -16,6 +16,7 @@ extern "C" {
     fn write_data();
     fn configure_shifter(a: u8, b: u8, c: u8);
     fn configure_shift_timer(a: u8, b: u8, c: u8);
+    fn configure_idle_timer(a: u8, b: u8);
     //     fn set_pixel(index: u8, r: u8, g: u8, b: u8);
 }
 
@@ -46,12 +47,12 @@ where
         let shifter_timer = Self::get_shifter_timer_id();
         let idle_timer = Self::get_idle_timer_id();
 
-
         unsafe {
             configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
             configure_shift_timer(data_shifter, shifter_timer, shift_timer_output_pin);
+            configure_idle_timer(idle_timer, shift_timer_output_pin);
         }
-        flexio.configure_idle_timer(idle_timer, shift_timer_output_pin, None);
+        // flexio.configure_idle_timer(idle_timer, shift_timer_output_pin, None);
 
         let pin_id = PINS::FLEXIO_PIN_OFFSETS[0];
         let pin_pos = 0;

@@ -56,6 +56,33 @@ void configure_shift_timer(const uint8_t timer_id, const uint8_t shifter_id,
       FLEXIO_TIMCFG_TSTOP(0) |  // STOP bit disabled
       FLEXIO_TIMCFG_TSTART(0);  // START bit disabled
 }
+
+void configure_idle_timer(const uint8_t timer_id,
+                          const uint8_t shift_timer_pin) {
+  const uint8_t CYCLE_LENGTH = CLOCK_DIVIDER * 2;
+  const uint16_t LATCH_DELAY = CYCLE_LENGTH * LATCH_DELAY_PIXELS;
+
+  FLEXIO1->TIMCMP[timer_id] = LATCH_DELAY;
+
+  FLEXIO1->TIMCTL[timer_id] =
+      FLEXIO_TIMCTL_TRGSEL(shift_timer_pin * 2) |
+      FLEXIO_TIMCTL_TRGPOL(0) | // trigger polarity: active high
+      FLEXIO_TIMCTL_TRGSRC(1) | // trigger source: internal
+      FLEXIO_TIMCTL_PINSEL(0) |         // timer pin output enbled
+      FLEXIO_TIMCTL_PINCFG(0) | // timer pin output disabled
+      FLEXIO_TIMCTL_PINPOL(0) | // pin polarity: NA
+      FLEXIO_TIMCTL_TIMOD(3);   // dual 8-bit counter baud/bit mode
+                                //
+  FLEXIO1->TIMCFG[timer_id] =
+      FLEXIO_TIMCFG_TIMOUT(2) | // timer outputs logic 1 when enabled and not
+                                // affected by timer reset
+      FLEXIO_TIMCFG_TIMDEC(0) | // decrement on FlexIO clock
+      FLEXIO_TIMCFG_TIMRST(6) | // reset on trigger rising edge
+      FLEXIO_TIMCFG_TIMDIS(2) | // disable on compare
+      FLEXIO_TIMCFG_TIMENA(6) | // enable on trigger rising edge
+      FLEXIO_TIMCFG_TSTOP(0) |  // stop bit disabled
+      FLEXIO_TIMCFG_TSTART(0); // start bit disabled
+}
 }
 
 const unsigned PIXEL_COUNT = 19;
