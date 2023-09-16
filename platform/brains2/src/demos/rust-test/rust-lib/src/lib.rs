@@ -71,47 +71,9 @@ fn linearize_color(col: &Srgb) -> LinSrgb<u8> {
 }
 
 #[no_mangle]
-pub extern "C" fn rust_main() {
+pub extern "C" fn init_neopixel() {
     let board::Resources {
         ccm, flexio, pins, ..
     } = board::duo(board::instances());
-
-    // Set FlexIO clock to 16Mhz, as required by the driver
-    // ral::modify_reg!(
-    //     ral::ccm,
-    //     ccm,
-    //     CS1CDR,
-    //     FLEXIO1_CLK_PRED: FLEXIO1_CLK_PRED_4,
-    //     FLEXIO1_CLK_PODF: DIVIDE_6,
-    // );
-
-    let mut neopixel = WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
-    unsafe { flash_led() };
-
-    let framebuffer = unsafe { &mut PIXEL_BUFFER };
-    let pixs_buffer = unsafe { &mut PIXS };
-
-    let mut t = 1;
-    loop {
-        t += 1;
-
-        // effects::running_dots(t, framebuffer_0);
-        // effects::rainbow(t, framebuffer);
-        // effects::test_pattern(framebuffer_2);
-        //
-
-        // neopixel.write([&mut framebuffer.iter().map(linearize_color).into_pixel_stream()]);
-        // neopixel.write([&mut pixs_buffer.iter().map(linearize_color).into_pixel_stream()]);
-        // let pixs = [0, 100, 0];
-        // neopixel.write([&mut build_pix_buffer(&pixs)
-        //     .iter()
-        //     .map(linearize_color)
-        //     .into_pixel_stream()]);
-
-        unsafe {
-            write_data();
-            // flash_led();
-            delay_mic(1000);
-        }
-    }
+    WS2812Driver::init(flexio, (pins.led_pin,)).unwrap();
 }

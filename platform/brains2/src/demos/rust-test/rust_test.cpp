@@ -102,8 +102,11 @@ extern "C" void write_data() {
     }
   }
 
-  while(!idle_timer_finished()){}
+  while (!idle_timer_finished()) {
+  }
 }
+
+extern "C" void init_neopixel();
 
 int main(void) {
   board_init();
@@ -134,6 +137,11 @@ int main(void) {
   // bytes[6] = 200;
   // bytes[7] = 200;
   show_pixels(BYTE_COUNT, bytes);
-  rust_main();
+  init_neopixel();
+  for(;;){
+    write_data();
+    delayMicroseconds(1000);
+  }
+
   return 0;
 }
