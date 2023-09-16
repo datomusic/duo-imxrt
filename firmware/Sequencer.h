@@ -70,10 +70,7 @@ static void sequencer_tick_clock() {
 }
 
 void sequencer_randomize_step_offset() {
-  sequencer.set_step_offset(random(1, (Sequencer::NUM_STEPS - 2)));
-  if (!sequencer.is_running()) {
-    sequencer.advance();
-  }
+  sequencer.set_step_offset(random(0, (Sequencer::NUM_STEPS - 1)));
 }
 
 static void sequencer_align_clock() { sequencer.align_clock(); }
