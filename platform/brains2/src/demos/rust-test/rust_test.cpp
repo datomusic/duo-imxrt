@@ -10,7 +10,6 @@
 
 extern "C" {
 void rust_main();
-void show_pixels(uint32_t size, const uint8_t *bytes);
 
 void delay_mic(uint32_t mics) { delayMicroseconds(mics); };
 }
@@ -121,23 +120,6 @@ int main(void) {
 
   init_flexio();
   configure_flexio_clock();
-
-  bytes[0] = 0;
-  bytes[4] = 0;
-  bytes[5] = 255;
-  bytes[6] = 255;
-  bytes[7] = 255;
-  bytes[8] = 255;
-
-  // bytes[12] = 0;
-
-  // bytes[2] = 0;
-  // bytes[3] = 0;
-  // bytes[4] = 200;
-  // bytes[5] = 200;
-  // bytes[6] = 200;
-  // bytes[7] = 200;
-  show_pixels(BYTE_COUNT, bytes);
 
   uint8_t shifter_output_start_pin = 0;
   uint8_t shift_timer_output_pin = shifter_output_start_pin + 4;
