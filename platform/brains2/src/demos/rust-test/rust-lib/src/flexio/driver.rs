@@ -40,26 +40,13 @@ where
         mut pins: PINS,
     ) -> Result<Self, errors::WS2812InitError> {
         let mut flexio = FlexIOConfigurator::new(flexio);
-
-        let shifter_output_start_pin = 3;
+        let shifter_output_start_pin = 0;
         let shift_timer_output_pin = shifter_output_start_pin + 4;
-
-        let data_shifter = Self::get_shifter_id();
-        let shifter_timer = Self::get_shifter_timer_id();
-        let idle_timer = Self::get_idle_timer_id();
-
-        unsafe {
-            configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
-            configure_shift_timer(data_shifter, shifter_timer, shift_timer_output_pin);
-            configure_idle_timer(idle_timer, shift_timer_output_pin);
-        }
-
         let pin_pos = 0;
-        let low_bit_timer = Self::get_low_bit_timer_id(pin_pos);
-        let high_bit_timer = Self::get_high_bit_timer_id(pin_pos);
+        let low_bit_timer = 2;
+        let high_bit_timer = 3;
 
-        let pin_id = PINS::FLEXIO_PIN_OFFSETS[0];
-        let neopixel_output_pin = pin_id;
+        let neopixel_output_pin = PINS::FLEXIO_PIN_OFFSETS[0];
 
         unsafe {
             configure_low_bit_timer(low_bit_timer, shift_timer_output_pin, neopixel_output_pin);

@@ -38,7 +38,7 @@ where
 
     pub fn finish(self) -> flexio::Instance<N> {
         // Enable
-        ral::write_reg!(ral::flexio, self.flexio, CTRL, FLEXEN: FLEXEN_1);
+        // ral::write_reg!(ral::flexio, self.flexio, CTRL, FLEXEN: FLEXEN_1);
 
         self.flexio
     }

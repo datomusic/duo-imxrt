@@ -6,6 +6,7 @@
 #define LED2_PINMUX IOMUXC_GPIO_07_GPIOMUX_IO07
 #define LED2_PORT GPIO1
 #define LED2_PIN 7U
+#define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_FLEXIO1_IO11
 
 extern "C" {
 void rust_main();
@@ -137,7 +138,39 @@ int main(void) {
   // bytes[6] = 200;
   // bytes[7] = 200;
   show_pixels(BYTE_COUNT, bytes);
-  init_neopixel();
+
+  uint8_t shifter_output_start_pin = 0;
+  uint8_t shift_timer_output_pin = shifter_output_start_pin + 4;
+
+  uint8_t data_shifter = 0;
+  uint8_t shifter_timer = 0;
+  uint8_t idle_timer = 1;
+  uint8_t pin_pos = 0;
+  uint8_t low_bit_timer = 2;
+  uint8_t high_bit_timer = 3;
+
+  uint8_t neopixel_output_pin = 11;
+
+  // Reset
+  FLEXIO1->CTRL = FLEXIO_CTRL_SWRST(1);
+  FLEXIO1->CTRL = FLEXIO_CTRL_SWRST(0);
+
+  // init_neopixel();
+
+  configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
+  configure_shift_timer(data_shifter, shifter_timer, shift_timer_output_pin);
+  configure_idle_timer(idle_timer, shift_timer_output_pin);
+
+  configure_low_bit_timer(low_bit_timer, shift_timer_output_pin,
+                          neopixel_output_pin);
+  configure_high_bit_timer(high_bit_timer, shifter_output_start_pin + pin_pos,
+                           neopixel_output_pin);
+
+  IOMUXC_SetPinMux(NEOPIXEL_PINMUX, 0U);
+
+  // Start it
+  FLEXIO1->CTRL = FLEXIO_CTRL_FLEXEN(1);
+
   for (;;) {
     write_data();
     delayMicroseconds(1000);
