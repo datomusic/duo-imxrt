@@ -70,7 +70,9 @@ static void sequencer_tick_clock() {
 }
 
 void sequencer_randomize_step_offset() {
-  sequencer.set_step_offset(random(0, (Sequencer::NUM_STEPS - 1)));
+  const uint8_t offset =
+      sequencer.get_step_offset() + random(1, (Sequencer::NUM_STEPS - 2));
+  sequencer.set_step_offset(offset);
 }
 
 static void sequencer_align_clock() { sequencer.align_clock(); }

@@ -146,6 +146,8 @@ struct Sequencer {
     step_played_live = false;
   }
 
+  uint8_t get_step_offset() const { return step_offset; }
+
   SpeedModifier speed_mod = NormalSpeed;
 
 private:
