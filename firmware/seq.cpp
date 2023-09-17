@@ -68,7 +68,6 @@ void Sequencer::restart() {
 void Sequencer::stop() {
   if (running) {
     running = false;
-    align_clock();
     output.off();
   }
 }
@@ -90,32 +89,18 @@ void Sequencer::update_gate(const uint32_t delta_micros) {
   }
 }
 
-void Sequencer::play_current_step() {
-  step_gate.trigger();
-  const uint8_t step_index = current_step + step_offset;
-  const Step cur_step = steps[wrapped_step(step_index)];
-  if (cur_step.enabled) {
-    output.on(cur_step.note);
-    last_played_step = step_index;
-  }
-}
-
-void Sequencer::set_step_offset(const uint8_t offset) {
-  step_offset = offset;
-  last_played_step = UINT8_MAX;
-  step_played_live = false;
-  if (!running) {
-    align_clock();
-    play_current_step();
-  }
-}
-
 void Sequencer::advance() {
   if (running) {
     advance_running();
   } else {
     inc_current_step();
-    play_current_step();
+    step_gate.trigger();
+    const uint8_t step_index = current_step + step_offset;
+    const Step cur_step = steps[wrapped_step(step_index)];
+    if (cur_step.enabled) {
+      output.on(cur_step.note);
+      last_played_step = step_index;
+    }
   }
 }
 

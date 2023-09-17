@@ -60,7 +60,7 @@ void sequencer_toggle_start() {
 }
 
 static void sequencer_tick_clock() {
-  if (sequencer.tick_clock()) {
+  if (sequencer.tick_clock() && sequencer.is_running()) {
     if (random_flag) {
       sequencer.set_step_offset(random(1, (Sequencer::NUM_STEPS - 2)));
     } else {
