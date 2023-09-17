@@ -140,12 +140,7 @@ struct Sequencer {
     step_gate.length = live_gate.length = micros;
   }
 
-  void set_step_offset(const uint8_t offset) {
-    step_offset = offset;
-    last_played_step = UINT8_MAX;
-    step_played_live = false;
-  }
-
+  void set_step_offset(uint8_t offset);
   uint8_t get_step_offset() const { return step_offset; }
 
   SpeedModifier speed_mod = NormalSpeed;
@@ -153,6 +148,7 @@ struct Sequencer {
 private:
   void record_note(uint8_t note, uint8_t step);
   void advance_running();
+  void play_current_step();
   uint8_t quantized_current_step();
   inline void inc_current_step() {
     current_step = wrapped_step(current_step + 1);
