@@ -31,7 +31,7 @@ struct Channel {
     DMA0->TCD->SLAST = (buf_len * sizeof(uint32_t));
   }
 
-  void set_destination_hardware(uint32_t *destination_address) {
+  void set_destination_hardware(volatile uint32_t *destination_address) {
     // chan.set_destination_address(hardware_destination);
     DMA0->TCD->DADDR = (uint32_t)destination_address;
 

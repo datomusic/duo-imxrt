@@ -41,15 +41,15 @@ void init_debug_led() {
   // delayMicroseconds(1000 * 2000);
 }
 
-// const unsigned PIXEL_COUNT = 19;
-const unsigned PIXEL_COUNT = 2;
+const unsigned PIXEL_COUNT = 19;
+// const unsigned PIXEL_COUNT = 20;
+// const unsigned PIXEL_COUNT = 2;
 
-const uint32_t BYTE_COUNT = 3 * PIXEL_COUNT;
+const uint32_t BYTE_COUNT = 3 * PIXEL_COUNT + 3;
 uint8_t bytes[BYTE_COUNT];
 
-edma_handle_t g_EDMA_Handle;
-edma_config_t userConfig;
-edma_transfer_config_t transferConfig;
+// edma_handle_t g_EDMA_Handle;
+// edma_transfer_config_t transferConfig;
 
 uint32_t prepped_pixels[BYTE_COUNT];
 
@@ -69,7 +69,8 @@ void prepare_write() {
   DMAMUX_EnableChannel(DMAMUX, DMA_SIGNAL_ID);
   channel.set_source_linear_buffer(prepped_pixels, BYTE_COUNT);
 
-  uint32_t destination_address = FLEXIO1->SHIFTBUFBIS[data_shifter_id];
+  volatile uint32_t *destination_address =
+      &(FLEXIO1->SHIFTBUFBIS[data_shifter_id]);
   channel.set_destination_hardware((uint32_t *)destination_address);
 
   channel.set_minor_loop_bytes(sizeof(uint32_t));
@@ -81,78 +82,80 @@ void prepare_write() {
   FLEXIO1->SHIFTSDEN = dma_reg;
 }
 
+void init_dma() {
+  DMAMUX_Init(DMAMUX);
+  DMAMUX_SetSource(DMAMUX, DMA_SIGNAL_ID, 0);
+
+  edma_config_t userConfig;
+  EDMA_GetDefaultConfig(&userConfig);
+  EDMA_Init(DMA0, &userConfig);
+}
+
 int main(void) {
   board_init();
   init_debug_led();
   setup_flexio_leds();
 
-  DMAMUX_Init(DMAMUX);
-  DMAMUX_SetSource(DMAMUX, DMA_SIGNAL_ID, 0);
-
-  EDMA_GetDefaultConfig(&userConfig);
-  EDMA_Init(DMA0, &userConfig);
+  init_dma();
 
   // EDMA_CreateHandle(&g_EDMA_Handle, DMA0, channel);
-
-  EDMA_SetCallback(&g_EDMA_Handle, EDMA_Callback, NULL);
+  // EDMA_SetCallback(&g_EDMA_Handle, EDMA_Callback, NULL);
 
   uint8_t counter = 0;
-  // for (;;) {
-  // if (true) {
-  for (unsigned i = 0; i < BYTE_COUNT; ++i) {
-    bytes[i] = 0;
-  }
+  for (;;) {
+    for (unsigned i = 0; i < BYTE_COUNT; ++i) {
+      bytes[i] = 0;
+    }
 
-  const uint8_t p = (counter % PIXEL_COUNT) * 3;
-  bytes[p] = 255;
-  bytes[p + 1] = 255;
-  bytes[p + 2] = 255;
+    const uint8_t p = (counter % PIXEL_COUNT) * 3;
+    bytes[p] = 255;
+    bytes[p + 1] = 255;
+    bytes[p + 2] = 255;
 
-  for (uint32_t ind = 0; ind < BYTE_COUNT; ++ind) {
-    prepped_pixels[ind] = spread4(bytes[ind]) << 3;
-  }
+    for (uint32_t ind = 0; ind < BYTE_COUNT; ++ind) {
+      prepped_pixels[ind] = spread4(bytes[ind]) << 3;
+    }
 
-  led_show(1, true);
-  // delayMicroseconds(500 * 1000);
-  begin_show();
+    led_show(1, true);
+    // delayMicroseconds(500 * 1000);
+    begin_show();
 
-  // show_prepared(prepped_pixels, BYTE_COUNT);
+    // show_prepared(prepped_pixels, BYTE_COUNT);
 
-  // g_Transfer_Done = false;
-  //
-  // const uint8_t bytesPerFrame = sizeof(prepped_pixels[0]);
-  // const uint8_t dataSize = sizeof(prepped_pixels);
-  // EDMA_PrepareTransfer(&transferConfig, prepped_pixels, bytesPerFrame,
-  //                      (uint32_t *)destination, bytesPerFrame, bytesPerFrame,
-  //                      dataSize, kEDMA_MemoryToPeripheral);
-  //
-  // const status_t res = EDMA_SubmitTransfer(&g_EDMA_Handle, &transferConfig);
-  // if (res == kStatus_Success) {
-  //   led_show(2, true);
-  // }
+    // g_Transfer_Done = false;
+    //
+    // const uint8_t bytesPerFrame = sizeof(prepped_pixels[0]);
+    // const uint8_t dataSize = sizeof(prepped_pixels);
+    // EDMA_PrepareTransfer(&transferConfig, prepped_pixels, bytesPerFrame,
+    //                      (uint32_t *)destination, bytesPerFrame,
+    //                      bytesPerFrame, dataSize, kEDMA_MemoryToPeripheral);
+    //
+    // const status_t res = EDMA_SubmitTransfer(&g_EDMA_Handle,
+    // &transferConfig); if (res == kStatus_Success) {
+    //   led_show(2, true);
+    // }
 
-  // EDMA_StartTransfer(&g_EDMA_Handle);
+    // EDMA_StartTransfer(&g_EDMA_Handle);
 
-  // Wait for EDMA transfer finish
-  // while (g_Transfer_Done != true) {
-  // }
+    // Wait for EDMA transfer finish
+    // while (g_Transfer_Done != true) {
+    // }
 
     led_show(2, true);
-  prepare_write();
-  channel.enable();
-  // channel.start();
-  // if (channel.active()) {
-  // }
-  // delayMicroseconds(1000 * 1000);
-  // led_show(1, false);
+    prepare_write();
+    channel.enable();
+    // channel.start();
+    // if (channel.active()) {
+    // delayMicroseconds(1000 * 5000);
+    // led_show(1, false);
 
-  end_show();
-  delayMicroseconds(1000 * 1000);
-  led_show(2, false);
+    end_show();
+    // delayMicroseconds(1000 * 1000);
+    led_show(2, false);
 
-  ++counter;
+    ++counter;
 
-  delayMicroseconds(1000000);
-  // }
+    delayMicroseconds(100000);
+  }
   return 0;
 }
