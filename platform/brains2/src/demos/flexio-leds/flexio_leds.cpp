@@ -42,7 +42,8 @@ void init_debug_led() {
   delayMicroseconds(1000 * 2000);
 }
 
-const unsigned PIXEL_COUNT = 19;
+// const unsigned PIXEL_COUNT = 19;
+const unsigned PIXEL_COUNT = 2;
 
 const uint32_t BYTE_COUNT = 3 * PIXEL_COUNT;
 uint8_t bytes[BYTE_COUNT];
@@ -54,60 +55,6 @@ edma_transfer_config_t transferConfig;
 uint32_t prepared[BYTE_COUNT];
 
 volatile bool g_Transfer_Done = false;
-
-void loop() {
-  uint32_t destination = FLEXIO1->SHIFTBUFBIS[data_shifter_id];
-
-  uint8_t counter = 0;
-  for (;;) {
-    // if (true) {
-    for (unsigned i = 0; i < BYTE_COUNT; ++i) {
-      bytes[i] = 0;
-    }
-
-    const uint8_t p = (counter % PIXEL_COUNT) * 3;
-    bytes[p] = 255;
-    bytes[p + 1] = 255;
-    bytes[p + 2] = 255;
-
-    for (uint32_t ind = 0; ind < BYTE_COUNT; ++ind) {
-      prepared[ind] = spread4(bytes[ind]) << 3;
-    }
-
-    // show_prepared(prepared, BYTE_COUNT);
-    // show_bytes(bytes, BYTE_COUNT);
-
-    led_show(1, true);
-    // delayMicroseconds(500 * 1000);
-    g_Transfer_Done = false;
-    EDMA_PrepareTransfer(&transferConfig, prepared, sizeof(prepared[0]),
-                         (void *)destination, sizeof(destination),
-                         sizeof(prepared[0]), BYTE_COUNT,
-                         kEDMA_MemoryToPeripheral);
-
-    const status_t res = EDMA_SubmitTransfer(&g_EDMA_Handle, &transferConfig);
-    if (res == kStatus_Success) {
-      led_show(2, true);
-    }
-
-    // Enable DMA input on shifter
-    uint32_t dma_reg = 1 << data_shifter_id;
-    FLEXIO1->SHIFTSDEN = dma_reg;
-
-    EDMA_StartTransfer(&g_EDMA_Handle);
-    /* Wait for EDMA transfer finish */
-    while (g_Transfer_Done != true) {
-    }
-
-    // delayMicroseconds(1000 * 1000);
-    led_show(1, false);
-
-    ++counter;
-
-    // delayMicroseconds(100000);
-    led_show(2, false);
-  }
-}
 
 void EDMA_Callback(edma_handle_t *handle, void *param, bool transferDone,
                    uint32_t tcds) {
@@ -133,6 +80,62 @@ int main(void) {
 
   EDMA_SetCallback(&g_EDMA_Handle, EDMA_Callback, NULL);
 
-  loop();
+  uint32_t destination = FLEXIO1->SHIFTBUFBIS[data_shifter_id];
+
+  uint8_t counter = 0;
+  for (;;) {
+    // if (true) {
+    for (unsigned i = 0; i < BYTE_COUNT; ++i) {
+      bytes[i] = 0;
+    }
+
+    const uint8_t p = (counter % PIXEL_COUNT) * 3;
+    bytes[p] = 255;
+    bytes[p + 1] = 255;
+    bytes[p + 2] = 255;
+
+    for (uint32_t ind = 0; ind < BYTE_COUNT; ++ind) {
+      prepared[ind] = spread4(bytes[ind]) << 3;
+    }
+
+    show_prepared(prepared, BYTE_COUNT);
+    // show_bytes(bytes, BYTE_COUNT);
+
+    led_show(1, true);
+    // delayMicroseconds(500 * 1000);
+    g_Transfer_Done = false;
+    EDMA_PrepareTransfer(&transferConfig, prepared, sizeof(prepared[0]),
+                         (uint32_t *)destination, sizeof(destination),
+                         sizeof(prepared[0]), BYTE_COUNT,
+                         kEDMA_MemoryToPeripheral);
+
+    const uint8_t bytesPerFrame = sizeof(prepared[0]);
+    const uint8_t dataSize = sizeof(prepared);
+    EDMA_PrepareTransfer(&transferConfig, prepared, bytesPerFrame,
+                         (uint32_t *)destination, bytesPerFrame, bytesPerFrame,
+                         dataSize, kEDMA_MemoryToPeripheral);
+
+    const status_t res = EDMA_SubmitTransfer(&g_EDMA_Handle, &transferConfig);
+    if (res == kStatus_Success) {
+      led_show(2, true);
+    }
+
+    EDMA_StartTransfer(&g_EDMA_Handle);
+    // Enable DMA input on shifter
+    uint32_t dma_reg = 1 << data_shifter_id;
+    FLEXIO1->SHIFTSDEN |= dma_reg;
+
+    /* Wait for EDMA transfer finish */
+    while (g_Transfer_Done != true) {
+    }
+
+    delayMicroseconds(1000 * 1000);
+    led_show(1, false);
+
+    ++counter;
+
+    // delayMicroseconds(100000);
+    led_show(2, false);
+  }
   return 0;
 }
