@@ -204,18 +204,21 @@ void Sequencer::hold_note(const uint8_t note, const uint8_t velocity) {
     } else {
       record_note(arp_note, current_step + step_offset);
       output.on(arp_note);
-      inc_current_step();
     }
   }
 }
 
 void Sequencer::release_note(const uint8_t note) {
+  if (!running && arp.count() > 0) {
+    inc_current_step();
+  }
+
   arp.release_note(note);
   step_played_live = false;
   if (!running) {
     if (arp.count() > 0) {
       output.on(arp.recent_note());
-    } else if (!running) {
+    } else {
       output.off();
     }
   }
