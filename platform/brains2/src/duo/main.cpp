@@ -190,8 +190,11 @@ static void process_key(const char k, const char state) {
           transpose = 24;
         }
       } else if (k == BTN_SEQ1) {
-        sequencer_randomize_step_offset();
-        random_flag = true;
+        if (sequencer.is_running()) {
+          random_flag = true;
+        } else {
+          sequencer_randomize_step_offset(sequencer);
+        }
       } else if (k == SEQ_START) {
         sequencer_toggle_start();
       }

@@ -51,14 +51,14 @@ private:
   uint32_t elapsed = 0;
 };
 
-struct Callbacks {
-  typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
-  typedef void (&NoteOff)(void);
-  NoteOn note_on;
-  NoteOff note_off;
-};
-
 struct Output {
+  struct Callbacks {
+    typedef void (&NoteOn)(uint8_t note, uint8_t velocity);
+    typedef void (&NoteOff)(void);
+    NoteOn note_on;
+    NoteOff note_off;
+  };
+
   Output(Callbacks callbacks) : callbacks(callbacks) {}
 
   void on(const uint8_t note) {
@@ -95,13 +95,16 @@ enum SpeedModifier {
 
 static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
 
+struct Sequencer;
+typedef void (&OnRunnningAdvance)(Sequencer &);
+
 struct Sequencer {
-  Sequencer(Callbacks callbacks);
+  Sequencer(Output::Callbacks callbacks, OnRunnningAdvance on_running_advance);
   void start();
   void restart();
   void stop();
   void advance();
-  bool tick_clock();
+  void tick_clock();
   void update_gate(uint32_t delta_micros);
   void align_clock();
   inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
@@ -164,6 +167,7 @@ private:
   Gate step_gate;
   Gate live_gate;
   Output output;
+  OnRunnningAdvance on_running_advance;
 
   struct Step {
     uint8_t enabled = false;

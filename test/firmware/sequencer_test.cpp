@@ -21,7 +21,7 @@ static void note_off(void) {
   TEST_ASSERT_MESSAGE(note_active == true, "note_off called twice.");
   note_active = false;
 }
-static Sequencer::Callbacks callbacks{note_on, note_off};
+static Sequencer::Output::Callbacks callbacks{note_on, note_off};
 
 } // namespace NoteTracker
 
@@ -38,8 +38,10 @@ static Sequencer::Callbacks callbacks{note_on, note_off};
   TEST_ASSERT_EQUAL_MESSAGE(count, NoteTracker::played_notes,                  \
                             "[Played note count]");
 
+void on_running_advance(Sequencer::Sequencer &s) {}
+
 Sequencer::Sequencer make_cleared_sequencer() {
-  Sequencer::Sequencer seq(NoteTracker::callbacks);
+  Sequencer::Sequencer seq(NoteTracker::callbacks, on_running_advance);
   clear_steps(seq);
   return seq;
 }

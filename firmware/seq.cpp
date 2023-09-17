@@ -37,7 +37,9 @@ static Zone get_zone(uint32_t clock, const SpeedModifier speed_mod) {
   }
 }
 
-Sequencer::Sequencer(Callbacks callbacks) : output(callbacks) {
+Sequencer::Sequencer(Output::Callbacks callbacks,
+                     OnRunnningAdvance on_running_advance)
+    : output(callbacks), on_running_advance(on_running_advance) {
   arp.init();
 
   for (int i = 0; i < NUM_STEPS; ++i) {
@@ -164,19 +166,16 @@ void Sequencer::align_clock() {
   }
 }
 
-bool Sequencer::tick_clock() {
+void Sequencer::tick_clock() {
   clock++;
 
   if (running) {
     const uint8_t divider = divider_from_speed_mod(speed_mod);
     const bool should_advance = (clock % divider) == 0;
     if (should_advance) {
+      on_running_advance(*this);
       advance_running();
     }
-
-    return should_advance;
-  } else {
-    return false;
   }
 }
 

@@ -142,7 +142,7 @@ void led_update() {
     led_play = LED_WHITE;
   } else {
     if (sequencer.note_playing()) {
-      leds(Sequencer::wrapped_step(cur_seq_step - 1)) = LED_WHITE;
+      leds(Sequencer::wrapped_step(cur_seq_step)) = LED_WHITE;
     } else {
       if (((seq_clock % 24) < 12)) {
         led_play = LED_WHITE;

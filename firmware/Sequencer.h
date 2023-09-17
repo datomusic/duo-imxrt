@@ -59,21 +59,8 @@ void sequencer_toggle_start() {
   }
 }
 
-static void sequencer_tick_clock() {
-  if (sequencer.tick_clock() && sequencer.is_running()) {
-    if (random_flag) {
-      sequencer.set_step_offset(random(1, (Sequencer::NUM_STEPS - 2)));
-    } else {
-      sequencer.set_step_offset(0);
-    }
-  }
-}
+static void sequencer_tick_clock() { sequencer.tick_clock(); }
 
-void sequencer_randomize_step_offset() {
-  const uint8_t offset =
-      sequencer.get_step_offset() + random(1, (Sequencer::NUM_STEPS - 2));
-  sequencer.set_step_offset(offset);
-}
 
 static void sequencer_align_clock() { sequencer.align_clock(); }
 
