@@ -9,13 +9,6 @@
 struct Channel {
   void disable() { DMA0->CERQ = DMA_SIGNAL_ID; }
   void enable() { DMA0->SERQ = DMA_SIGNAL_ID; }
-  void start() { DMA0->SSRT = DMA_SIGNAL_ID; }
-  // bool active(){
-  //   if (DMA0->TCD->CSR & DMA_CSR_ACTIVE(1)) {
-  //     
-  //   }
-  // }
-  //
   void set_disable_on_completion(bool b) { DMA0->TCD->CSR = DMA_CSR_DREQ(b); }
 
   void set_source_linear_buffer(uint32_t *buffer, uint32_t buf_len) {

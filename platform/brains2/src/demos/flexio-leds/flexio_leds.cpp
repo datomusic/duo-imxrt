@@ -26,48 +26,14 @@ void flash_led(const uint32_t ms) {
 
 void flash_led() { flash_led(100); }
 
-void init_debug_led() {
-  // IOMUXC_SetPinMux(LED2_PINMUX, 0U);
-  // gpio_pin_config_t led2_config = {kGPIO_DigitalOutput, 0};
-  // GPIO_PinInit(LED2_PORT, LED2_PIN, &led2_config);
-
-  // pinMode(PIN_SYN_ADDR0, OUTPUT);
-  // pinMode(PIN_SYN_ADDR1, OUTPUT);
-  // pinMode(PIN_SYN_ADDR2, OUTPUT);
-
-  flash_led(100);
-  // delayMicroseconds(1000 * 500);
-  // flash_led(1000);
-  // delayMicroseconds(1000 * 2000);
-}
-
-const unsigned PIXEL_COUNT = 19;
-// const unsigned PIXEL_COUNT = 20;
-// const unsigned PIXEL_COUNT = 2;
-
-const uint32_t BYTE_COUNT = 3 * PIXEL_COUNT + 3;
-uint8_t bytes[BYTE_COUNT];
-
-// edma_handle_t g_EDMA_Handle;
-// edma_transfer_config_t transferConfig;
-
-uint32_t prepped_pixels[BYTE_COUNT];
-
-volatile bool g_Transfer_Done = false;
-
-void EDMA_Callback(edma_handle_t *handle, void *param, bool transferDone,
-                   uint32_t tcds) {
-  if (transferDone) {
-    g_Transfer_Done = true;
-  }
-}
+void init_debug_led() { flash_led(100); }
 
 Channel channel;
-void prepare_write() {
+void prepare_write(uint32_t *buffer, const uint16_t length) {
   channel.disable();
   channel.set_disable_on_completion(true);
   DMAMUX_EnableChannel(DMAMUX, DMA_SIGNAL_ID);
-  channel.set_source_linear_buffer(prepped_pixels, BYTE_COUNT);
+  channel.set_source_linear_buffer(buffer, length);
 
   volatile uint32_t *destination_address =
       &(FLEXIO1->SHIFTBUFBIS[data_shifter_id]);
@@ -75,7 +41,7 @@ void prepare_write() {
 
   channel.set_minor_loop_bytes(sizeof(uint32_t));
 
-  channel.set_transfer_iterations(BYTE_COUNT);
+  channel.set_transfer_iterations(length);
 
   // Enable DMA input on shifter
   uint32_t dma_reg = 1 << data_shifter_id;
@@ -91,71 +57,52 @@ void init_dma() {
   EDMA_Init(DMA0, &userConfig);
 }
 
+const unsigned PIXEL_COUNT = 19;
+
+const uint32_t BYTE_COUNT = 3 * PIXEL_COUNT + 3;
+uint8_t bytes[BYTE_COUNT];
+
+uint32_t prepped_pixels[BYTE_COUNT];
+
+uint8_t counter = 0;
+void render_frame() {
+  for (unsigned i = 0; i < BYTE_COUNT; ++i) {
+    bytes[i] = 0;
+  }
+
+  const uint8_t p = (counter % PIXEL_COUNT) * 3;
+  bytes[p] = 255;
+  bytes[p + 1] = 255;
+  bytes[p + 2] = 255;
+
+  ++counter;
+}
+
 int main(void) {
   board_init();
   init_debug_led();
   setup_flexio_leds();
-
   init_dma();
 
-  // EDMA_CreateHandle(&g_EDMA_Handle, DMA0, channel);
-  // EDMA_SetCallback(&g_EDMA_Handle, EDMA_Callback, NULL);
 
-  uint8_t counter = 0;
   for (;;) {
-    for (unsigned i = 0; i < BYTE_COUNT; ++i) {
-      bytes[i] = 0;
-    }
-
-    const uint8_t p = (counter % PIXEL_COUNT) * 3;
-    bytes[p] = 255;
-    bytes[p + 1] = 255;
-    bytes[p + 2] = 255;
+    render_frame();
 
     for (uint32_t ind = 0; ind < BYTE_COUNT; ++ind) {
       prepped_pixels[ind] = spread4(bytes[ind]) << 3;
     }
 
     led_show(1, true);
-    // delayMicroseconds(500 * 1000);
-    begin_show();
-
-    // show_prepared(prepped_pixels, BYTE_COUNT);
-
-    // g_Transfer_Done = false;
-    //
-    // const uint8_t bytesPerFrame = sizeof(prepped_pixels[0]);
-    // const uint8_t dataSize = sizeof(prepped_pixels);
-    // EDMA_PrepareTransfer(&transferConfig, prepped_pixels, bytesPerFrame,
-    //                      (uint32_t *)destination, bytesPerFrame,
-    //                      bytesPerFrame, dataSize, kEDMA_MemoryToPeripheral);
-    //
-    // const status_t res = EDMA_SubmitTransfer(&g_EDMA_Handle,
-    // &transferConfig); if (res == kStatus_Success) {
-    //   led_show(2, true);
-    // }
-
-    // EDMA_StartTransfer(&g_EDMA_Handle);
-
-    // Wait for EDMA transfer finish
-    // while (g_Transfer_Done != true) {
-    // }
+    // begin_show();
 
     led_show(2, true);
-    prepare_write();
+    prepare_write(prepped_pixels, BYTE_COUNT);
     channel.enable();
-    // channel.start();
-    // if (channel.active()) {
-    // delayMicroseconds(1000 * 5000);
-    // led_show(1, false);
 
-    end_show();
-    // delayMicroseconds(1000 * 1000);
+    // end_show();
     led_show(2, false);
 
-    ++counter;
-
-    delayMicroseconds(100000);
+    delayMicroseconds(10000);
   }
   return 0;
 }
