@@ -272,6 +272,24 @@ void arp_does_not_replay_note_when_lower_added() {
   ASSERT_EQ(1, NoteTracker::last_note);
 }
 
+void plays_randomized_step() {
+  auto seq = make_cleared_sequencer();
+  const uint8_t offset = 2;
+  set_all_steps_active(seq, true);
+  for (int step = 0; step < Sequencer::NUM_STEPS; ++step) {
+    seq.set_step_note(step, step);
+  }
+
+  seq.start();
+  ASSERT_PLAYED_COUNT(1);
+  ASSERT_EQ(0, NoteTracker::last_note);
+  seq.set_step_offset(offset);
+  ASSERT_PLAYED_COUNT(1);
+  seq.advance();
+  ASSERT_PLAYED_COUNT(2);
+  ASSERT_EQ(1 + offset, NoteTracker::last_note);
+}
+
 } // namespace Tests
 
 void setUp(void) { NoteTracker::reset(); }
@@ -292,6 +310,7 @@ int main() {
   RUN_TEST(Tests::respects_step_offset_during_playback);
   RUN_TEST(Tests::arp_does_not_replay_note_when_lower_added);
   RUN_TEST(Tests::always_records_note_when_stopped);
+  RUN_TEST(Tests::plays_randomized_step);
 #endif
   return UNITY_END();
 }
