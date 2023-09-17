@@ -234,12 +234,22 @@ bool idle_timer_finished() {
   return (FLEXIO1->TIMSTAT & mask) != 0;
 }
 
-void show_prepared(uint32_t *bytes, uint8_t count) {
+void begin_show() {
   while (!shift_buffer_empty()) {
   }
 
   reset_idle_timer_finished_flag();
+}
 
+void end_show() {
+  while (!shift_buffer_empty()) {
+  }
+
+  while (!idle_timer_finished()) {
+  }
+}
+
+void show_prepared(uint32_t *bytes, uint8_t count) {
   const unsigned buf_id = 0;
 
   for (unsigned byte_index = 0; byte_index < count; ++byte_index) {
@@ -251,19 +261,9 @@ void show_prepared(uint32_t *bytes, uint8_t count) {
   // Output an extra empty byte, otherwise we get a weird hickup on the last
   // LED.
   FLEXIO1->SHIFTBUFBIS[buf_id] = 0;
-  while (!shift_buffer_empty()) {
-  }
-
-  while (!idle_timer_finished()) {
-  }
 }
 
 void show_bytes(uint8_t *bytes, uint8_t count) {
-  while (!shift_buffer_empty()) {
-  }
-
-  reset_idle_timer_finished_flag();
-
   const unsigned buf_id = 0;
 
   for (unsigned byte_index = 0; byte_index < count; ++byte_index) {
@@ -275,9 +275,4 @@ void show_bytes(uint8_t *bytes, uint8_t count) {
   // Output an extra empty byte, otherwise we get a weird hickup on the last
   // LED.
   FLEXIO1->SHIFTBUFBIS[buf_id] = 0;
-  while (!shift_buffer_empty()) {
-  }
-
-  while (!idle_timer_finished()) {
-  }
 }
