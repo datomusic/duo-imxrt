@@ -68,7 +68,7 @@ AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t tx_handle) = {0};
 
 /* DMA */
 #define DMA DMA0
-#define EDMA_CHANNEL (0U)
+#define EDMA_CHANNEL (1U)
 #define SAI_TX_SOURCE kDmaRequestMuxSai3Tx
 
 /*******************************************************************************
@@ -150,6 +150,9 @@ void AudioOutputMQS::begin(void) {
   SAI_TransferSendEDMA(SAI, &tx_handle, &xfer);
 }
 
+void AudioOutputMQS::stop(void) {
+  SAI_Deinit(SAI);
+}
 /*
  * buffer_toggle:
  *  Track which half of the audio buffer we're filling.

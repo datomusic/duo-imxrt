@@ -2,6 +2,7 @@ import usb
 from typing import NamedTuple
 
 class FirmwareInfo(NamedTuple):
+    serial_no: str
     tag: str
     branch: str
     commit: str
@@ -14,10 +15,12 @@ def get_firmware_info():
         return None
     else:
         return FirmwareInfo(
+                serial_no = usb.util.get_string(dev, 3),
                 tag = usb.util.get_string(dev, 4),
                 branch = usb.util.get_string(dev, 5),
                 commit = usb.util.get_string(dev, 6),
-                board = usb.util.get_string(dev, 7))
+                board = usb.util.get_string(dev, 7)
+            )
 
 def print_firmware_info():
     info = get_firmware_info()
