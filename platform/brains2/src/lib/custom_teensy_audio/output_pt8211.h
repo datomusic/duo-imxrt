@@ -49,7 +49,7 @@
 class AudioOutputPT8211 : public AudioStream
 {
 public:
-	AudioOutputPT8211(void) : AudioStream(2, inputQueueArray) { begin(); }
+	AudioOutputPT8211(void) : AudioStream(2, inputQueueArray) { }
 	virtual void update(void);
 	void begin(void);
 protected:

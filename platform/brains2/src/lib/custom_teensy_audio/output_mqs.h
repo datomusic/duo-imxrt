@@ -39,7 +39,7 @@
 class AudioOutputMQS : public AudioStream
 {
 public:
-	AudioOutputMQS(void) : AudioStream(2, inputQueueArray) { begin(); }
+	AudioOutputMQS(void) : AudioStream(2, inputQueueArray) { }
 	virtual void update(void);
 	void begin(void);
 	friend class AudioInputI2S2;

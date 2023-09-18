@@ -75,7 +75,7 @@ AT_NONCACHEABLE_SECTION_INIT(sai_edma_handle_t tx_handle) = {0};
 
 /* DMA */
 #define DMA DMA0
-#define EDMA_CHANNEL (0U)
+#define EDMA_CHANNEL (1U)
 #define SAI_TX_SOURCE kDmaRequestMuxSai1Tx
 
 #define I2S1_TCSR SAI1->TCSR

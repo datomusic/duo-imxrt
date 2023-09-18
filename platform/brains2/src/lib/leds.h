@@ -11,7 +11,7 @@ namespace LEDs {
 typedef CRGB Pixel;
 
 void init ();
-void show (const Pixel *const pixels, int count);
+void show (const Pixel *const pixels, uint16_t count);
 void setBrightness(int brightness);
 uint8_t _brightness = 255;
 CRGB correction = 0xFFD0D0;

@@ -4,7 +4,7 @@
 #include "fsl_edma.h"
 #include <stdint.h>
 
-#define DMA_SIGNAL_ID 0
+#define LEDS_DMA_CHANNEL_ID 0
 
 struct Channel {
   void reset() {
@@ -21,8 +21,8 @@ struct Channel {
     DMA0->TCD->CSR = 0;
   }
 
-  void disable() { DMA0->CERQ = DMA_SIGNAL_ID; }
-  void enable() { DMA0->SERQ = DMA_SIGNAL_ID; }
+  void disable() { DMA0->CERQ = LEDS_DMA_CHANNEL_ID; }
+  void enable() { DMA0->SERQ = LEDS_DMA_CHANNEL_ID; }
   void set_disable_on_completion(bool b) { DMA0->TCD->CSR = DMA_CSR_DREQ(b); }
 
   void set_source_linear_buffer(uint32_t *buffer, uint32_t buf_len) {
