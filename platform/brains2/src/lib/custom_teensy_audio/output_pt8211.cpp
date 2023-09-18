@@ -106,8 +106,6 @@ const clock_audio_pll_config_t audioPllConfig = {
 
 void AudioOutputPT8211::begin(void)
 {
-	// dma.begin(true); // Allocate the DMA channel first
-
 	block_left_1st = NULL;
 	block_right_1st = NULL;
 
@@ -143,9 +141,6 @@ void AudioOutputPT8211::begin(void)
 	transceiver_config.masterSlave = kSAI_Master;
 	transceiver_config.syncMode = kSAI_ModeAsync;
 	SAI_TransferTxSetConfigEDMA(SAI, &tx_handle, &transceiver_config);
-	/* set bit clock divider */
-
-  // if (SAI->TCSR & I2S_TCSR_TE(1)) return;
 		
 	// configure transmitter
 	SAI->TMR = 0;
@@ -153,19 +148,9 @@ void AudioOutputPT8211::begin(void)
   SAI_TxSetBitClockRate(SAI, SAI_CLK_FREQ, kSAI_SampleRate44100Hz, kSAI_WordWidth16bits, 2u);
 	SAI->TCR2 |= I2S_TCR2_BCP(1) | I2S_TCR2_MSEL(1) | I2S_TCR2_BCD(1);
 	SAI->TCR3 = I2S_TCR3_TCE(1);
-  //	I2S1_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF | I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD; //TDA1543
 	SAI->TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF(1) /*| I2S_TCR4_FSE*/ | I2S_TCR4_FSP(1) | I2S_TCR4_FSD(1); //PT8211
 	SAI->TCR5 = I2S_TCR5_WNW(15) | I2S_TCR5_W0W(15) | I2S_TCR5_FBT(15);
   
-// 	SAI->RMR = 0;
-// 	//SAI->RCSR = (1<<25); //Reset
-// 	SAI->RCR1 = I2S_RCR1_RFW(0);
-// 	SAI->RCR2 = I2S_RCR2_SYNC(0) | I2S_TCR2_BCP(1) | I2S_TCR2_MSEL(1) | I2S_TCR2_BCD(1) | I2S_TCR2_DIV(3);
-// 	SAI->RCR3 = I2S_RCR3_RCE(1);
-// //	SAI->TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF | I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD; //TDA1543
-// 	SAI->RCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF(1) /*| I2S_TCR4_FSE*/ | I2S_TCR4_FSP(1) | I2S_TCR4_FSD(1); //PT8211
-// 	SAI->RCR5 = I2S_RCR5_WNW(15) | I2S_RCR5_W0W(15) | I2S_RCR5_FBT(15);
-	
 	update_responsibility = update_setup();
 
 	memset(i2s_tx_buffer, 0, sizeof(i2s_tx_buffer));
@@ -174,6 +159,11 @@ void AudioOutputPT8211::begin(void)
 	SAI_TransferSendEDMA(SAI, &tx_handle, &xfer);
 }
 
+void AudioOutputPT8211::stop(void) {
+  // Disable DMA's
+  // stop the clock to SAI
+  SAI_Deinit(SAI);
+}
 /*
  * buffer_toggle:
  *  Track which half of the audio buffer we're filling.

@@ -72,6 +72,9 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
 
+// TODO: make this not global. Needed for dac1.stop()
+BoardAudioOutput dac1; // xy=988.1000061035156,100
+
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
   if (synth.accent) {
@@ -141,7 +144,9 @@ static void power_off() {
   // turn off audio
   Audio::amp_disable();
   Audio::headphone_disable();
+
   // turn off leds
+  dac1.stop();
   // de-enumerate usb (?)
   DatoUSB::disconnect(); 
   led_deinit();
@@ -303,11 +308,8 @@ static void headphone_jack_check() {
 static void main_loop(){
   static unsigned long frame_time = millis();
   static unsigned long frame_interval = 11;
-  bool pinState = LOW;
-  while (true) {
-    digitalWrite(GPIO_SD_13, pinState);
-    pinState = !pinState;
 
+  while (true) {
     if (is_power_on()) {
       if (millis() - frame_time > frame_interval) {
         frame_time = millis();
@@ -327,9 +329,12 @@ static void main_loop(){
         keys_scan(); // 14 or 175us (depending on debounce)
       }
     } else {
-      if(keys_scan_powerbutton()) { 
-        NVIC_SystemReset();
-      }
+      if (millis() - frame_time > frame_interval) {
+        frame_time = millis();
+        if(keys_scan_powerbutton()) { 
+          NVIC_SystemReset();
+        }
+      } 
     }
   }
 }
@@ -393,7 +398,6 @@ int main(void) {
   Audio::amp_disable();
   Audio::headphone_disable();
 
-  BoardAudioOutput dac1; // xy=988.1000061035156,100
   AudioAmplifier headphone_preamp;
   AudioAmplifier speaker_preamp;
   AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
@@ -402,6 +406,7 @@ int main(void) {
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
   main_init(headphone_preamp, speaker_preamp);
+  dac1.begin();
   main_loop();
   return 0;
 }
