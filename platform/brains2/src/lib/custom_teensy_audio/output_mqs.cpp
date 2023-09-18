@@ -150,6 +150,9 @@ void AudioOutputMQS::begin(void) {
   SAI_TransferSendEDMA(SAI, &tx_handle, &xfer);
 }
 
+void AudioOutputMQS::stop(void) {
+  SAI_Deinit(SAI);
+}
 /*
  * buffer_toggle:
  *  Track which half of the audio buffer we're filling.

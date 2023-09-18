@@ -42,6 +42,7 @@ public:
 	AudioOutputMQS(void) : AudioStream(2, inputQueueArray) { }
 	virtual void update(void);
 	void begin(void);
+	void stop(void);
 	friend class AudioInputI2S2;
 protected:
 	static audio_block_t *block_left_1st;
