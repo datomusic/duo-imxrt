@@ -135,7 +135,7 @@ static void pots_read() {
   synth.delay = pinRead(DELAY_PIN);
 }
 
-static inline void power_off() {
+static void power_off() {
   // Stop sequencer
   MIDI.sendControlChange(123,0,MIDI_CHANNEL);
   AudioNoInterrupts();
