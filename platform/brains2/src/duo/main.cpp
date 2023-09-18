@@ -72,8 +72,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
 
-// TODO: make this not global. Needed for dac1.stop()
-BoardAudioOutput dac1; // xy=988.1000061035156,100
+static BoardAudioOutput dac;
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
   // Override velocity if button on the synth is pressed
@@ -146,7 +145,7 @@ static void power_off() {
   Audio::headphone_disable();
 
   // turn off leds
-  dac1.stop();
+  dac.stop();
   // de-enumerate usb (?)
   DatoUSB::disconnect(); 
   led_deinit();
@@ -339,7 +338,7 @@ static void main_loop(){
   }
 }
 
-static void main_init(BoardAudioOutput& dac, AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_preamp){
+static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_preamp){
   // Read the MIDI channel from EEPROM. Lowest four bits
   // const uint8_t stored_midi_channel =
   //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
@@ -413,10 +412,10 @@ int main(void) {
   AudioAmplifier speaker_preamp;
   AudioConnection patchCord16(pop_suppressor, 0, headphone_preamp, 0);
   AudioConnection patchCord17(pop_suppressor, 0, speaker_preamp, 0);
-  AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
-  AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
+  AudioConnection patchCord18(headphone_preamp, 0, dac, 0);
+  AudioConnection patchCord19(speaker_preamp, 0, dac, 1);
 
-  main_init(dac1, headphone_preamp, speaker_preamp);
+  main_init(headphone_preamp, speaker_preamp);
   main_loop();
   return 0;
 }
