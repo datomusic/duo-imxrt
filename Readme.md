@@ -16,9 +16,6 @@ The main pcb of the Dato DUO is dubbed Brains. Up until mid 2022 the Brains 1 we
 Source code for the two different platforms can be found in the platforms directory.
 
 ## Credits
-Teensy Audio Library
-https://github.com/PaulStoffregen/cores https://github.com/PaulStoffregen/Audio
-Seeeduino Arduino core for imxrt
-https://github.com/Seeed-Studio/ArduinoCore-imxrt
-WS2812-Flexio driver
-https://github.com/Finomnis/ws2812-flexio/
+- Teensy Audio Library: https://github.com/PaulStoffregen/cores https://github.com/PaulStoffregen/Audio
+- Seeeduino Arduino core for imxrt: https://github.com/Seeed-Studio/ArduinoCore-imxrt
+- WS2812-Flexio driver: https://github.com/Finomnis/ws2812-flexio/
