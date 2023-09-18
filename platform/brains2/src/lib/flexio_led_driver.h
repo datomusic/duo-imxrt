@@ -1,22 +1,6 @@
 #include "fsl_device_registers.h"
 #include "fsl_flexio.h"
-#include "fsl_iomuxc.h"
-#include "teensy_audio_config.h"
-#include <Arduino.h>
-#include <Audio.h>
 #include <stdint.h>
-
-static void no_interrupts() {
-  DisableIRQ(DMA0_IRQn);
-  // __disable_irq();
-}
-
-static void yes_interrupts() {
-  EnableIRQ(DMA0_IRQn);
-  // __enable_irq();
-}
-
-#define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_FLEXIO1_IO11
 
 const uint32_t CLOCK_DIVIDER =
     10; // Timer toggles; meaning we need two cycles for one timer clock cycle,
@@ -153,8 +137,8 @@ void configure_shift_timer(const uint8_t timer_id, const uint8_t shifter_id,
       FLEXIO_TIMCFG_TSTART(0);  // START bit disabled
 }
 
-static void configure_idle_timer(const uint8_t timer_id,
-                                 const uint8_t shift_timer_pin) {
+void configure_idle_timer(const uint8_t timer_id,
+                          const uint8_t shift_timer_pin) {
   const uint8_t CYCLE_LENGTH = CLOCK_DIVIDER * 2;
   const uint16_t LATCH_DELAY = CYCLE_LENGTH * LATCH_DELAY_PIXELS;
 
@@ -180,20 +164,22 @@ static void configure_idle_timer(const uint8_t timer_id,
       FLEXIO_TIMCFG_TSTART(0);  // start bit disabled
 }
 
-static void init_flexio() {
+void init_flexio() {
   flexio_config_t fxioUserConfig;
   FLEXIO_GetDefaultConfig(&fxioUserConfig);
   FLEXIO_Init(FLEXIO1, &fxioUserConfig);
 }
 
-static void setup_flexio_leds() {
+#define NEOPIXEL_PINMUX IOMUXC_GPIO_SD_05_FLEXIO1_IO11
+const uint32_t data_shifter_id = 0;
+
+void setup_flexio_leds() {
   init_flexio();
   configure_flexio_clock();
 
   uint8_t shifter_output_start_pin = 0;
   uint8_t shift_timer_output_pin = shifter_output_start_pin + 4;
 
-  uint8_t data_shifter = 0;
   uint8_t shifter_timer = 0;
   uint8_t idle_timer = 1;
   uint8_t pin_pos = 0;
@@ -208,8 +194,8 @@ static void setup_flexio_leds() {
 
   // init_neopixel();
 
-  configure_shifter(data_shifter, shifter_timer, shifter_output_start_pin);
-  configure_shift_timer(data_shifter, shifter_timer, shift_timer_output_pin);
+  configure_shifter(data_shifter_id, shifter_timer, shifter_output_start_pin);
+  configure_shift_timer(data_shifter_id, shifter_timer, shift_timer_output_pin);
   configure_idle_timer(idle_timer, shift_timer_output_pin);
 
   configure_low_bit_timer(low_bit_timer, shift_timer_output_pin,
@@ -223,53 +209,70 @@ static void setup_flexio_leds() {
   FLEXIO1->CTRL = FLEXIO_CTRL_FLEXEN(1);
 }
 
-static bool shift_buffer_empty() {
-  const uint32_t shifter_id = 0;
-  const uint32_t mask = 1 << shifter_id;
+bool shift_buffer_empty() {
+  const uint32_t mask = 1 << data_shifter_id;
   return (FLEXIO1->SHIFTSTAT & mask) != 0;
 }
 
-static uint32_t spread4(uint32_t x) {
+uint32_t spread4(uint32_t x) {
   x = (x | (x << 12)) & 0x000F000F;
   x = (x | (x << 6)) & 0x03030303;
   x = (x | (x << 3)) & 0x11111111;
 
   return x;
 }
-static void reset_idle_timer_finished_flag() {
+void reset_idle_timer_finished_flag() {
   const uint32_t idle_timer_id = 1;
   const uint32_t mask = 1 << idle_timer_id;
   FLEXIO1->TIMSTAT = mask;
 }
 
-static bool idle_timer_finished() {
+bool idle_timer_finished() {
   const uint32_t idle_timer_id = 1;
   const uint32_t mask = 1 << idle_timer_id;
 
   return (FLEXIO1->TIMSTAT & mask) != 0;
 }
 
-static void show_bytes(uint8_t *bytes, uint8_t count) {
+void begin_show() {
   while (!shift_buffer_empty()) {
   }
 
   reset_idle_timer_finished_flag();
+}
 
-  const unsigned buf_id = 0;
-
-  no_interrupts();
-  for (unsigned byte_index = 0; byte_index < count; ++byte_index) {
-    FLEXIO1->SHIFTBUFBIS[buf_id] = spread4(bytes[byte_index]) << 3;
-    while (!shift_buffer_empty()) {
-    }
-  }
-  // Output an extra empty byte, otherwise we get a weird hickup on the last
-  // LED.
-  FLEXIO1->SHIFTBUFBIS[buf_id] = 0;
+void end_show() {
   while (!shift_buffer_empty()) {
   }
 
   while (!idle_timer_finished()) {
   }
-  yes_interrupts();
+}
+
+void show_prepared(uint32_t *bytes, uint8_t count) {
+  const unsigned buf_id = 0;
+
+  for (unsigned byte_index = 0; byte_index < count; ++byte_index) {
+    FLEXIO1->SHIFTBUFBIS[buf_id] = bytes[byte_index];
+    while (!shift_buffer_empty()) {
+    }
+  }
+
+  // Output an extra empty byte, otherwise we get a weird hickup on the last
+  // LED.
+  FLEXIO1->SHIFTBUFBIS[buf_id] = 0;
+}
+
+void show_bytes(uint8_t *bytes, uint8_t count) {
+  const unsigned buf_id = 0;
+
+  for (unsigned byte_index = 0; byte_index < count; ++byte_index) {
+    FLEXIO1->SHIFTBUFBIS[buf_id] = spread4(bytes[byte_index]) << 3;
+    while (!shift_buffer_empty()) {
+    }
+  }
+
+  // Output an extra empty byte, otherwise we get a weird hickup on the last
+  // LED.
+  FLEXIO1->SHIFTBUFBIS[buf_id] = 0;
 }
