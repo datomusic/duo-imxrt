@@ -48,7 +48,7 @@ RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
 #include "lib/sync.h"
 #include "lib/elapsedMillis.h"
 #include "firmware/TempoHandler.h"
-TempoHandler tempo_handler(synth);
+TempoHandler tempo_handler;
 
 void midi_send_realtime(const midi::MidiType message){
     MIDI.sendRealTime(message);
@@ -60,8 +60,8 @@ void midi_send_realtime(const midi::MidiType message){
 #include "duo-firmware/src/Synth.h"
 
 // One more LED than the physical number of leds for loopback testing
-const int NUM_LEDS = 19 + 1;
-const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
+static const int NUM_LEDS = 19 + 1;
+static const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
                                  11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 
 #define GRB 1
@@ -72,6 +72,7 @@ const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
 
+static uint8_t note_is_playing = 0;
 static BoardAudioOutput dac;
 
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
@@ -98,7 +99,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
-    leds((current_step + random_offset) % SEQUENCER_NUM_STEPS) = LED_WHITE;
+    leds(sequencer.cur_step_index() % Sequencer::NUM_STEPS) = LED_WHITE;
   }
 }
 
@@ -114,7 +115,6 @@ void note_off() {
 
 void midi_handle_clock() {
   tempo_handler.midi_clock_received();
-  midi_clock++;
 }
 
 static void pots_read() {
@@ -173,14 +173,13 @@ static void process_key(const char k, const char state) {
           keyboard_set_note(SCALE[k - KEYB_0]);
         }
       } else if (k <= STEP_8 && k >= STEP_1) {
-        step_enable[k - STEP_1] = 1 - step_enable[k - STEP_1];
-        if (!step_enable[k - STEP_1]) {
-          leds(k - STEP_1) = CRGB::Black;
+        const uint8_t step = k - STEP_1;
+        if (!sequencer.toggle_step(step)) {
+          leds(step) = CRGB::Black;
         }
-        step_velocity[k - STEP_1] = INITIAL_VELOCITY;
       } else if (k == BTN_SEQ2) {
-        if (!sequencer_is_running) {
-          sequencer_advance();
+        if (!sequencer.is_running()) {
+          sequencer.advance();
         }
         double_speed = true;
       } else if (k == BTN_DOWN) {
@@ -194,11 +193,11 @@ static void process_key(const char k, const char state) {
           transpose = 24;
         }
       } else if (k == BTN_SEQ1) {
-        next_step_is_random = true;
-        if (!sequencer_is_running) {
-          sequencer_advance();
+        if (sequencer.is_running()) {
+          random_flag = true;
+        } else {
+          sequencer_randomize_step_offset(sequencer);
         }
-        random_flag = true;
       } else if (k == SEQ_START) {
         sequencer_toggle_start();
       }
@@ -243,7 +242,6 @@ static void process_key(const char k, const char state) {
           transpose = 12;
         }
       } else if (k == BTN_SEQ1) {
-        next_step_is_random = false;
         random_flag = false;
       } else if (k == SEQ_START) {
 #ifdef DEV_MODE
@@ -317,7 +315,6 @@ static void main_loop(){
       } else {
         DatoUSB::background_update();
         midi_handle();
-        keyboard_to_note();
         pitch_update(); // ~30us
         synth_update(); // ~ 100us
         midi_send_cc();
@@ -374,8 +371,6 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   usbMIDI.setHandleContinue(sequencer_restart);
   MIDI.setHandleStop(sequencer_stop);
   usbMIDI.setHandleStop(sequencer_stop);
-
-  previous_note_on_time = millis();
 
   Audio::headphone_enable();
   Audio::amp_enable();
