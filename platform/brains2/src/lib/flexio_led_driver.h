@@ -1,3 +1,6 @@
+// This is a C++ port of the WS2812 FlexIO driver by Finomnis
+// originally written in Rust. https://github.com/Finomnis/ws2812-flexio/
+// Ported by Valter Sundstrom for Dato Musical Instruments
 #include "fsl_device_registers.h"
 #include "fsl_flexio.h"
 #include <stdint.h>

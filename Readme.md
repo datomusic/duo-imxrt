@@ -20,3 +20,5 @@ Teensy Audio Library
 https://github.com/PaulStoffregen/cores https://github.com/PaulStoffregen/Audio
 Seeeduino Arduino core for imxrt
 https://github.com/Seeed-Studio/ArduinoCore-imxrt
+WS2812-Flexio driver
+https://github.com/Finomnis/ws2812-flexio/
