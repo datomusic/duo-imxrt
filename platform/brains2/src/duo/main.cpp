@@ -334,7 +334,7 @@ static void main_loop(){
   }
 }
 
-static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_preamp){
+static void main_init(BoardAudioOutput& dac, AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_preamp){
   // Read the MIDI channel from EEPROM. Lowest four bits
   // const uint8_t stored_midi_channel =
   //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
@@ -355,6 +355,8 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   }
   midi_init();
   led_init();
+
+  dac.begin();
 
   AudioNoInterrupts();
   headphone_preamp.gain(HEADPHONE_GAIN);
@@ -410,8 +412,7 @@ int main(void) {
   AudioConnection patchCord18(headphone_preamp, 0, dac1, 0);
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
-  main_init(headphone_preamp, speaker_preamp);
-  dac1.begin();
+  main_init(dac1, headphone_preamp, speaker_preamp);
   main_loop();
   return 0;
 }
