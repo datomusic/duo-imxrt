@@ -158,11 +158,11 @@ private:
   }
 
   bool running = false;
+  bool step_played_live = false;
   uint8_t current_step = 0;
   uint8_t step_offset = 0;
   uint8_t last_played_step = 0;
   uint32_t clock = 0;
-  bool step_played_live = false;
   Arpeggiator arp;
   Gate step_gate;
   Gate live_gate;
