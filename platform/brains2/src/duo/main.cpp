@@ -406,6 +406,7 @@ int main(void) {
   AudioConnection patchCord19(speaker_preamp, 0, dac1, 1);
 
   main_init(headphone_preamp, speaker_preamp);
+  dac1.begin();
   main_loop();
   return 0;
 }
