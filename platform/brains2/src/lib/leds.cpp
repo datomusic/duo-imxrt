@@ -43,8 +43,27 @@ void show(const Pixel *const pixels, uint16_t pixel_count) {
   }
 
   uint8_t *bytes = (uint8_t *)pixels;
+  uint8_t col = 0;
+
+  uint32_t b;
   for (uint16_t ind = 0; ind < (pixel_count * 3); ++ind) {
-    prepped_pixels[ind] = spread4(bytes[ind]) << 3;
+    b = bytes[ind] * _brightness;
+    switch (col) {
+    case 0:
+      b *= correction.g;
+      ++col;
+      break;
+    case 1:
+      b *= correction.r;
+      ++col;
+      break;
+    case 2:
+      b *= correction.b;
+      col = 0;
+      break;
+    }
+
+    prepped_pixels[ind] = (spread4(b >> 16) << 3);
   }
 
   begin_show();
