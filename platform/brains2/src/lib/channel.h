@@ -15,8 +15,8 @@ struct Channel {
     DMA0->TCD->SLAST = 0;
     DMA0->TCD->DADDR = 0;
     DMA0->TCD->DOFF = 0;
-    DMA0->TCD->CITER = 0;
-    DMA0->TCD->BITER = 0;
+    DMA0->TCD->CITER_ELINKNO = 0;
+    DMA0->TCD->BITER_ELINKNO = 0;
     DMA0->TCD->DLAST_SGA = 0;
     DMA0->TCD->CSR = 0;
   }

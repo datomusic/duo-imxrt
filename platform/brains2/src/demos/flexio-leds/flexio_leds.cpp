@@ -49,12 +49,12 @@ void prepare_write(uint32_t *buffer, const uint16_t length) {
 }
 
 void init_dma() {
-  DMAMUX_Init(DMAMUX);
-  DMAMUX_SetSource(DMAMUX, DMA_SIGNAL_ID, 0);
-
   edma_config_t userConfig;
   EDMA_GetDefaultConfig(&userConfig);
   EDMA_Init(DMA0, &userConfig);
+
+  DMAMUX_Init(DMAMUX);
+  DMAMUX_SetSource(DMAMUX, DMA_SIGNAL_ID, 0);
 }
 
 const unsigned PIXEL_COUNT = 19;
@@ -83,7 +83,7 @@ int main(void) {
   init_debug_led();
   setup_flexio_leds();
   init_dma();
-
+  channel.reset();
 
   for (;;) {
     render_frame();

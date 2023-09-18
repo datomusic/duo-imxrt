@@ -7,6 +7,20 @@
 #define DMA_SIGNAL_ID 0
 
 struct Channel {
+  void reset() {
+    DMA0->TCD->SADDR = 0;
+    DMA0->TCD->SOFF = 0;
+    DMA0->TCD->ATTR = 0;
+    DMA0->TCD->NBYTES_MLNO = 0;
+    DMA0->TCD->SLAST = 0;
+    DMA0->TCD->DADDR = 0;
+    DMA0->TCD->DOFF = 0;
+    DMA0->TCD->CITER_ELINKNO = 0;
+    DMA0->TCD->BITER_ELINKNO = 0;
+    DMA0->TCD->DLAST_SGA = 0;
+    DMA0->TCD->CSR = 0;
+  }
+
   void disable() { DMA0->CERQ = DMA_SIGNAL_ID; }
   void enable() { DMA0->SERQ = DMA_SIGNAL_ID; }
   void set_disable_on_completion(bool b) { DMA0->TCD->CSR = DMA_CSR_DREQ(b); }
