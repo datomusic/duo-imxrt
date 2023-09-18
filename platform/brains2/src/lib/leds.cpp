@@ -6,8 +6,7 @@
 
 static const unsigned PIXEL_COUNT = 19;
 static const uint32_t BYTE_COUNT = 3 * PIXEL_COUNT + 3;
-uint8_t bytes[BYTE_COUNT];
-uint32_t prepped_pixels[BYTE_COUNT];
+static uint32_t prepped_pixels[BYTE_COUNT];
 
 static Channel channel;
 void prepare_write(uint32_t *buffer, const uint16_t length) {
@@ -29,36 +28,28 @@ void prepare_write(uint32_t *buffer, const uint16_t length) {
   FLEXIO1->SHIFTSDEN = dma_reg;
 }
 
-
-
-uint8_t counter = 0;
-void render_frame() {
-  for (unsigned i = 0; i < BYTE_COUNT; ++i) {
-    bytes[i] = 0;
-  }
-
-  const uint8_t p = (counter % PIXEL_COUNT) * 3;
-  bytes[p] = 255;
-  bytes[p + 1] = 255;
-  bytes[p + 2] = 255;
-
-  ++counter;
-}
-
 namespace LEDs {
 
 void init(void) {
   setup_flexio_leds();
+  channel.reset();
 }
 
 void setBrightness(int brightness) { _brightness = brightness; }
 void show(const Pixel *const pixels, int pixel_count) {
-  render_frame();
-  for (uint32_t ind = 0; ind < BYTE_COUNT; ++ind) {
+  if (pixel_count > PIXEL_COUNT) {
+    pixel_count = PIXEL_COUNT;
+  }
+
+  uint8_t *bytes = (uint8_t *)pixels;
+  for (uint32_t ind = 0; ind < (pixel_count * 3); ++ind) {
     prepped_pixels[ind] = spread4(bytes[ind]) << 3;
   }
 
+  // show_bytes((uint8_t *)pixels, pixel_count * 3);
+  begin_show();
   prepare_write(prepped_pixels, BYTE_COUNT);
   channel.enable();
+  // end_show();
 }
 } // namespace LEDs
