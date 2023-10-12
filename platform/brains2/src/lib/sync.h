@@ -8,4 +8,5 @@ namespace Sync {
     uint32_t read();
     void write(uint8_t value);
     bool detect();
+    uint32_t syncPinState;
 }
