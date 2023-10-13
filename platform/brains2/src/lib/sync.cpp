@@ -11,6 +11,8 @@
 
 
 namespace Sync {
+    uint32_t syncPinState;
+
     void handleSyncInterrupt(void) {
       GPIO_PortClearInterruptFlags(SYNC_IN_PORT, 1U << SYNC_IN_PIN);
       Sync::syncPinState = 1;
