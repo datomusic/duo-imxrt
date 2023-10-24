@@ -4,7 +4,6 @@
 
 namespace Sync {
     void init();
-    bool jackDetected();
     uint32_t read();
     void write(uint8_t value);
     bool detect();
