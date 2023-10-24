@@ -82,8 +82,17 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
     with SDP(interface) as s:
         flashloader_bytes = open(f"{data_path}/ivt_flashloader.bin", "rb").read()
         flashloader_addr = 0x20205800
-        s.write_file(flashloader_addr, flashloader_bytes)
-        s.jump_and_run(flashloader_addr)
+        try:
+            s.write_file(flashloader_addr, flashloader_bytes)
+        except:
+            print("Writing flashloader failed")
+            return False
+
+        try:
+            s.jump_and_run(flashloader_addr)
+        except:
+            print("Jump to flashloader failed")
+            return False
 
     print("Sent flashloader. Rebooting.")
     time.sleep(1)
