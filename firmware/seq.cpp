@@ -50,10 +50,9 @@ Sequencer::Sequencer(Output::Callbacks callbacks,
 void Sequencer::start() {
   running = true;
   clock = 0;
-  const uint8_t divider = divider_from_speed_mod(speed_mod);
   const uint8_t step_index = current_step + step_offset;
   const Step cur_step = steps[wrapped_step(step_index)];
-  if (cur_step.enabled && (clock % divider) == 0) {
+  if (cur_step.enabled) {
     step_gate.trigger();
     output.on(cur_step.note);
     last_played_step = step_index;
