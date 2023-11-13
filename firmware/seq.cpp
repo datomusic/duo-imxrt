@@ -49,6 +49,7 @@ Sequencer::Sequencer(Output::Callbacks callbacks,
 
 void Sequencer::start() {
   running = true;
+  clock = 0;
   const uint8_t divider = divider_from_speed_mod(speed_mod);
   const uint8_t step_index = current_step + step_offset;
   const Step cur_step = steps[wrapped_step(step_index)];
@@ -60,7 +61,6 @@ void Sequencer::start() {
 }
 
 void Sequencer::restart() {
-  clock = 0;
   current_step = 0;
   last_played_step = NUM_STEPS;
   step_played_live = false;
