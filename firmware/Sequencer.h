@@ -59,10 +59,14 @@ void sequencer_toggle_start() {
   }
 }
 
-static void sequencer_tick_clock() { sequencer.tick_clock(); }
+static void sequencer_tick_clock() {
+  sequencer.tick_clock();
+}
 
 
-static void sequencer_align_clock() { sequencer.align_clock(); }
+static void sequencer_align_clock() {
+  sequencer.align_clock();
+}
 
 static void sequencer_init() {
   last_sequencer_update = micros();
