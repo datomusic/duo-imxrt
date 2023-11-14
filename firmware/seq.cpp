@@ -69,7 +69,6 @@ void Sequencer::restart() {
 void Sequencer::stop() {
   if (running) {
     running = false;
-    clock = 0;
     inc_current_step(); // So that we start from the next step when playing again
     output.off();
   }

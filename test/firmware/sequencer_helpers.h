@@ -53,6 +53,8 @@ void tick_to_next_step(Sequencer::Sequencer &seq) {
   while (last_step == seq.cur_step_index()) {
     seq.tick_clock();
   }
+
+  ASSERT_EQ(0, seq.get_clock() % Sequencer::TICKS_PER_STEP);
 }
 
 #endif /* end of include guard: SEQUENCER_HELPERS_H_VRO3THZL */
