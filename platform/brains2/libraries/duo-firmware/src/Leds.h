@@ -142,9 +142,10 @@ void led_update() {
     if (sequencer.note_playing()) {
       leds(Sequencer::wrapped_step(cur_seq_step)) = LED_WHITE;
     } else {
-      const uint32_t seq_clock = sequencer.get_clock() + 12;
-      const uint32_t fade_val = (seq_clock % 12) * 16;
-      const bool fade_play = (seq_clock % 24) < 12;
+      const unsigned step_ticks = Sequencer::TICKS_PER_STEP;
+      const uint32_t seq_clock = sequencer.get_clock() + step_ticks;
+      const uint32_t fade_val = (seq_clock % step_ticks) * 16;
+      const bool fade_play = (seq_clock % (2 * step_ticks)) < step_ticks;
 
       // Toggle between fading play button or current step.
       if (fade_play) {
