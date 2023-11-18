@@ -15,15 +15,15 @@ target_sources(${EXECUTABLE_NAME} PRIVATE
   ${LIB_SOURCE_DIR}/usb/midi_usb_bridge/MIDIUSB.cpp
 )
 
-set(TINYUSB_SRC ${CMAKE_CURRENT_LIST_DIR}/../libraries/tinyusb/src)
-set(ARDUINO_MIDI_LIBRARY_SRC ${CMAKE_CURRENT_LIST_DIR}/../components/arduino_midi_library/src)
+set(TINYUSB_SRC ${CMAKE_CURRENT_LIST_DIR}/../../modules/tinyusb/src)
+set(ARDUINO_MIDI_LIBRARY_SRC ${CMAKE_CURRENT_LIST_DIR}/../../modules/arduino_midi_library/src)
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
   ${TINYUSB_SRC}
   ${LIB_SOURCE_DIR}/usb
   ${LIB_SOURCE_DIR}/usb/midi_usb_bridge
   ${ARDUINO_MIDI_LIBRARY_SRC}
-  ${CMAKE_CURRENT_LIST_DIR}/../libraries/Arduino-USBMIDI/src
+  ${CMAKE_CURRENT_LIST_DIR}/../../modules/Arduino-USBMIDI/src
 )
 
 include(${COMMON_CMAKE}/../components/component_tinyusb.cmake)
