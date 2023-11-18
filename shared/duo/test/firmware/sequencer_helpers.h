@@ -1,7 +1,7 @@
 #ifndef SEQUENCER_HELPERS_H_VRO3THZL
 #define SEQUENCER_HELPERS_H_VRO3THZL
 
-#include "firmware/seq.h"
+#include "seq.h"
 #include "unity.h"
 #include <cstdint>
 

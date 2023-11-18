@@ -12,7 +12,7 @@ target_include_directories(unity_framework PUBLIC
 )
 
 add_library(firmware
-  ${CMAKE_CURRENT_LIST_DIR}/../firmware/seq.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/../seq.cpp
 )
 
 target_include_directories(firmware PUBLIC
