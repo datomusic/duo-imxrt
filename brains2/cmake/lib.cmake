@@ -14,7 +14,7 @@ file(GLOB LIB_SRC_FILES
 
 target_sources(${EXECUTABLE_NAME} PRIVATE
   ${LIB_SRC_FILES}
-  ${LIB_SOURCE_DIR}/custom_teensy_audio/AudioStream.cpp
-  ${LIB_SOURCE_DIR}/custom_teensy_audio/output_mqs.cpp
-  ${LIB_SOURCE_DIR}/custom_teensy_audio/output_pt8211.cpp
+  ${LIB_SOURCE_DIR}/../../core/lib/custom_teensy_audio/AudioStream.cpp
+  ${LIB_SOURCE_DIR}/../../core/lib/custom_teensy_audio/output_mqs.cpp
+  ${LIB_SOURCE_DIR}/../../core/lib/custom_teensy_audio/output_pt8211.cpp
 )
