@@ -34,13 +34,13 @@ void enter_dfu();
 
 bool power_flag = true;
 
-#include "firmware/synth_params.h"
+#include "shared/duo/synth_params.h"
 synth_parameters synth;
 
 void sequencer_note_on(uint8_t midi_note, uint8_t velocity) {
   note_on(midi_note + transpose, velocity, true);
 }
-#include "firmware/seq.h"
+#include "shared/duo/seq.h"
 
 void sequencer_randomize_step_offset(Sequencer::Sequencer& seq) {
   const uint8_t offset =

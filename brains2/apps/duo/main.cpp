@@ -6,7 +6,7 @@
 #include "lib/audio.h"
 #include "lib/pin_mux.h"
 #include "lib/usb/usb.h"
-#include "pins.h"
+#include "lib/pins.h"
 #include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
@@ -24,7 +24,7 @@ USBMIDI_CREATE_INSTANCE(0, usbMIDI)
 #define SIM_UIDL 0
 
 #define MIDI_SYSEX_DATA_TYPE byte
-#include "firmware/MidiFunctions.h"
+#include "shared/duo/MidiFunctions.h"
 
 void midi_usb_sysex_callback(byte *data, unsigned length) {
   midi_handle_sysex(data, length);
@@ -48,7 +48,7 @@ RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
 
 #include "lib/sync.h"
 #include "lib/elapsedMillis.h"
-#include "firmware/TempoHandler.h"
+#include "shared/duo/TempoHandler.h"
 TempoHandler tempo_handler;
 
 void midi_send_realtime(const midi::MidiType message){
@@ -57,7 +57,7 @@ void midi_send_realtime(const midi::MidiType message){
 }
 
 #include "buttons.h"
-#include "firmware/Sequencer.h"
+#include "shared/duo/Sequencer.h"
 #include "duo-firmware/src/Synth.h"
 
 // One more LED than the physical number of leds for loopback testing
@@ -68,7 +68,7 @@ static const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
 #define GRB 1
 #define SK6812 1
 #include "duo-firmware/src/Leds.h"
-#include "firmware/Pitch.h"
+#include "shared/duo/Pitch.h"
 
 #include "duo-firmware/src/DrumSynth.h"
 #include "drums.h"
