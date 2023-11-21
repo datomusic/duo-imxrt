@@ -1,4 +1,10 @@
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/)
+set(MCUX_SDK_PROJECT_NAME ${EXECUTABLE_NAME})
+
+
+set(CONFIG_USE_component_serial_manager_uart_MIMXRT1011 true)
+set(CONFIG_USE_driver_lpuart_MIMXRT1011 true)
+set(CONFIG_USE_middleware_baremetal_MIMXRT1011 true)
 
 set(CMAKE_MODULE_PATH
     ${ROOT_DIR}/devices/MIMXRT1011/drivers
@@ -44,3 +50,4 @@ include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
 include(component_Arduino_MIMXRT1011)
 include(component_Teensy_Audio_MIMXRT1011)
+
