@@ -131,8 +131,6 @@ void led_update() {
   }
 
   const auto cur_seq_step = sequencer.cur_step_index();
-  const bool cur_step_enabled = sequencer.get_step_enabled(cur_seq_step);
-  const auto seq_clock = sequencer.get_clock();
 
   if (sequencer.gate_active()) {
     leds(cur_seq_step) = LED_WHITE;
@@ -144,19 +142,23 @@ void led_update() {
     if (sequencer.note_playing()) {
       leds(Sequencer::wrapped_step(cur_seq_step)) = LED_WHITE;
     } else {
-      if (((seq_clock % 24) < 12)) {
+      const unsigned step_ticks = Sequencer::TICKS_PER_STEP;
+      const uint32_t seq_clock = sequencer.get_clock() + step_ticks;
+      const uint32_t fade_val = (seq_clock % step_ticks) * 16;
+      const bool fade_play = (seq_clock % (2 * step_ticks)) < step_ticks;
+
+      // Toggle between fading play button or current step.
+      if (fade_play) {
         led_play = LED_WHITE;
-        led_play.fadeLightBy((seq_clock % 12) * 16);
+        led_play.fadeLightBy(fade_val);
       } else {
         led_play = CRGB::Black;
-        if (cur_step_enabled) {
-          leds(cur_seq_step) = blend(
-              LED_WHITE, COLORS[sequencer.get_step_note(cur_seq_step) % 24],
-              (seq_clock % 12) * 16);
+
+        if (sequencer.get_step_enabled(cur_seq_step)) {
+          leds(cur_seq_step) = blend(LED_WHITE, COLORS[sequencer.get_step_note(cur_seq_step) % 24], fade_val);
         } else {
           leds(cur_seq_step) = LED_WHITE;
-          leds(cur_seq_step) =
-              leds(cur_seq_step).fadeLightBy((seq_clock % 12) * 16);
+          leds(cur_seq_step) = leds(cur_seq_step).fadeLightBy(fade_val);
         }
       }
     }
