@@ -3,7 +3,7 @@
 
 #define BPM_TO_MILLIS(bpm) (2500000 / bpm)
 
-#include "firmware/TempoHandler.h"
+#include "shared/duo/TempoHandler.h"
 
 void Tempo::update_internal(TempoHandler &handler, const int potvalue) {
   uint32_t scaled_millis_per_beat; // 2 x beats per minute

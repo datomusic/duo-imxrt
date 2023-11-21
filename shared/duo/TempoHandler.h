@@ -25,7 +25,7 @@
 #include <MIDI.h>
 #include "lib/tempo.h"
 #include "lib/sync.h"
-#include "firmware/seq.h"
+#include "seq.h"
 #include "lib/elapsedMillis.h"
 #include "lib/midi_wrapper.h"
 

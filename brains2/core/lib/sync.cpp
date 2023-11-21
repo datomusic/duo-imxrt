@@ -2,7 +2,7 @@
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
 #include "board.h"
-#include "duo/pins.h"
+#include "pins.h"
 #include <Arduino.h>
 
 #define SYNC_NVIC_PRIORITY 150

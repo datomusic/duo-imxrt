@@ -22,7 +22,7 @@ add_executable(${EXECUTABLE_NAME}
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/../../
+    ${CMAKE_CURRENT_LIST_DIR}/../../../
     ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD}
     ${CMAKE_CURRENT_LIST_DIR}/../libraries/
     ${CMAKE_CURRENT_LIST_DIR}/../../core/adapters/fast_led
