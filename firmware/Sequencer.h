@@ -26,9 +26,7 @@ void sequencer_update() {
   sequencer.speed_mod = (Sequencer::SpeedModifier)speed_mod;
 
   sequencer.set_gate_length(map(synth.gateLength, 0, 1023, 10, 200) * 1000);
-  if (sequencer.is_running()) {
-    tempo_handler.update(synth.speed);
-  }
+  tempo_handler.update(synth.speed);
 
   const uint32_t cur_micros = micros();
   const uint32_t delta = cur_micros - last_sequencer_update;
@@ -51,13 +49,6 @@ void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
   sequencer.start();
-  if(tempo_handler.is_clock_source_internal()){
-    tempo_handler.reset_clock_source();
-    for (int i = 0; i < 12; i++) {
-      tempo_handler.update(synth.speed);
-    }
-    /* sequencer_update(); */
-  }
 }
 
 void sequencer_toggle_start() {
