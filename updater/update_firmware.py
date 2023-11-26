@@ -78,6 +78,8 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
     if not interface:
         return False
 
+    time.sleep(1)
+
     print("Sending flashloader")
     with SDP(interface) as s:
         flashloader_bytes = open(f"{data_path}/ivt_flashloader.bin", "rb").read()
