@@ -76,10 +76,12 @@ class TempoHandler
     }
     void reset_clock_source() {
       _source = TEMPO_SOURCE_INTERNAL;
+      reset_tempo();
+    }
+    void reset_tempo(){
       tempo.reset();
       _previous_clock_time = micros();
       _clock = 0;
-      trigger();
     }
     bool is_clock_source_internal() const {
       return _source == TEMPO_SOURCE_INTERNAL;

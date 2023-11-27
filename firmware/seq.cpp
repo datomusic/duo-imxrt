@@ -51,32 +51,16 @@ Sequencer::Sequencer(Output::Callbacks callbacks,
   }
 }
 
-void Sequencer::start() {
-  running = true;
-  clock = 0;
-  const uint8_t step_index = current_step + step_offset;
-  const Step cur_step = steps[wrapped_step(step_index)];
-  if (cur_step.enabled) {
-    step_gate.trigger();
-    output.on(cur_step.note);
-    last_played_step = step_index;
-  }
+void Sequencer::set_running(const bool running) {
+  this->running = running;
 }
 
-void Sequencer::restart() {
-  current_step = 0;
-  last_played_step = NUM_STEPS;
+void Sequencer::reset() {
+  const uint8_t divider = divider_from_speed_mod(speed_mod);
+  clock = divider-1;
+  last_played_step = UINT8_MAX;
   step_played_live = false;
-  start();
-}
-
-void Sequencer::stop() {
-  if (running) {
-    clock = 0;
-    running = false;
-    inc_current_step(); // Start from the next step when playing again
-    output.off();
-  }
+  output.off();
 }
 
 void Sequencer::update_gate(const uint32_t delta_micros) {

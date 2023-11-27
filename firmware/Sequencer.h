@@ -45,23 +45,25 @@ void sequencer_stop() {
     MIDI.sendRealTime(midi::Stop);
   }
 
-  sequencer.stop();
+  sequencer.set_running(false);
 }
 
-void sequencer_start() {
-  MIDI.sendRealTime(midi::Continue);
-  usbMIDI.sendRealTime(midi::Continue);
-  sequencer.start();
+void sequencer_start(const enum midi::MidiType midi_message) {
+  MIDI.sendRealTime(midi_message);
+  usbMIDI.sendRealTime(midi_message);
+
   if (tempo_handler.is_clock_source_internal()) {
-    tempo_handler.reset_clock_source();
+    tempo_handler.reset_tempo();
   }
+  sequencer.reset();
+  sequencer.set_running(true);
 }
 
 void sequencer_toggle_start() {
   if (sequencer.is_running()) {
     sequencer_stop();
   } else {
-    sequencer_start();
+    sequencer_start(midi::Continue);
   }
 }
 
@@ -87,9 +89,7 @@ static void sequencer_init() {
 }
 
 void sequencer_restart() {
-  MIDI.sendRealTime(midi::Start);
-  delay(1);
-  sequencer.restart();
+  sequencer_start(midi::Start);
 }
 
 #define keyboard_set_note(note) sequencer.hold_note(note)
