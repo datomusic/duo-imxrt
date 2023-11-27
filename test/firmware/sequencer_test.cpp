@@ -74,7 +74,7 @@ void stops_playing_note_after_gate_duration() {
   auto seq = make_cleared_sequencer();
   const auto gate_len = 10;
   seq.set_gate_length(gate_len);
-  seq.start();
+  seq.set_running(true);
   const auto note = 123;
   seq.set_step_note(1, note);
   seq.toggle_step(1);
@@ -99,7 +99,7 @@ void records_early_live_note() {
   auto seq = make_cleared_sequencer();
   const uint8_t gate_len = 5;
   seq.set_gate_length(gate_len);
-  seq.start();
+  seq.set_running(true);
 
   seq.tick_clock();
   ASSERT_EQ(0, seq.cur_step_index());
@@ -122,7 +122,7 @@ void records_late_live_note() {
   auto seq = make_cleared_sequencer();
   const uint8_t gate_len = 5;
   seq.set_gate_length(gate_len);
-  seq.start();
+  seq.set_running(true);
 
   // Tick to end of current step
   for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
@@ -156,7 +156,7 @@ void does_not_record_middle_live_notes() {
   auto seq = make_cleared_sequencer();
   const uint8_t gate_len = 5;
   seq.set_gate_length(gate_len);
-  seq.start();
+  seq.set_running(true);
 
   // Tick to next step to make sure clock is note 0.
   tick_to_next_step(seq);
@@ -211,7 +211,7 @@ void retriggers_held_notes_on_advance() {
   auto seq = make_cleared_sequencer();
   const auto gate_len = 1;
   seq.set_gate_length(gate_len);
-  seq.start();
+  seq.set_running(true);
 
   seq.hold_note(1);
   seq.update_gate(1);
@@ -240,19 +240,19 @@ void respects_step_offset_during_playback() {
   set_all_steps_active(seq, true);
   ASSERT_EQ(Sequencer::NUM_STEPS, count_enabled_steps(seq));
 
-  seq.start();
-  ASSERT_PLAYED_COUNT(1);
+  seq.set_running(true);
+  ASSERT_PLAYED_COUNT(0);
 
   seq.advance();
   seq.update_gate(1);
 
-  ASSERT_PLAYED_COUNT(2);
+  ASSERT_PLAYED_COUNT(1);
   ASSERT_EQ(1, NoteTracker::last_note);
   seq.set_step_offset(2);
 
   seq.advance();
   seq.update_gate(1);
-  ASSERT_PLAYED_COUNT(3);
+  ASSERT_PLAYED_COUNT(2);
   ASSERT_EQ(4, NoteTracker::last_note);
   ASSERT_EQ(4, seq.cur_step_index());
 }
@@ -260,7 +260,7 @@ void respects_step_offset_during_playback() {
 void arp_does_not_replay_note_when_lower_added() {
   auto seq = make_cleared_sequencer();
   seq.set_gate_length(10);
-  seq.start();
+  seq.set_running(true);
   seq.hold_note(1);
   seq.hold_note(3);
   ASSERT_PLAYED_COUNT(1);
@@ -282,14 +282,15 @@ void plays_randomized_step() {
     seq.set_step_note(step, step);
   }
 
-  seq.start();
+  seq.set_running(true);
+  seq.advance();
   ASSERT_PLAYED_COUNT(1);
-  ASSERT_EQ(0, NoteTracker::last_note);
+  ASSERT_EQ(1, NoteTracker::last_note);
   seq.set_step_offset(offset);
   ASSERT_PLAYED_COUNT(1);
   seq.advance();
   ASSERT_PLAYED_COUNT(2);
-  ASSERT_EQ(1 + offset, NoteTracker::last_note);
+  ASSERT_EQ(2 + offset, NoteTracker::last_note);
 }
 
 } // namespace Tests

@@ -122,7 +122,7 @@ typedef void (&OnRunnningAdvance)(Sequencer &);
 struct Sequencer {
   Sequencer(Output::Callbacks callbacks, OnRunnningAdvance on_running_advance);
   void set_running(bool running);
-  void reset();
+  void reset_playback();
   void advance();
   void tick_clock();
   void update_gate(uint32_t delta_micros);

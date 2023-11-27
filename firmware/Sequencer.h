@@ -55,7 +55,7 @@ void sequencer_start(const enum midi::MidiType midi_message) {
   if (tempo_handler.is_clock_source_internal()) {
     tempo_handler.reset_tempo();
   }
-  sequencer.reset();
+  sequencer.reset_playback();
   sequencer.set_running(true);
 }
 

@@ -55,9 +55,9 @@ void Sequencer::set_running(const bool running) {
   this->running = running;
 }
 
-void Sequencer::reset() {
+void Sequencer::reset_playback() {
   const uint8_t divider = divider_from_speed_mod(speed_mod);
-  clock = divider-1;
+  clock = divider - 1;
   last_played_step = UINT8_MAX;
   step_played_live = false;
   output.off();
