@@ -16,15 +16,21 @@ struct Arpeggiator {
     index = 0;
   }
 
-  void advance() { index++; }
+  void advance() {
+    index++;
+  }
 
-  uint8_t recent_note() const { return held_notes.most_recent_note().note; }
+  uint8_t recent_note() const {
+    return held_notes.most_recent_note().note;
+  }
   uint8_t current_note() {
     index = index % held_notes.size();
 
     return held_notes.sorted_note(index).note;
   }
-  uint8_t count() const { return held_notes.size(); }
+  uint8_t count() const {
+    return held_notes.size();
+  }
   inline void hold_note(uint8_t note, uint8_t velocity) {
     if (count() > 0 && note < current_note()) {
       index++;
@@ -32,8 +38,12 @@ struct Arpeggiator {
 
     held_notes.NoteOn(note, velocity);
   }
-  inline void release_note(uint8_t note) { held_notes.NoteOff(note); }
-  inline void release_all_notes() { held_notes.Clear(); };
+  inline void release_note(uint8_t note) {
+    held_notes.NoteOff(note);
+  }
+  inline void release_all_notes() {
+    held_notes.Clear();
+  };
 
 private:
   uint8_t index = 0;
@@ -41,9 +51,15 @@ private:
 };
 
 struct Gate {
-  void update(const uint32_t delta_millis) { elapsed += delta_millis; }
-  void trigger() { elapsed = 0; }
-  bool open() const { return elapsed <= length; }
+  void update(const uint32_t delta_millis) {
+    elapsed += delta_millis;
+  }
+  void trigger() {
+    elapsed = 0;
+  }
+  bool open() const {
+    return elapsed <= length;
+  }
 
   uint32_t length = 1;
 
@@ -59,7 +75,8 @@ struct Output {
     NoteOff note_off;
   };
 
-  Output(Callbacks callbacks) : callbacks(callbacks) {}
+  Output(Callbacks callbacks) : callbacks(callbacks) {
+  }
 
   void on(const uint8_t note) {
     if (output_active) {
@@ -78,7 +95,9 @@ struct Output {
     }
   }
 
-  bool active() const { return output_active; }
+  bool active() const {
+    return output_active;
+  }
 
 private:
   const Callbacks callbacks;
@@ -93,7 +112,9 @@ enum SpeedModifier {
   QuadSpeed = 4
 };
 
-static uint8_t wrapped_step(const uint8_t step) { return step % NUM_STEPS; }
+static uint8_t wrapped_step(const uint8_t step) {
+  return step % NUM_STEPS;
+}
 
 struct Sequencer;
 typedef void (&OnRunnningAdvance)(Sequencer &);
@@ -107,7 +128,9 @@ struct Sequencer {
   void tick_clock();
   void update_gate(uint32_t delta_micros);
   void align_clock();
-  inline void hold_note(uint8_t note) { hold_note(note, INITIAL_VELOCITY); }
+  inline void hold_note(uint8_t note) {
+    hold_note(note, INITIAL_VELOCITY);
+  }
   void hold_note(uint8_t note, uint8_t velocity);
   void release_note(uint8_t note);
   inline void release_all_notes() {
@@ -116,13 +139,21 @@ struct Sequencer {
       output.off();
     }
   };
-  inline bool is_running() const { return running; }
+  inline bool is_running() const {
+    return running;
+  }
   inline uint8_t cur_step_index() const {
     return (current_step + step_offset) % NUM_STEPS;
   }
-  inline uint32_t get_clock() const { return clock; }
-  inline bool gate_active() const { return step_gate.open(); }
-  inline bool note_playing() const { return output.active(); }
+  inline uint32_t get_clock() const {
+    return clock;
+  }
+  inline bool gate_active() const {
+    return step_gate.open();
+  }
+  inline bool note_playing() const {
+    return output.active();
+  }
   inline uint8_t get_step_enabled(const uint8_t step) const {
     return steps[wrapped_step(step)].enabled;
   }
@@ -144,7 +175,9 @@ struct Sequencer {
   }
 
   void set_step_offset(uint8_t offset);
-  uint8_t get_step_offset() const { return step_offset; }
+  uint8_t get_step_offset() const {
+    return step_offset;
+  }
 
   SpeedModifier speed_mod = NormalSpeed;
 
