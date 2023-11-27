@@ -5,6 +5,9 @@
  Note timing is divided into 24 steps per quarter note
  */
 
+#include "seq.h"
+#include <cstdint>
+
 uint32_t last_sequencer_update;
 bool double_speed = false;
 
@@ -49,6 +52,9 @@ void sequencer_start() {
   MIDI.sendRealTime(midi::Continue);
   usbMIDI.sendRealTime(midi::Continue);
   sequencer.start();
+  if (tempo_handler.is_clock_source_internal()) {
+    tempo_handler.reset_clock_source();
+  }
 }
 
 void sequencer_toggle_start() {
@@ -62,7 +68,6 @@ void sequencer_toggle_start() {
 static void sequencer_tick_clock() {
   sequencer.tick_clock();
 }
-
 
 static void sequencer_align_clock() {
   sequencer.align_clock();

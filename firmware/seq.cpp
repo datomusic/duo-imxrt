@@ -1,6 +1,10 @@
 #include "seq.h"
 
-enum Zone { Early, Middle, Late };
+enum Zone {
+  Early,
+  Middle,
+  Late
+};
 
 namespace Sequencer {
 
@@ -70,7 +74,7 @@ void Sequencer::stop() {
   if (running) {
     clock = 0;
     running = false;
-    inc_current_step(); // So that we start from the next step when playing again
+    inc_current_step(); // Start from the next step when playing again
     output.off();
   }
 }

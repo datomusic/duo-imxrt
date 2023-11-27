@@ -27,12 +27,12 @@
 #include "lib/tempo.h"
 #include "seq.h"
 #include <MIDI.h>
-#include <stdint.h>
+#include <cstdint>
 
 void midi_send_realtime(const midi::MidiType message);
 
 class TempoHandler {
-  friend class Tempo;
+  friend struct Tempo;
 
 public:
   TempoHandler() {
@@ -80,7 +80,9 @@ public:
   void reset_clock_source() {
     _source = TEMPO_SOURCE_INTERNAL;
     tempo.reset();
-    reset_clock();
+    _previous_clock_time = micros();
+    _clock = 0;
+    trigger();
   }
 
   bool is_clock_source_internal() const {
@@ -103,11 +105,6 @@ private:
   uint32_t _previous_sync_time = 0;
   uint32_t _tempo_interval = 0;
   uint16_t _clock = 0;
-
-  void reset_clock() {
-    _previous_clock_time = micros();
-    _clock = 0;
-  }
 
   void update_sync() {
     if (!Sync::detect()) {
