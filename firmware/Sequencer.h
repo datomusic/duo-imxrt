@@ -88,6 +88,7 @@ static void sequencer_init() {
 
 void sequencer_restart() {
   MIDI.sendRealTime(midi::Start);
+  usbMIDI.sendRealTime(midi::Start);
   delay(1);
   sequencer.reset_playback();
   sequencer.set_running(true);
