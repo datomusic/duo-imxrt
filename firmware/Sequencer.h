@@ -42,7 +42,7 @@ void sequencer_stop() {
     MIDI.sendRealTime(midi::Stop);
   }
 
-  sequencer.set_running(false);
+  sequencer.stop();
 }
 
 void sequencer_start() {
@@ -54,7 +54,7 @@ void sequencer_start() {
   }
 
   sequencer.reset_playback();
-  sequencer.set_running(true);
+  sequencer.run();
 }
 
 void sequencer_toggle_start() {
@@ -91,7 +91,7 @@ void sequencer_restart() {
   usbMIDI.sendRealTime(midi::Start);
   delay(1);
   sequencer.reset_playback();
-  sequencer.set_running(true);
+  sequencer.run();
 }
 
 #define keyboard_set_note(note) sequencer.hold_note(note)

@@ -51,10 +51,6 @@ Sequencer::Sequencer(Output::Callbacks callbacks,
   }
 }
 
-void Sequencer::set_running(const bool running) {
-  this->running = running;
-}
-
 void Sequencer::reset_playback() {
   const uint8_t divider = divider_from_speed_mod(speed_mod);
   clock = divider - 1;

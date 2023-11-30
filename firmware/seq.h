@@ -121,7 +121,16 @@ typedef void (&OnRunnningAdvance)(Sequencer &);
 
 struct Sequencer {
   Sequencer(Output::Callbacks callbacks, OnRunnningAdvance on_running_advance);
-  void set_running(bool running);
+
+  // `run()` and `stop()` controls the running state of the Sequencer, however
+  // is no internal ticker. In order to advance, `tick_clock()` must be called.
+  void run() {
+    running = true;
+  };
+  void stop() {
+    running = false;
+  }
+
   void reset_playback();
   void advance();
   void tick_clock();
