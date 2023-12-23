@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import usb
 from typing import NamedTuple
 
