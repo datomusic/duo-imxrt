@@ -1,6 +1,6 @@
 #include "sequencer_helpers.h"
 
-// #define SINGLE_TEST records_early_live_note
+/* #define SINGLE_TEST retriggers_held_notes_on_advance */
 
 namespace NoteTracker {
 static bool note_active = false;
@@ -102,18 +102,18 @@ void records_early_live_note() {
   seq.run();
 
   seq.tick_clock();
-  ASSERT_EQ(0, seq.cur_step_index());
+  ASSERT_EQ(1, seq.cur_step_index());
   const auto note = 1;
   seq.hold_note(note);
   seq.update_gate(1);
   seq.release_note(note);
 
-  ASSERT_ONLY_ENABLED_STEP(seq, 0);
+  ASSERT_ONLY_ENABLED_STEP(seq, 1);
   ASSERT_NOTE_PLAYING(true);
 
   tick_to_next_step(seq);
   seq.update_gate(gate_len);
-  ASSERT_ONLY_ENABLED_STEP(seq, 0);
+  ASSERT_ONLY_ENABLED_STEP(seq, 1);
   ASSERT_NOTE_PLAYING(false);
   ASSERT_PLAYED_COUNT(1);
 }
@@ -128,20 +128,20 @@ void records_late_live_note() {
   for (unsigned i = 0; i < Sequencer::TICKS_PER_STEP - 1; ++i) {
     seq.tick_clock();
   }
-  ASSERT_EQ(0, seq.cur_step_index());
+  ASSERT_EQ(1, seq.cur_step_index());
 
   const auto note = 1;
   seq.hold_note(note);
 
-  ASSERT_ONLY_ENABLED_STEP(seq, 1);
+  ASSERT_ONLY_ENABLED_STEP(seq, 2);
   seq.update_gate(1);
 
   seq.release_all_notes();
-  ASSERT_ONLY_ENABLED_STEP(seq, 1);
+  ASSERT_ONLY_ENABLED_STEP(seq, 2);
 
   ASSERT_PLAYED_COUNT(0);
   tick_to_next_step(seq);
-  ASSERT_EQ(1, seq.cur_step_index());
+  ASSERT_EQ(2, seq.cur_step_index());
   ASSERT_NOTE_PLAYING(true);
   seq.update_gate(gate_len);
   ASSERT_NOTE_PLAYING(true);
@@ -212,6 +212,7 @@ void retriggers_held_notes_on_advance() {
   const auto gate_len = 1;
   seq.set_gate_length(gate_len);
   seq.run();
+  seq.tick_clock();
 
   seq.hold_note(1);
   seq.update_gate(1);
@@ -261,6 +262,7 @@ void arp_does_not_replay_note_when_lower_added() {
   auto seq = make_cleared_sequencer();
   seq.set_gate_length(10);
   seq.run();
+  seq.tick_clock();
   seq.hold_note(1);
   seq.hold_note(3);
   ASSERT_PLAYED_COUNT(1);

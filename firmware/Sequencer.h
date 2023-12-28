@@ -53,7 +53,6 @@ void sequencer_start() {
     tempo_handler.reset_tempo();
   }
 
-  sequencer.reset_playback();
   sequencer.run();
 }
 
@@ -90,7 +89,6 @@ void sequencer_restart() {
   MIDI.sendRealTime(midi::Start);
   usbMIDI.sendRealTime(midi::Start);
   delay(1);
-  sequencer.reset_playback();
   sequencer.run();
 }
 

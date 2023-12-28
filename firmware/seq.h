@@ -124,14 +124,11 @@ struct Sequencer {
 
   // `run()` and `stop()` controls the running state of the Sequencer, however
   // is no internal ticker. In order to advance, `tick_clock()` must be called.
-  void run() {
-    running = true;
-  };
+  void run();
   void stop() {
     running = false;
   }
 
-  void reset_playback();
   void advance();
   void tick_clock();
   void update_gate(uint32_t delta_micros);

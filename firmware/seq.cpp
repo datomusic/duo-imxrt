@@ -51,13 +51,14 @@ Sequencer::Sequencer(Output::Callbacks callbacks,
   }
 }
 
-void Sequencer::reset_playback() {
+void Sequencer::run() {
   const uint8_t divider = divider_from_speed_mod(speed_mod);
   clock = divider - 1;
   last_played_step = UINT8_MAX;
   step_played_live = false;
   output.off();
-}
+  running = true;
+};
 
 void Sequencer::update_gate(const uint32_t delta_micros) {
   step_gate.update(delta_micros);
@@ -168,6 +169,7 @@ void Sequencer::hold_note(const uint8_t note, const uint8_t velocity) {
   arp.hold_note(note, velocity);
 
   const uint8_t active_note_count = arp.count();
+  
   if (active_note_count > 0) {
     const uint8_t arp_note = arp.recent_note();
     const Zone zone = get_zone(clock, speed_mod);
