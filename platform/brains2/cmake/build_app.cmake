@@ -20,6 +20,11 @@ if(WITH_USB)
 endif(WITH_USB)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+  # Disable warning about LOAD segment with RWX permissions.
+  # Our data section becomes RWX because of C++ object initialization, supposedly.
+  # Source: https://github.com/jsphuebner/stm32-sine/issues/24#issuecomment-1382731411
+  -Wl,--no-warn-rwx-segments
+
   -Wl,--start-group m
   c
   gcc
