@@ -86,6 +86,10 @@ class TempoHandler
     bool is_clock_source_internal() const {
       return _source == TEMPO_SOURCE_INTERNAL;
     }
+
+    void set_MIDI_source(){
+      _source = TEMPO_SOURCE_MIDI;
+    }
   private:
 
     enum Source{
