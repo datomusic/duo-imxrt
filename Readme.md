@@ -10,6 +10,8 @@ python3 -m pip install -r requirements.txt
 
 use python3 update_firmware.py 
 
+if on Mac you get an error `usb.core.NoBackendError: No backend available`, please install libusb by running `brew install libusb`
+
 ## DUO Brains revisions
 The main pcb of the Dato DUO is dubbed Brains. Up until mid 2022 the Brains 1 were based on the NXP K20DX256 microcontroller. Due to ongoing problems with availability of that chip family later Brains 2 are based on NXP iMX RT1010
 
