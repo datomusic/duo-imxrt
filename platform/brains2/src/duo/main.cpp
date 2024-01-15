@@ -319,13 +319,13 @@ static void main_loop(){
       if (millis() - frame_time > frame_interval) {
         frame_time = millis();
         led_update();
+        midi_send_cc();
         FastLED.show();
       } else {
         DatoUSB::background_update();
         midi_handle();
         pitch_update(); // ~30us
         synth_update(); // ~ 100us
-        midi_send_cc();
         Drums::update(); // ~ 700us
         sequencer_update();
         headphone_jack_check();
