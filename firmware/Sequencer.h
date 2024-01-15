@@ -61,6 +61,7 @@ void sequencer_start() {
 void sequencer_start_from_MIDI() {
   MIDI.sendRealTime(midi::Start);
   usbMIDI.sendRealTime(midi::Start);
+  delay(1);
   tempo_handler.set_MIDI_source();
   sequencer.run();
 }
