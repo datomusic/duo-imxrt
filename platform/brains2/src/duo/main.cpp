@@ -33,10 +33,13 @@ void midi_usb_sysex_callback(byte *data, unsigned length) {
   midi_handle_sysex(data, length);
 }
 
-void PlatformMidi::init(){
+static void midi_init(){
+  midiAct.init(MIDI_CHANNEL);
+  midiAct.setHandleNoteOn(midi_note_on);
+  midiAct.setHandleNoteOff(midi_note_off);
   midiAct.setHandleClock(midi_handle_clock);
-  midiAct.setHandleSysEx(midi_usb_sysex_callback);
-
+  midiAct.setHandleSystemExclusive(midi_handle_sysex);
+  midiAct.setHandleControlChange(midi_handle_cc);
   //usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
 
 }
