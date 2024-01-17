@@ -373,10 +373,12 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   audio_init();
   AudioInterrupts();
 
-  MIDI.setHandleStart(sequencer_restart);
-  usbMIDI.setHandleStart(sequencer_restart);
-  MIDI.setHandleContinue(sequencer_restart);
-  usbMIDI.setHandleContinue(sequencer_restart);
+  MIDI.setHandleStart(sequencer_start_from_MIDI);
+  usbMIDI.setHandleStart(sequencer_start_from_MIDI);
+
+  MIDI.setHandleContinue(sequencer_start_from_MIDI);
+  usbMIDI.setHandleContinue(sequencer_start_from_MIDI);
+
   MIDI.setHandleStop(sequencer_stop);
   usbMIDI.setHandleStop(sequencer_stop);
 

@@ -1,6 +1,10 @@
 #include "seq.h"
 
-enum Zone { Early, Middle, Late };
+enum Zone {
+  Early,
+  Middle,
+  Late
+};
 
 namespace Sequencer {
 
@@ -47,33 +51,14 @@ Sequencer::Sequencer(Output::Callbacks callbacks,
   }
 }
 
-void Sequencer::start() {
-  running = true;
-  clock = 0;
-  const uint8_t step_index = current_step + step_offset;
-  const Step cur_step = steps[wrapped_step(step_index)];
-  if (cur_step.enabled) {
-    step_gate.trigger();
-    output.on(cur_step.note);
-    last_played_step = step_index;
-  }
-}
-
-void Sequencer::restart() {
-  current_step = 0;
-  last_played_step = NUM_STEPS;
+void Sequencer::run() {
+  const uint8_t divider = divider_from_speed_mod(speed_mod);
+  clock = divider - 1;
+  last_played_step = UINT8_MAX;
   step_played_live = false;
-  start();
-}
-
-void Sequencer::stop() {
-  if (running) {
-    clock = 0;
-    running = false;
-    inc_current_step(); // So that we start from the next step when playing again
-    output.off();
-  }
-}
+  output.off();
+  running = true;
+};
 
 void Sequencer::update_gate(const uint32_t delta_micros) {
   step_gate.update(delta_micros);
@@ -184,6 +169,7 @@ void Sequencer::hold_note(const uint8_t note, const uint8_t velocity) {
   arp.hold_note(note, velocity);
 
   const uint8_t active_note_count = arp.count();
+  
   if (active_note_count > 0) {
     const uint8_t arp_note = arp.recent_note();
     const Zone zone = get_zone(clock, speed_mod);

@@ -76,11 +76,19 @@ class TempoHandler
     }
     void reset_clock_source() {
       _source = TEMPO_SOURCE_INTERNAL;
+      reset_tempo();
+    }
+    void reset_tempo(){
       tempo.reset();
-      reset_clock();
+      _previous_clock_time = micros();
+      _clock = 0;
     }
     bool is_clock_source_internal() const {
       return _source == TEMPO_SOURCE_INTERNAL;
+    }
+
+    void set_MIDI_source(){
+      _source = TEMPO_SOURCE_MIDI;
     }
   private:
 
@@ -100,11 +108,6 @@ class TempoHandler
     uint32_t _previous_sync_time = 0;
     uint32_t _tempo_interval = 0;
     uint16_t _clock = 0;
-
-    void reset_clock(){
-      _previous_clock_time = micros();
-      _clock = 0;
-    }
 
     void update_sync() {
       if (!Sync::detect()) {
