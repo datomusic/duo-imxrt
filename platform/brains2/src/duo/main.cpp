@@ -10,12 +10,16 @@
 #include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
+#include "lib/midi.h"
+
+MIDIActuator midiAct;
 
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
 
 #include "globals.h"
 
-USBMIDI_CREATE_INSTANCE(0, usbMIDI)
+USBMIDI_NAMESPACE::usbMidiTransport usb_MIDI_transport(0);
+MIDI_NAMESPACE::MidiInterface<USBMIDI_NAMESPACE::usbMidiTransport> usbMIDI((USBMIDI_NAMESPACE::usbMidiTransport&)usb_MIDI_transport);
 
 #define setHandleSysEx setHandleSystemExclusive
 #define SIM_UIDH OCOTP->CFG0
@@ -31,9 +35,11 @@ void midi_usb_sysex_callback(byte *data, unsigned length) {
 }
 
 void PlatformMidi::init(){
-  usbMIDI.setHandleClock(midi_handle_clock);
-  usbMIDI.setHandleSysEx(midi_usb_sysex_callback);
+  midiAct.setHandleClock(midi_handle_clock);
+  midiAct.setHandleSysEx(midi_usb_sysex_callback);
+
   //usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
+
 }
 
 RAMFUNCTION_SECTION_CODE(void midi_set_channel(uint8_t channel)) {
@@ -52,8 +58,7 @@ RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
 TempoHandler tempo_handler;
 
 void midi_send_realtime(const midi::MidiType message){
-    MIDI.sendRealTime(message);
-    usbMIDI.sendRealTime(message);
+  midiAct.sendRealtime(message);
 }
 
 #include "buttons.h"
@@ -95,8 +100,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
 
     AudioInterrupts();
 
-    MIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
-    usbMIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
+    midiAct.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
@@ -106,8 +110,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
 
 void note_off() {
   if (note_is_playing) {
-    MIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
-    usbMIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
+    midiAct.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
     envelope1.noteOff();
     envelope2.noteOff();
     note_is_playing = 0;
@@ -374,14 +377,9 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   audio_init();
   AudioInterrupts();
 
-  MIDI.setHandleStart(sequencer_start_from_MIDI);
-  usbMIDI.setHandleStart(sequencer_start_from_MIDI);
-
-  MIDI.setHandleContinue(sequencer_start_from_MIDI);
-  usbMIDI.setHandleContinue(sequencer_start_from_MIDI);
-
-  MIDI.setHandleStop(sequencer_stop);
-  usbMIDI.setHandleStop(sequencer_stop);
+  midiAct.setHandleStart(sequencer_start_from_MIDI);
+  midiAct.setHandleContinue(sequencer_start_from_MIDI);
+  midiAct.setHandleStop(sequencer_stop);
 
   Audio::headphone_enable();
   Audio::amp_enable();
