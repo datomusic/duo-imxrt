@@ -59,7 +59,6 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 
 #define MIDI_HIGHEST_NOTE 94
 
-void midi_init();
 void midi_set_channel(uint8_t channel);
 void midi_note_on(uint8_t channel, uint8_t note, uint8_t velocity);
 void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value);
@@ -77,95 +76,66 @@ float midi_note_to_frequency(int x);
 synth_parameters midi_parameters;
 
 void midi_handle() {
-  MIDI.read(MIDI_CHANNEL);
   // Run through the parameters, see if they have changed and then send out CC's
-  usbMIDI.read(MIDI_CHANNEL);
+  midiAct.handle(MIDI_CHANNEL);
 }
 
 void midi_send_cc() {
     // Volume CC 7
   if((midi_parameters.amplitude > (synth.amplitude >> 3) + 1) || (midi_parameters.amplitude < (synth.amplitude >> 3) - 1)) {
-    MIDI.sendControlChange(7, (synth.amplitude >> 3), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(7, (synth.amplitude >> 3), MIDI_CHANNEL);
+    midiAct.sendControlChange(7, (synth.amplitude >> 3), MIDI_CHANNEL);
     midi_parameters.amplitude = ((synth.amplitude >> 3) + midi_parameters.amplitude) / 2;
   }
 
   // Filter 40 - 380 CC 74
   if((midi_parameters.filter > (synth.filter >> 3) + 1) || (midi_parameters.filter < (synth.filter >> 3) - 1)) {
-    MIDI.sendControlChange(74, (synth.filter >> 3), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(74, (synth.filter >> 3), MIDI_CHANNEL);
+    midiAct.sendControlChange(74, (synth.filter >> 3), MIDI_CHANNEL);
     midi_parameters.filter = ((synth.filter >> 3) + midi_parameters.filter) / 2;
   }
 
   // Resonance 0.7 - 4.0 CC 71
   if((midi_parameters.resonance > (synth.resonance >> 3) + 1) || (midi_parameters.resonance < (synth.resonance >> 3) - 1)) {
-    MIDI.sendControlChange(71, (synth.resonance >> 3), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(71, (synth.resonance >> 3), MIDI_CHANNEL);
+    midiAct.sendControlChange(71, (synth.resonance >> 3), MIDI_CHANNEL);
     midi_parameters.resonance = ((synth.resonance >> 3) + midi_parameters.resonance) / 2;
   }
 
   // Release time 30 - 500 CC 72
   if((midi_parameters.release > (synth.release >> 3) + 1) || (midi_parameters.release < (synth.release >> 3) - 1)) {
-    MIDI.sendControlChange(72, (synth.release >> 3), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(72, (synth.release >> 3), MIDI_CHANNEL);
+    midiAct.sendControlChange(72, (synth.release >> 3), MIDI_CHANNEL);
     midi_parameters.release = ((synth.release >> 3) + midi_parameters.release) / 2;
   }
 
   // Pulse width CC 70
   if((midi_parameters.pulseWidth > (synth.pulseWidth >> 3) + 1) || (midi_parameters.pulseWidth < (synth.pulseWidth >> 3) - 1)) {
-    MIDI.sendControlChange(70, (synth.pulseWidth >> 3), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(70, (synth.pulseWidth >> 3), MIDI_CHANNEL);
+    midiAct.sendControlChange(70, (synth.pulseWidth >> 3), MIDI_CHANNEL);
     midi_parameters.pulseWidth = ((synth.pulseWidth >> 3) + midi_parameters.pulseWidth) / 2;
   }
 
   // Detune CC 94
   if((midi_parameters.detune > (synth.detune >> 3) + 1) || (midi_parameters.detune < (synth.detune >> 3) - 1)) {
-    MIDI.sendControlChange(94, (synth.detune >> 3), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(94, (synth.detune >> 3), MIDI_CHANNEL);
+    midiAct.sendControlChange(94, (synth.detune >> 3), MIDI_CHANNEL);
     midi_parameters.detune = ((synth.detune >> 3) + midi_parameters.detune) / 2;
   }
 
   // Glide CC 65
   if(midi_parameters.glide != synth.glide) {
-    MIDI.sendControlChange(65, (synth.glide ? 127 : 0), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(65, (synth.glide ? 127 : 0), MIDI_CHANNEL);
+    midiAct.sendControlChange(65, (synth.glide ? 127 : 0), MIDI_CHANNEL);
     midi_parameters.glide = synth.glide;
   }
 
   // Glide CC 80
   if(midi_parameters.delay != synth.delay) {
-    MIDI.sendControlChange(80, (synth.delay ? 127 : 0), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(80, (synth.delay ? 127 : 0), MIDI_CHANNEL);
+    midiAct.sendControlChange(80, (synth.delay ? 127 : 0), MIDI_CHANNEL);
     midi_parameters.delay = synth.delay;
   }
 
   // Glide CC 81
   if(midi_parameters.crush != synth.crush) {
-    MIDI.sendControlChange(81, (synth.crush ? 127 : 0), MIDI_CHANNEL);
-    usbMIDI.sendControlChange(81, (synth.crush ? 127 : 0), MIDI_CHANNEL);
+    midiAct.sendControlChange(81, (synth.crush ? 127 : 0), MIDI_CHANNEL);
     midi_parameters.crush = synth.crush;
   }
 }
 
-namespace PlatformMidi{
-  void init();
-};
-
-void midi_init() {
-  MIDI.begin(MIDI_CHANNEL);
-  MIDI.setHandleNoteOn(midi_note_on);
-  MIDI.setHandleNoteOff(midi_note_off);
-
-  MIDI.setHandleClock(midi_handle_clock);
-
-  usbMIDI.begin(MIDI_CHANNEL);
-  usbMIDI.setHandleNoteOn(midi_note_on);
-  usbMIDI.setHandleNoteOff(midi_note_off);
-
-  MIDI.setHandleSystemExclusive(midi_handle_sysex);
-  MIDI.setHandleControlChange(midi_handle_cc);
-  PlatformMidi::init();
-}
 
 void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value) {
   if(channel == MIDI_CHANNEL) {

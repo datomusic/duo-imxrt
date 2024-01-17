@@ -8,8 +8,33 @@
 struct MIDIActuator {
   MIDIActuator();
 
+  void init(const byte channel) {
+    serial.begin(channel);
+    usb.begin(channel);
+  }
+
+  void handle(const byte channel) {
+    serial.read(channel);
+    usb.read(channel);
+  }
+
   typedef void (*VoidCallback)();
   typedef void (*SyxCallback)(byte *data, unsigned length);
+  typedef void (*NoteCallback)(uint8_t channel, uint8_t note, uint8_t velocity);
+
+  void setHandleNoteOn(NoteCallback callback) {
+    serial.setHandleNoteOn(callback);
+    usb.setHandleNoteOn(callback);
+  }
+  void setHandleNoteOff(NoteCallback callback) {
+    serial.setHandleNoteOff(callback);
+    usb.setHandleNoteOff(callback);
+  }
+
+  void setHandleControlChange(NoteCallback callback) {
+    serial.setHandleControlChange(callback);
+    usb.setHandleControlChange(callback);
+  }
 
   void setHandleStart(VoidCallback callback) {
     serial.setHandleStart(callback);
@@ -37,6 +62,11 @@ struct MIDIActuator {
   void sendRealtime(const midi::MidiType message) {
     serial.sendRealTime(message);
     usb.sendRealTime(message);
+  }
+
+  void sendControlChange(byte cc, byte value, byte channel) {
+    serial.sendControlChange(cc, value, channel);
+    usb.sendControlChange(cc, value, channel);
   }
 
   void sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel) {
