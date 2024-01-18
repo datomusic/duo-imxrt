@@ -18,10 +18,6 @@ MIDIActuator midiAct;
 
 #include "globals.h"
 
-USBMIDI_NAMESPACE::usbMidiTransport usb_MIDI_transport(0);
-MIDI_NAMESPACE::MidiInterface<USBMIDI_NAMESPACE::usbMidiTransport> usbMIDI((USBMIDI_NAMESPACE::usbMidiTransport&)usb_MIDI_transport);
-
-#define setHandleSysEx setHandleSystemExclusive
 #define SIM_UIDH OCOTP->CFG0
 #define SIM_UIDMH OCOTP->CFG1
 #define SIM_UIDML 0
@@ -143,7 +139,7 @@ static void pots_read() {
 
 static void power_off() {
   // Stop sequencer
-  MIDI.sendControlChange(123,0,MIDI_CHANNEL);
+  midiAct.sendControlChange(123,0,MIDI_CHANNEL);
   AudioNoInterrupts();
   // fade out audio
   // fade out leds

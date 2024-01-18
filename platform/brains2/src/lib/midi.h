@@ -6,78 +6,28 @@
 #include <USB-MIDI.h>
 
 struct MIDIActuator {
-  MIDIActuator();
-
-  void init(const byte channel) {
-    serial.begin(channel);
-    usb.begin(channel);
-  }
-
-  void handle(const byte channel) {
-    serial.read(channel);
-    usb.read(channel);
-  }
-
   typedef void (*VoidCallback)();
   typedef void (*SyxCallback)(byte *data, unsigned length);
   typedef void (*NoteCallback)(uint8_t channel, uint8_t note, uint8_t velocity);
 
-  void setHandleNoteOn(NoteCallback callback) {
-    serial.setHandleNoteOn(callback);
-    usb.setHandleNoteOn(callback);
-  }
-  void setHandleNoteOff(NoteCallback callback) {
-    serial.setHandleNoteOff(callback);
-    usb.setHandleNoteOff(callback);
-  }
+  MIDIActuator();
+  void init(const byte channel);
+  void handle(const byte channel);
+  void setHandleNoteOn(NoteCallback callback);
+  void setHandleNoteOff(NoteCallback callback);
+  void setHandleControlChange(NoteCallback callback);
+  void setHandleStart(VoidCallback callback);
+  void setHandleStop(VoidCallback callback);
+  void setHandleContinue(VoidCallback callback);
+  void setHandleClock(VoidCallback callback);
+  void setHandleSystemExclusive(SyxCallback callback);
+  void sendRealtime(const midi::MidiType message);
+  void sendControlChange(byte cc, byte value, byte channel);
+  void sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel);
+  void sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel);
+  void sendSysEx(unsigned length, const byte *bytes);
 
-  void setHandleControlChange(NoteCallback callback) {
-    serial.setHandleControlChange(callback);
-    usb.setHandleControlChange(callback);
-  }
-
-  void setHandleStart(VoidCallback callback) {
-    serial.setHandleStart(callback);
-    usb.setHandleStart(callback);
-  }
-
-  void setHandleStop(VoidCallback callback) {
-    serial.setHandleStop(callback);
-    usb.setHandleStop(callback);
-  }
-
-  void setHandleContinue(VoidCallback callback) {
-    serial.setHandleContinue(callback);
-    usb.setHandleContinue(callback);
-  }
-
-  void setHandleClock(VoidCallback callback) {
-    usb.setHandleClock(callback);
-  }
-
-  void setHandleSystemExclusive(SyxCallback callback) {
-    usb.setHandleSystemExclusive(callback);
-  }
-
-  void sendRealtime(const midi::MidiType message) {
-    serial.sendRealTime(message);
-    usb.sendRealTime(message);
-  }
-
-  void sendControlChange(byte cc, byte value, byte channel) {
-    serial.sendControlChange(cc, value, channel);
-    usb.sendControlChange(cc, value, channel);
-  }
-
-  void sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel) {
-    serial.sendNoteOn(inNoteNumber, inVelocity, inChannel);
-    usb.sendNoteOn(inNoteNumber, inVelocity, inChannel);
-  }
-
-  void sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel) {
-    serial.sendNoteOff(inNoteNumber, inVelocity, inChannel);
-    usb.sendNoteOff(inNoteNumber, inVelocity, inChannel);
-  }
+  byte channel = 1;
 
 private:
   USBMIDI_NAMESPACE::usbMidiTransport usbTransport;
