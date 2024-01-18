@@ -55,8 +55,6 @@ const float MIDI_NOTE_FREQUENCY[127] = {
  8869.8441912599, 9397.2725733570, 9956.0634791066,10548.0818212118,11175.3034058561,11839.8215267723
 };
 
-MIDI_CREATE_DEFAULT_INSTANCE();
-
 #define MIDI_HIGHEST_NOTE 94
 
 void midi_set_channel(uint8_t channel);
@@ -223,8 +221,7 @@ void midi_print_identity() {
     FIRMWARE_VERSION[2], // Software revision level. Revision
     0xf7 };
 
-  usbMIDI.sendSysEx(sizeof(sysex), sysex);
-  MIDI.sendSysEx(sizeof(sysex), sysex);
+  midiAct.sendSysEx(sizeof(sysex), sysex);
 }
 
 void midi_print_firmware_version() {
@@ -238,8 +235,7 @@ void midi_print_firmware_version() {
     FIRMWARE_VERSION[2],
     0xf7 };
 
-  usbMIDI.sendSysEx(7, sysex);
-  MIDI.sendSysEx(7, sysex);
+  midiAct.sendSysEx(7, sysex);
 }
 
 void midi_print_serial_number() {
@@ -276,7 +272,6 @@ void midi_print_serial_number() {
 
   sysex[23]= 0xf7;
 
-  usbMIDI.sendSysEx(24, sysex);
-  MIDI.sendSysEx(24, sysex);
+  midiAct.sendSysEx(24, sysex);
 }
 #endif
