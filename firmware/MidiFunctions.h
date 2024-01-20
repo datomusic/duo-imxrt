@@ -75,7 +75,7 @@ synth_parameters midi_parameters;
 
 void midi_handle() {
   // Run through the parameters, see if they have changed and then send out CC's
-  MIDI_IO::handle(MIDI_CHANNEL);
+  MIDI_IO::read(MIDI_CHANNEL);
 }
 
 void midi_send_cc() {

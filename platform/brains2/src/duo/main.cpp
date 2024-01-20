@@ -28,16 +28,6 @@ void midi_usb_sysex_callback(byte *data, unsigned length) {
   midi_handle_sysex(data, length);
 }
 
-static void midi_init(){
-  MIDI_IO::init(MIDI_CHANNEL);
-  MIDI_IO::setHandleNoteOn(midi_note_on);
-  MIDI_IO::setHandleNoteOff(midi_note_off);
-  MIDI_IO::setHandleClock(midi_handle_clock);
-  MIDI_IO::setHandleSystemExclusive(midi_handle_sysex);
-  MIDI_IO::setHandleControlChange(midi_handle_cc);
-  //usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
-
-}
 
 RAMFUNCTION_SECTION_CODE(void midi_set_channel(uint8_t channel)) {
   if(channel > 0 && channel <= 16) {
@@ -61,6 +51,19 @@ void midi_send_realtime(const midi::MidiType message){
 #include "buttons.h"
 #include "firmware/Sequencer.h"
 #include "duo-firmware/src/Synth.h"
+
+static void midi_init() {
+  MIDI_IO::init(
+      MIDI_CHANNEL,
+      MIDI_IO::Callbacks{.note_on = midi_note_on,
+                         .note_off = midi_note_off,
+                         .clock = midi_handle_clock,
+                         .start = sequencer_start_from_MIDI,
+                         .stop = sequencer_stop,
+                         .cont = sequencer_start_from_MIDI,
+                         .cc = midi_handle_cc,
+                         .sysex = midi_handle_sysex});
+}
 
 // One more LED than the physical number of leds for loopback testing
 static const int NUM_LEDS = 19 + 1;
@@ -373,10 +376,6 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   speaker_preamp.gain(SPEAKER_GAIN);
   audio_init();
   AudioInterrupts();
-
-  MIDI_IO::setHandleStart(sequencer_start_from_MIDI);
-  MIDI_IO::setHandleContinue(sequencer_start_from_MIDI);
-  MIDI_IO::setHandleStop(sequencer_stop);
 
   Audio::headphone_enable();
   Audio::amp_enable();
