@@ -1,4 +1,6 @@
 #include "midi.h"
+#include "Arduino.h" // For HardwareSerial
+#include <USB-MIDI.h>
 
 static USBMIDI_NAMESPACE::usbMidiTransport usbTransport(0);
 static MIDI_NAMESPACE::MidiInterface<USBMIDI_NAMESPACE::usbMidiTransport>
@@ -12,43 +14,21 @@ static MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>>
   serial.function_call;                                                        \
   usb.function_call;
 
-void MIDI_IO::init(const byte channel) {
+void MIDI_IO::init(const byte channel, const Callbacks &callbacks) {
   BOTH(begin());
+  BOTH(setHandleClock(callbacks.clock));
+  BOTH(setHandleNoteOn(callbacks.note_on));
+  BOTH(setHandleNoteOff(callbacks.note_off));
+  BOTH(setHandleNoteOff(callbacks.note_off));
+  BOTH(setHandleStart(callbacks.start));
+  BOTH(setHandleStop(callbacks.stop));
+  BOTH(setHandleContinue(callbacks.cont));
+  BOTH(setHandleControlChange(callbacks.cc));
+  BOTH(setHandleSystemExclusive(callbacks.sysex));
 }
 
-void MIDI_IO::handle(const byte channel) {
+void MIDI_IO::read(const byte channel) {
   BOTH(read(channel));
-}
-
-void MIDI_IO::setHandleNoteOn(NoteCallback callback) {
-  BOTH(setHandleNoteOn(callback));
-}
-void MIDI_IO::setHandleNoteOff(NoteCallback callback) {
-  BOTH(setHandleNoteOff(callback));
-}
-
-void MIDI_IO::setHandleControlChange(NoteCallback callback) {
-  BOTH(setHandleControlChange(callback));
-}
-
-void MIDI_IO::setHandleStart(VoidCallback callback) {
-  BOTH(setHandleStart(callback));
-}
-
-void MIDI_IO::setHandleStop(VoidCallback callback) {
-  BOTH(setHandleStop(callback));
-}
-
-void MIDI_IO::setHandleContinue(VoidCallback callback) {
-  BOTH(setHandleContinue(callback));
-}
-
-void MIDI_IO::setHandleClock(VoidCallback callback) {
-  BOTH(setHandleClock(callback));
-}
-
-void MIDI_IO::setHandleSystemExclusive(SyxCallback callback) {
-  BOTH(setHandleSystemExclusive(callback));
 }
 
 void MIDI_IO::sendRealtime(const midi::MidiType message) {
