@@ -1,9 +1,12 @@
 #include "midi.h"
 
-MIDI_IO::MIDI_IO()
-    : usbTransport(0), usb(usbTransport), serialTransport(Serial),
-      serial(serialTransport) {
-}
+static USBMIDI_NAMESPACE::usbMidiTransport usbTransport(0);
+static MIDI_NAMESPACE::MidiInterface<USBMIDI_NAMESPACE::usbMidiTransport>
+    usb(usbTransport);
+
+static MIDI_NAMESPACE::SerialMIDI<HardwareSerial> serialTransport(Serial);
+static MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>>
+    serial(serialTransport);
 
 void MIDI_IO::init(const byte channel) {
   serial.begin(channel);
@@ -62,14 +65,12 @@ void MIDI_IO::sendControlChange(byte cc, byte value, byte channel) {
   usb.sendControlChange(cc, value, channel);
 }
 
-void MIDI_IO::sendNoteOn(byte inNoteNumber, byte inVelocity,
-                              byte inChannel) {
+void MIDI_IO::sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel) {
   serial.sendNoteOn(inNoteNumber, inVelocity, inChannel);
   usb.sendNoteOn(inNoteNumber, inVelocity, inChannel);
 }
 
-void MIDI_IO::sendNoteOff(byte inNoteNumber, byte inVelocity,
-                               byte inChannel) {
+void MIDI_IO::sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel) {
   serial.sendNoteOff(inNoteNumber, inVelocity, inChannel);
   usb.sendNoteOff(inNoteNumber, inVelocity, inChannel);
 }
