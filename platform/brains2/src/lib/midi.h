@@ -5,12 +5,12 @@
 #include <MIDI.h>
 #include <USB-MIDI.h>
 
-struct MIDIActuator {
+struct MIDI_IO {
   typedef void (*VoidCallback)();
   typedef void (*SyxCallback)(byte *data, unsigned length);
   typedef void (*NoteCallback)(uint8_t channel, uint8_t note, uint8_t velocity);
 
-  MIDIActuator();
+  MIDI_IO();
   void init(const byte channel);
   void handle(const byte channel);
   void setHandleNoteOn(NoteCallback callback);
@@ -26,8 +26,6 @@ struct MIDIActuator {
   void sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel);
   void sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel);
   void sendSysEx(unsigned length, const byte *bytes);
-
-  byte channel = 1;
 
 private:
   USBMIDI_NAMESPACE::usbMidiTransport usbTransport;

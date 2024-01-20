@@ -38,15 +38,15 @@ void sequencer_update() {
 
 void sequencer_stop() {
   if (sequencer.is_running()) {
-    midiAct.sendControlChange(123, 0, MIDI_CHANNEL);
-    midiAct.sendRealtime(midi::Stop);
+    midi_io.sendControlChange(123, 0, MIDI_CHANNEL);
+    midi_io.sendRealtime(midi::Stop);
   }
 
   sequencer.stop();
 }
 
 void sequencer_start() {
-  midiAct.sendRealtime(midi::Continue);
+  midi_io.sendRealtime(midi::Continue);
 
   if (tempo_handler.is_clock_source_internal()) {
     tempo_handler.reset_tempo();
@@ -56,7 +56,7 @@ void sequencer_start() {
 }
 
 void sequencer_start_from_MIDI() {
-  midiAct.sendRealtime(midi::Start);
+  midi_io.sendRealtime(midi::Start);
   delay(1);
   tempo_handler.set_MIDI_source();
   sequencer.run();

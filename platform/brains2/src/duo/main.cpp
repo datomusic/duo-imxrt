@@ -12,7 +12,7 @@
 #include <USB-MIDI.h>
 #include "lib/midi.h"
 
-MIDIActuator midiAct;
+MIDI_IO midi_io;
 
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
 
@@ -31,12 +31,12 @@ void midi_usb_sysex_callback(byte *data, unsigned length) {
 }
 
 static void midi_init(){
-  midiAct.init(MIDI_CHANNEL);
-  midiAct.setHandleNoteOn(midi_note_on);
-  midiAct.setHandleNoteOff(midi_note_off);
-  midiAct.setHandleClock(midi_handle_clock);
-  midiAct.setHandleSystemExclusive(midi_handle_sysex);
-  midiAct.setHandleControlChange(midi_handle_cc);
+  midi_io.init(MIDI_CHANNEL);
+  midi_io.setHandleNoteOn(midi_note_on);
+  midi_io.setHandleNoteOff(midi_note_off);
+  midi_io.setHandleClock(midi_handle_clock);
+  midi_io.setHandleSystemExclusive(midi_handle_sysex);
+  midi_io.setHandleControlChange(midi_handle_cc);
   //usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
 
 }
@@ -57,7 +57,7 @@ RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
 TempoHandler tempo_handler;
 
 void midi_send_realtime(const midi::MidiType message){
-  midiAct.sendRealtime(message);
+  midi_io.sendRealtime(message);
 }
 
 #include "buttons.h"
@@ -99,7 +99,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
 
     AudioInterrupts();
 
-    midiAct.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
+    midi_io.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
@@ -109,7 +109,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
 
 void note_off() {
   if (note_is_playing) {
-    midiAct.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
+    midi_io.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
     envelope1.noteOff();
     envelope2.noteOff();
     note_is_playing = 0;
@@ -139,7 +139,7 @@ static void pots_read() {
 
 static void power_off() {
   // Stop sequencer
-  midiAct.sendControlChange(123,0,MIDI_CHANNEL);
+  midi_io.sendControlChange(123,0,MIDI_CHANNEL);
   AudioNoInterrupts();
   // fade out audio
   // fade out leds
@@ -376,9 +376,9 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   audio_init();
   AudioInterrupts();
 
-  midiAct.setHandleStart(sequencer_start_from_MIDI);
-  midiAct.setHandleContinue(sequencer_start_from_MIDI);
-  midiAct.setHandleStop(sequencer_stop);
+  midi_io.setHandleStart(sequencer_start_from_MIDI);
+  midi_io.setHandleContinue(sequencer_start_from_MIDI);
+  midi_io.setHandleStop(sequencer_stop);
 
   Audio::headphone_enable();
   Audio::amp_enable();
