@@ -75,61 +75,61 @@ synth_parameters midi_parameters;
 
 void midi_handle() {
   // Run through the parameters, see if they have changed and then send out CC's
-  midi_io.handle(MIDI_CHANNEL);
+  MIDI_IO::handle(MIDI_CHANNEL);
 }
 
 void midi_send_cc() {
     // Volume CC 7
   if((midi_parameters.amplitude > (synth.amplitude >> 3) + 1) || (midi_parameters.amplitude < (synth.amplitude >> 3) - 1)) {
-    midi_io.sendControlChange(7, (synth.amplitude >> 3), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(7, (synth.amplitude >> 3), MIDI_CHANNEL);
     midi_parameters.amplitude = ((synth.amplitude >> 3) + midi_parameters.amplitude) / 2;
   }
 
   // Filter 40 - 380 CC 74
   if((midi_parameters.filter > (synth.filter >> 3) + 1) || (midi_parameters.filter < (synth.filter >> 3) - 1)) {
-    midi_io.sendControlChange(74, (synth.filter >> 3), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(74, (synth.filter >> 3), MIDI_CHANNEL);
     midi_parameters.filter = ((synth.filter >> 3) + midi_parameters.filter) / 2;
   }
 
   // Resonance 0.7 - 4.0 CC 71
   if((midi_parameters.resonance > (synth.resonance >> 3) + 1) || (midi_parameters.resonance < (synth.resonance >> 3) - 1)) {
-    midi_io.sendControlChange(71, (synth.resonance >> 3), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(71, (synth.resonance >> 3), MIDI_CHANNEL);
     midi_parameters.resonance = ((synth.resonance >> 3) + midi_parameters.resonance) / 2;
   }
 
   // Release time 30 - 500 CC 72
   if((midi_parameters.release > (synth.release >> 3) + 1) || (midi_parameters.release < (synth.release >> 3) - 1)) {
-    midi_io.sendControlChange(72, (synth.release >> 3), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(72, (synth.release >> 3), MIDI_CHANNEL);
     midi_parameters.release = ((synth.release >> 3) + midi_parameters.release) / 2;
   }
 
   // Pulse width CC 70
   if((midi_parameters.pulseWidth > (synth.pulseWidth >> 3) + 1) || (midi_parameters.pulseWidth < (synth.pulseWidth >> 3) - 1)) {
-    midi_io.sendControlChange(70, (synth.pulseWidth >> 3), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(70, (synth.pulseWidth >> 3), MIDI_CHANNEL);
     midi_parameters.pulseWidth = ((synth.pulseWidth >> 3) + midi_parameters.pulseWidth) / 2;
   }
 
   // Detune CC 94
   if((midi_parameters.detune > (synth.detune >> 3) + 1) || (midi_parameters.detune < (synth.detune >> 3) - 1)) {
-    midi_io.sendControlChange(94, (synth.detune >> 3), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(94, (synth.detune >> 3), MIDI_CHANNEL);
     midi_parameters.detune = ((synth.detune >> 3) + midi_parameters.detune) / 2;
   }
 
   // Glide CC 65
   if(midi_parameters.glide != synth.glide) {
-    midi_io.sendControlChange(65, (synth.glide ? 127 : 0), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(65, (synth.glide ? 127 : 0), MIDI_CHANNEL);
     midi_parameters.glide = synth.glide;
   }
 
   // Glide CC 80
   if(midi_parameters.delay != synth.delay) {
-    midi_io.sendControlChange(80, (synth.delay ? 127 : 0), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(80, (synth.delay ? 127 : 0), MIDI_CHANNEL);
     midi_parameters.delay = synth.delay;
   }
 
   // Glide CC 81
   if(midi_parameters.crush != synth.crush) {
-    midi_io.sendControlChange(81, (synth.crush ? 127 : 0), MIDI_CHANNEL);
+    MIDI_IO::sendControlChange(81, (synth.crush ? 127 : 0), MIDI_CHANNEL);
     midi_parameters.crush = synth.crush;
   }
 }
@@ -221,7 +221,7 @@ void midi_print_identity() {
     FIRMWARE_VERSION[2], // Software revision level. Revision
     0xf7 };
 
-  midi_io.sendSysEx(sizeof(sysex), sysex);
+  MIDI_IO::sendSysEx(sizeof(sysex), sysex);
 }
 
 void midi_print_firmware_version() {
@@ -235,7 +235,7 @@ void midi_print_firmware_version() {
     FIRMWARE_VERSION[2],
     0xf7 };
 
-  midi_io.sendSysEx(7, sysex);
+  MIDI_IO::sendSysEx(7, sysex);
 }
 
 void midi_print_serial_number() {
@@ -272,6 +272,6 @@ void midi_print_serial_number() {
 
   sysex[23]= 0xf7;
 
-  midi_io.sendSysEx(24, sysex);
+  MIDI_IO::sendSysEx(24, sysex);
 }
 #endif
