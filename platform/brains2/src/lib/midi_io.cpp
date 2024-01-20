@@ -1,4 +1,4 @@
-#include "midi.h"
+#include "midi_io.h"
 #include "Arduino.h" // For HardwareSerial
 #include <USB-MIDI.h>
 
