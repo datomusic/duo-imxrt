@@ -9,7 +9,7 @@
 #include "board_audio_output.h"
 #include <Audio.h>
 #include <USB-MIDI.h>
-#include "lib/midi.h"
+#include "lib/midi_io.h"
 
 
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
