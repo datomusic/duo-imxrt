@@ -146,7 +146,9 @@ class TempoHandler
      * Calls the callback, updates the clock and sends out MIDI/Sync pulses
      */
     void trigger() {
-      midi_send_realtime(midi::Clock);
+      if (_source != TEMPO_SOURCE_MIDI) {
+        midi_send_realtime(midi::Clock);
+      }
 
       if((_clock % Sequencer::PULSES_PER_QUARTER_NOTE) == 0) {
         _clock = 0;
