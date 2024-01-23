@@ -125,7 +125,7 @@ void midi_send_cc() {
   // Delay CC 80
   send_changed_toggle(delay, 80);
   // Crush CC 81
-  send_changed_toggle(crush, 80);
+  send_changed_toggle(crush, 81);
 }
 
 #undef send_changed_value
