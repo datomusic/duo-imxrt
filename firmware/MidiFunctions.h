@@ -78,61 +78,58 @@ void midi_handle() {
   MIDI_IO::read(MIDI_CHANNEL);
 }
 
-void midi_send_cc() {
-    // Volume CC 7
-  if((midi_parameters.amplitude > (synth.amplitude >> 3) + 1) || (midi_parameters.amplitude < (synth.amplitude >> 3) - 1)) {
-    MIDI_IO::sendControlChange(7, (synth.amplitude >> 3), MIDI_CHANNEL);
-    midi_parameters.amplitude = ((synth.amplitude >> 3) + midi_parameters.amplitude) / 2;
-  }
 
-  // Filter 40 - 380 CC 74
-  if((midi_parameters.filter > (synth.filter >> 3) + 1) || (midi_parameters.filter < (synth.filter >> 3) - 1)) {
-    MIDI_IO::sendControlChange(74, (synth.filter >> 3), MIDI_CHANNEL);
-    midi_parameters.filter = ((synth.filter >> 3) + midi_parameters.filter) / 2;
-  }
 
-  // Resonance 0.7 - 4.0 CC 71
-  if((midi_parameters.resonance > (synth.resonance >> 3) + 1) || (midi_parameters.resonance < (synth.resonance >> 3) - 1)) {
-    MIDI_IO::sendControlChange(71, (synth.resonance >> 3), MIDI_CHANNEL);
-    midi_parameters.resonance = ((synth.resonance >> 3) + midi_parameters.resonance) / 2;
-  }
+bool _midi_synth_value_changed(const int midi_param, const int synth_val) {
+  return ((midi_param > (synth_val >> 3) + 1) ||
+          (midi_param < (synth_val >> 3) - 1));
+}
 
-  // Release time 30 - 500 CC 72
-  if((midi_parameters.release > (synth.release >> 3) + 1) || (midi_parameters.release < (synth.release >> 3) - 1)) {
-    MIDI_IO::sendControlChange(72, (synth.release >> 3), MIDI_CHANNEL);
-    midi_parameters.release = ((synth.release >> 3) + midi_parameters.release) / 2;
-  }
-
-  // Pulse width CC 70
-  if((midi_parameters.pulseWidth > (synth.pulseWidth >> 3) + 1) || (midi_parameters.pulseWidth < (synth.pulseWidth >> 3) - 1)) {
-    MIDI_IO::sendControlChange(70, (synth.pulseWidth >> 3), MIDI_CHANNEL);
-    midi_parameters.pulseWidth = ((synth.pulseWidth >> 3) + midi_parameters.pulseWidth) / 2;
-  }
-
-  // Detune CC 94
-  if((midi_parameters.detune > (synth.detune >> 3) + 1) || (midi_parameters.detune < (synth.detune >> 3) - 1)) {
-    MIDI_IO::sendControlChange(94, (synth.detune >> 3), MIDI_CHANNEL);
-    midi_parameters.detune = ((synth.detune >> 3) + midi_parameters.detune) / 2;
-  }
-
-  // Glide CC 65
-  if(midi_parameters.glide != synth.glide) {
-    MIDI_IO::sendControlChange(65, (synth.glide ? 127 : 0), MIDI_CHANNEL);
-    midi_parameters.glide = synth.glide;
-  }
-
-  // Glide CC 80
-  if(midi_parameters.delay != synth.delay) {
-    MIDI_IO::sendControlChange(80, (synth.delay ? 127 : 0), MIDI_CHANNEL);
-    midi_parameters.delay = synth.delay;
-  }
-
-  // Glide CC 81
-  if(midi_parameters.crush != synth.crush) {
-    MIDI_IO::sendControlChange(81, (synth.crush ? 127 : 0), MIDI_CHANNEL);
-    midi_parameters.crush = synth.crush;
+void _midi_send_changed_value(const int cc_num, int &midi_param,
+                         const int synth_val) {
+  if (_midi_synth_value_changed(midi_param, synth_val)) {
+    MIDI_IO::sendControlChange(cc_num, (synth_val >> 3), MIDI_CHANNEL);
+    midi_param = ((synth_val >> 3) + midi_param) / 2;
   }
 }
+
+void _midi_send_changed_toggle(const int cc_num, bool &midi_param,
+                          const bool synth_val) {
+  if (midi_param != synth_val) {
+    MIDI_IO::sendControlChange(cc_num, (synth_val ? 127 : 0), MIDI_CHANNEL);
+    midi_param = synth_val;
+  }
+}
+
+#define send_changed_value(param_name, cc_num)                                 \
+  _midi_send_changed_value(cc_num, midi_parameters.param_name, synth.param_name);
+
+#define send_changed_toggle(param_name, cc_num)                                \
+  _midi_send_changed_toggle(cc_num, midi_parameters.param_name, synth.param_name);
+
+void midi_send_cc() {
+  // Volume CC 7
+  send_changed_value(amplitude, 7);
+  // Filter 40 - 380 CC 74
+  send_changed_value(filter, 74);
+  // Resonance 0.7 - 4.0 CC 71
+  send_changed_value(resonance, 71);
+  // Release time 30 - 500 CC 72
+  send_changed_value(release, 72);
+  // Pulse width CC 70
+  send_changed_value(pulseWidth, 70);
+  // Detune CC 94
+  send_changed_value(detune, 94);
+  // Glide CC 65
+  send_changed_toggle(glide, 65);
+  // Delay CC 80
+  send_changed_toggle(delay, 80);
+  // Crush CC 81
+  send_changed_toggle(crush, 80);
+}
+
+#undef send_changed_value
+#undef send_changed_toggle
 
 
 void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value) {
