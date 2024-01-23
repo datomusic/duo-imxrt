@@ -1,5 +1,6 @@
 #include "Arduino.h"
 
+#include "syscall_stubs.h"
 #include "lib/board_init.h"
 #include "lib/leds.h"
 #include "lib/audio.h"
