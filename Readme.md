@@ -1,4 +1,4 @@
-This repository contains the firmware for the Dato DUO synthesizer.
+This repository contains the firmware for the Dato DUO synthesizer serial numbers 5000 and up.
 
 ## Updating the firmware
 
@@ -6,9 +6,9 @@ Grab one of the binaries from https://github.com/datomusic/duo-imxrt/releases
 Make sure you have Python 3 installed
 
 in the commandline, go to the updater directory and enter
-python3 -m pip install -r requirements.txt
+`python3 -m pip install -r requirements.txt`
 
-use python3 update_firmware.py 
+use `python3 update_firmware.py`
 
 if on Mac you get an error `usb.core.NoBackendError: No backend available`, please install libusb by running `brew install libusb`
 
