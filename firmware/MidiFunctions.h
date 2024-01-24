@@ -61,7 +61,6 @@ void midi_set_channel(uint8_t channel);
 void midi_note_on(uint8_t channel, uint8_t note, uint8_t velocity);
 void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value);
 void midi_note_off(uint8_t channel, uint8_t note, uint8_t velocity);
-void midi_handle();
 void midi_send_cc();
 void midi_handle_clock();
 void midi_handle_sysex(MIDI_SYSEX_DATA_TYPE *data, unsigned length);
@@ -72,12 +71,6 @@ void midi_print_identity();
 float midi_note_to_frequency(int x);
 
 synth_parameters midi_parameters;
-
-void midi_handle() {
-  // Run through the parameters, see if they have changed and then send out CC's
-  MIDI::read(MIDI_CHANNEL);
-}
-
 
 
 bool _midi_synth_value_changed(const int midi_param, const int synth_val) {

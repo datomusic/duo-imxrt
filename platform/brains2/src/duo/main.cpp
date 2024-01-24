@@ -318,7 +318,7 @@ static void main_loop(){
         FastLED.show();
       } else {
         DatoUSB::background_update();
-        midi_handle();
+        MIDI::read(MIDI_CHANNEL);
         pitch_update(); // ~30us
         synth_update(); // ~ 100us
         Drums::update(); // ~ 700us
