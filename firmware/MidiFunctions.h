@@ -62,7 +62,6 @@ void midi_note_on(uint8_t channel, uint8_t note, uint8_t velocity);
 void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value);
 void midi_note_off(uint8_t channel, uint8_t note, uint8_t velocity);
 void midi_send_cc();
-void midi_handle_clock();
 void midi_handle_sysex(MIDI_SYSEX_DATA_TYPE *data, unsigned length);
 void midi_handle_realtime(uint8_t type);
 void midi_print_firmware_version();

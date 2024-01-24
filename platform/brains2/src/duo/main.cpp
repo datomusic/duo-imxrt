@@ -43,6 +43,10 @@ TempoHandler tempo_handler;
 #include "firmware/Sequencer.h"
 #include "duo-firmware/src/Synth.h"
 
+static void midi_handle_clock() {
+  tempo_handler.midi_clock_received();
+}
+
 static void midi_init() {
   MIDI::init(
       MIDI_CHANNEL,
@@ -108,9 +112,6 @@ void note_off() {
   }
 }
 
-void midi_handle_clock() {
-  tempo_handler.midi_clock_received();
-}
 
 static void pots_read() {
   synth.speed = potRead(TEMPO_POT);
