@@ -1,7 +1,6 @@
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/)
 set(MCUX_SDK_PROJECT_NAME ${EXECUTABLE_NAME})
 
-
 set(CONFIG_USE_component_serial_manager_uart_MIMXRT1011 true)
 set(CONFIG_USE_driver_lpuart_MIMXRT1011 true)
 set(CONFIG_USE_middleware_baremetal_MIMXRT1011 true)

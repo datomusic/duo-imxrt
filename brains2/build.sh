@@ -1,25 +1,17 @@
 #!/usr/bin/env bash
-# set -e
+set -e
 
-SCRIPT_PATH=$(dirname "$(realpath $0)")
-APP_PATH="$1"
+SCRIPT_PATH=$(dirname "$(realpath "$0")")
 TOOLCHAIN_FILE=${TOOLCHAIN_FILE:-"$SCRIPT_PATH/../sdk/armgcc/arm-none-eabi-gcc.cmake"}
 
-echo $TOOLCHAIN_FILE
-
-shift
-
-CMAKE_ARGS=$*
-
-BUILD_TYPE="release"
+echo "Toolchain: $TOOLCHAIN_FILE"
 
 cmake \
-  -DTOOLCHAIN_DIR="$TOOLCHAIN_DIR" \
   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
   -G "Unix Makefiles" \
-  -DCMAKE_BUILD_TYPE=flexspi_nor_$BUILD_TYPE  \
-  $CMAKE_ARGS \
-  -S . -B build
+  -DCMAKE_BUILD_TYPE=flexspi_nor_release  \
+  -S . \
+  -B build \
+  "$@"
 
-pushd build
-make
+cd build && make
