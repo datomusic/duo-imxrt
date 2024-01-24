@@ -1,4 +1,4 @@
-This repository contains the firmware for the Dato DUO synthesizer serial numbers 5000 and up.
+This repository contains the firmware for the Dato DUO synthesizer serial numbers 4630 and up.
 
 ## Updating the firmware
 
