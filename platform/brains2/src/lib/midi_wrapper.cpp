@@ -32,7 +32,7 @@ void MIDI::read(const byte channel) {
   ALL_TRANSPORTS(read(channel));
 }
 
-void MIDI::sendRealtime(const midi::MidiType message) {
+void MIDI::sendRealTime(const midi::MidiType message) {
   ALL_TRANSPORTS(sendRealTime(message));
 }
 

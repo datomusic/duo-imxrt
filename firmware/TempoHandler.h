@@ -146,7 +146,7 @@ class TempoHandler
      */
     void trigger() {
       if (_source != TEMPO_SOURCE_MIDI) {
-        MIDI::sendRealtime(midi::Clock);
+        MIDI::sendRealTime(midi::Clock);
       }
 
       if((_clock % Sequencer::PULSES_PER_QUARTER_NOTE) == 0) {

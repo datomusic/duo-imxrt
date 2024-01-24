@@ -20,7 +20,7 @@ struct Callbacks {
 
 void init(byte channel, const Callbacks &callbacks);
 void read(byte channel);
-void sendRealtime(midi::MidiType message);
+void sendRealTime(midi::MidiType message);
 void sendControlChange(byte cc, byte value, byte channel);
 void sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel);
 void sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel);
