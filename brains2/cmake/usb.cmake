@@ -26,5 +26,5 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../../modules/Arduino-USBMIDI/src
 )
 
-include(${COMMON_CMAKE}/../sdk/components/component_tinyusb.cmake)
-include(${COMMON_CMAKE}/../sdk/components/arduino_midi_library/src/component_arduino_midi_library.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../sdk/components/component_tinyusb.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../sdk/components/arduino_midi_library/src/component_arduino_midi_library.cmake)

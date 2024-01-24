@@ -7,7 +7,6 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../core/arduino_compat
 )
 
-
 file(GLOB LIB_SRC_FILES
   ${LIB_SOURCE_DIR}/*.cpp
   ${LIB_SOURCE_DIR}/*.c
