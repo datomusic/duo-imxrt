@@ -27,9 +27,8 @@
 #include "lib/sync.h"
 #include "firmware/seq.h"
 #include "lib/elapsedMillis.h"
+#include "lib/midi_wrapper.h"
 
-void midi_send_realtime(const midi::MidiType message);
- 
 class TempoHandler 
 {
   friend class Tempo;
@@ -147,7 +146,7 @@ class TempoHandler
      */
     void trigger() {
       if (_source != TEMPO_SOURCE_MIDI) {
-        midi_send_realtime(midi::Clock);
+        MIDI::sendRealtime(midi::Clock);
       }
 
       if((_clock % Sequencer::PULSES_PER_QUARTER_NOTE) == 0) {

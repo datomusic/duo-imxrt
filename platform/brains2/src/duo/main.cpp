@@ -24,11 +24,6 @@
 #define MIDI_SYSEX_DATA_TYPE byte
 #include "firmware/MidiFunctions.h"
 
-void midi_usb_sysex_callback(byte *data, unsigned length) {
-  midi_handle_sysex(data, length);
-}
-
-
 RAMFUNCTION_SECTION_CODE(void midi_set_channel(uint8_t channel)) {
   if(channel > 0 && channel <= 16) {
     MIDI_CHANNEL = channel;
@@ -43,10 +38,6 @@ RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
 #include "lib/elapsedMillis.h"
 #include "firmware/TempoHandler.h"
 TempoHandler tempo_handler;
-
-void midi_send_realtime(const midi::MidiType message){
-  MIDI::sendRealtime(message);
-}
 
 #include "buttons.h"
 #include "firmware/Sequencer.h"
