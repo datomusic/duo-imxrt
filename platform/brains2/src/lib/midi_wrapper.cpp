@@ -36,18 +36,21 @@ void MIDI::sendRealtime(const midi::MidiType message) {
   ALL_TRANSPORTS(sendRealTime(message));
 }
 
-void MIDI::sendControlChange(byte cc, byte value, byte channel) {
+void MIDI::sendControlChange(const byte cc, const byte value,
+                             const byte channel) {
   ALL_TRANSPORTS(sendControlChange(cc, value, channel));
 }
 
-void MIDI::sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel) {
-  ALL_TRANSPORTS(sendNoteOn(inNoteNumber, inVelocity, inChannel));
+void MIDI::sendNoteOn(const byte note, const byte velocity,
+                      const byte channel) {
+  ALL_TRANSPORTS(sendNoteOn(note, velocity, channel));
 }
 
-void MIDI::sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel) {
-  ALL_TRANSPORTS(sendNoteOff(inNoteNumber, inVelocity, inChannel));
+void MIDI::sendNoteOff(const byte note, const byte velocity,
+                       const byte channel) {
+  ALL_TRANSPORTS(sendNoteOff(note, velocity, channel));
 }
 
-void MIDI::sendSysEx(unsigned length, const byte *bytes) {
+void MIDI::sendSysEx(const unsigned length, const byte *bytes) {
   ALL_TRANSPORTS(sendSysEx(length, bytes));
 }

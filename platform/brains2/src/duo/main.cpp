@@ -50,8 +50,8 @@ static void midi_init() {
                          .note_off = midi_note_off,
                          .clock = midi_handle_clock,
                          .start = sequencer_start_from_MIDI,
-                         .stop = sequencer_stop,
                          .cont = sequencer_start_from_MIDI,
+                         .stop = sequencer_stop,
                          .cc = midi_handle_cc,
                          .sysex = midi_handle_sysex});
 }

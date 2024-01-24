@@ -12,15 +12,15 @@ struct Callbacks {
   NoteCallback &note_off;
   VoidCallback &clock;
   VoidCallback &start;
-  VoidCallback &stop;
   VoidCallback &cont;
+  VoidCallback &stop;
   NoteCallback &cc;
   SyxCallback &sysex;
 };
 
-void init(const byte channel, const Callbacks &callbacks);
-void read(const byte channel);
-void sendRealtime(const midi::MidiType message);
+void init(byte channel, const Callbacks &callbacks);
+void read(byte channel);
+void sendRealtime(midi::MidiType message);
 void sendControlChange(byte cc, byte value, byte channel);
 void sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel);
 void sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel);
