@@ -9,8 +9,7 @@
 #include "pins.h"
 #include "board_audio_output.h"
 #include <Audio.h>
-#include <USB-MIDI.h>
-#include "lib/midi_io.h"
+#include "lib/midi_wrapper.h"
 
 
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
@@ -46,7 +45,7 @@ RAMFUNCTION_SECTION_CODE(uint8_t midi_get_channel()) {
 TempoHandler tempo_handler;
 
 void midi_send_realtime(const midi::MidiType message){
-  MIDI_IO::sendRealtime(message);
+  MIDI::sendRealtime(message);
 }
 
 #include "buttons.h"
@@ -54,9 +53,9 @@ void midi_send_realtime(const midi::MidiType message){
 #include "duo-firmware/src/Synth.h"
 
 static void midi_init() {
-  MIDI_IO::init(
+  MIDI::init(
       MIDI_CHANNEL,
-      MIDI_IO::Callbacks{.note_on = midi_note_on,
+      MIDI::Callbacks{.note_on = midi_note_on,
                          .note_off = midi_note_off,
                          .clock = midi_handle_clock,
                          .start = sequencer_start_from_MIDI,
@@ -101,7 +100,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
 
     AudioInterrupts();
 
-    MIDI_IO::sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
+    MIDI::sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
@@ -111,7 +110,7 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
 
 void note_off() {
   if (note_is_playing) {
-    MIDI_IO::sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
+    MIDI::sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
     envelope1.noteOff();
     envelope2.noteOff();
     note_is_playing = 0;
@@ -141,7 +140,7 @@ static void pots_read() {
 
 static void power_off() {
   // Stop sequencer
-  MIDI_IO::sendControlChange(123,0,MIDI_CHANNEL);
+  MIDI::sendControlChange(123,0,MIDI_CHANNEL);
   AudioNoInterrupts();
   // fade out audio
   // fade out leds

@@ -75,7 +75,7 @@ synth_parameters midi_parameters;
 
 void midi_handle() {
   // Run through the parameters, see if they have changed and then send out CC's
-  MIDI_IO::read(MIDI_CHANNEL);
+  MIDI::read(MIDI_CHANNEL);
 }
 
 
@@ -88,7 +88,7 @@ bool _midi_synth_value_changed(const int midi_param, const int synth_val) {
 void _midi_send_changed_value(const int cc_num, int &midi_param,
                          const int synth_val) {
   if (_midi_synth_value_changed(midi_param, synth_val)) {
-    MIDI_IO::sendControlChange(cc_num, (synth_val >> 3), MIDI_CHANNEL);
+    MIDI::sendControlChange(cc_num, (synth_val >> 3), MIDI_CHANNEL);
     midi_param = ((synth_val >> 3) + midi_param) / 2;
   }
 }
@@ -96,7 +96,7 @@ void _midi_send_changed_value(const int cc_num, int &midi_param,
 void _midi_send_changed_toggle(const int cc_num, bool &midi_param,
                           const bool synth_val) {
   if (midi_param != synth_val) {
-    MIDI_IO::sendControlChange(cc_num, (synth_val ? 127 : 0), MIDI_CHANNEL);
+    MIDI::sendControlChange(cc_num, (synth_val ? 127 : 0), MIDI_CHANNEL);
     midi_param = synth_val;
   }
 }
@@ -218,7 +218,7 @@ void midi_print_identity() {
     FIRMWARE_VERSION[2], // Software revision level. Revision
     0xf7 };
 
-  MIDI_IO::sendSysEx(sizeof(sysex), sysex);
+  MIDI::sendSysEx(sizeof(sysex), sysex);
 }
 
 void midi_print_firmware_version() {
@@ -232,7 +232,7 @@ void midi_print_firmware_version() {
     FIRMWARE_VERSION[2],
     0xf7 };
 
-  MIDI_IO::sendSysEx(7, sysex);
+  MIDI::sendSysEx(7, sysex);
 }
 
 void midi_print_serial_number() {
@@ -269,6 +269,6 @@ void midi_print_serial_number() {
 
   sysex[23]= 0xf7;
 
-  MIDI_IO::sendSysEx(24, sysex);
+  MIDI::sendSysEx(24, sysex);
 }
 #endif

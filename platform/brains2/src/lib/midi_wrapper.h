@@ -1,9 +1,8 @@
 #ifndef MIDI_H_Z6SY8IRY
 #define MIDI_H_Z6SY8IRY
+#include <midi_Defs.h>
 
-#include <MIDI.h>
-
-namespace MIDI_IO {
+namespace MIDI {
 typedef void(VoidCallback)();
 typedef void(SyxCallback)(byte *data, unsigned length);
 typedef void(NoteCallback)(byte channel, byte note, byte velocity);
@@ -27,6 +26,6 @@ void sendNoteOn(byte inNoteNumber, byte inVelocity, byte inChannel);
 void sendNoteOff(byte inNoteNumber, byte inVelocity, byte inChannel);
 void sendSysEx(unsigned length, const byte *bytes);
 
-}; // namespace MIDI_IO
+}; // namespace MIDI
 
 #endif /* end of include guard: MIDI_H_Z6SY8IRY */
