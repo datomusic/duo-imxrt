@@ -8,17 +8,20 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE})
 set(SDK_DIR ${CMAKE_CURRENT_LIST_DIR}/../sdk/)
 set(DEPS_DIR ${CMAKE_CURRENT_LIST_DIR}/../deps/)
 
-set(COMMON_CMAKE ${CMAKE_CURRENT_LIST_DIR})
+set(CMAKE_MODULE_PATH
+    ${CMAKE_MODULE_PATH}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
 
-include(${COMMON_CMAKE}/flags.cmake)
-include(${COMMON_CMAKE}/config.cmake)
-include(${COMMON_CMAKE}/sdk.cmake)
-include(${COMMON_CMAKE}/deps.cmake)
-include(${COMMON_CMAKE}/lib.cmake)
+include(flags)
+include(config)
+include(sdk)
+include(deps)
+include(lib)
 
 if(WITH_USB)
-  include(${COMMON_CMAKE}/add_git_defines.cmake)
-  include(${COMMON_CMAKE}/usb.cmake)
+  include(add_git_defines)
+  include(usb)
 endif(WITH_USB)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
