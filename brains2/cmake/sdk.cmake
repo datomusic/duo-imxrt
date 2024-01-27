@@ -1,17 +1,18 @@
 set(CMAKE_MODULE_PATH
-    ${ROOT_DIR}/devices/MIMXRT1011/drivers
-    ${ROOT_DIR}/devices/MIMXRT1011
-    ${ROOT_DIR}/devices/MIMXRT1011/utilities
-    ${ROOT_DIR}/components/uart
-    ${ROOT_DIR}/components/serial_manager
-    ${ROOT_DIR}/components/lists
-    ${ROOT_DIR}/components/osa
-    ${ROOT_DIR}/devices/MIMXRT1011/xip
-    ${ROOT_DIR}/CMSIS/Core/Include
-    ${ROOT_DIR}/CMSIS/DSP
-    ${ROOT_DIR}/xip
-    ${ROOT_DIR}/middleware/usb
-    ${ROOT_DIR}/middleware/usb/osa
+    ${CMAKE_MODULE_PATH}
+    ${SDK_DIR}/devices/MIMXRT1011/drivers
+    ${SDK_DIR}/devices/MIMXRT1011
+    ${SDK_DIR}/devices/MIMXRT1011/utilities
+    ${SDK_DIR}/components/uart
+    ${SDK_DIR}/components/serial_manager
+    ${SDK_DIR}/components/lists
+    ${SDK_DIR}/components/osa
+    ${SDK_DIR}/devices/MIMXRT1011/xip
+    ${SDK_DIR}/CMSIS/Core/Include
+    ${SDK_DIR}/CMSIS/DSP
+    ${SDK_DIR}/xip
+    ${SDK_DIR}/middleware/usb
+    ${SDK_DIR}/middleware/usb/osa
 )
 
 include(driver_igpio_MIMXRT1011)
