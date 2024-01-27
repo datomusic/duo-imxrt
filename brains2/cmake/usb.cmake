@@ -1,13 +1,15 @@
 
+set(USB_DIR ${CMAKE_CURRENT_LIST_DIR}/../core/lib/usb/)
+
 target_sources(${EXECUTABLE_NAME} PRIVATE
-  ${LIB_SOURCE_DIR}/usb/usb.cpp
-  ${LIB_SOURCE_DIR}/usb/usb_descriptors.c
-  ${LIB_SOURCE_DIR}/usb/midi_usb_bridge/MIDIUSB.cpp
+  ${USB_DIR}/usb.cpp
+  ${USB_DIR}/usb_descriptors.c
+  ${USB_DIR}/midi_usb_bridge/MIDIUSB.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
-  ${LIB_SOURCE_DIR}/usb
-  ${LIB_SOURCE_DIR}/usb/midi_usb_bridge
+  ${USB_DIR}
+  ${USB_DIR}/midi_usb_bridge
   ${DEPS_DIR}/arduino_midi_library/src
   ${DEPS_DIR}/Arduino-USBMIDI/src
   ${DEPS_DIR}/tinyusb/src

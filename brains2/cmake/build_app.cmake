@@ -16,7 +16,7 @@ set(CMAKE_MODULE_PATH
 include(flags)
 include(sdk)
 include(deps)
-include(lib)
+include(core)
 
 if(WITH_USB)
   include(add_git_defines)
