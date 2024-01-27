@@ -10,10 +10,8 @@ set(CMAKE_MODULE_PATH
     ${ROOT_DIR}/CMSIS/Core/Include
     ${ROOT_DIR}/CMSIS/DSP
     ${ROOT_DIR}/xip
-    ${ROOT_DIR}/components/Arduino
     ${ROOT_DIR}/middleware/usb
     ${ROOT_DIR}/middleware/usb/osa
-    ${ROOT_DIR}/components/Teensy_Audio
 )
 
 include(driver_igpio_MIMXRT1011)
@@ -40,5 +38,3 @@ include(CMSIS_DSP_Library)
 include(utilities_misc_utilities_MIMXRT1011)
 include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
-include(component_Arduino_MIMXRT1011)
-include(component_Teensy_Audio_MIMXRT1011)

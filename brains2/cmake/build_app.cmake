@@ -6,12 +6,14 @@ set(MCUX_SDK_PROJECT_NAME ${EXECUTABLE_NAME})
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE})
 
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../sdk/)
+set(DEPS_DIR ${CMAKE_CURRENT_LIST_DIR}/../deps/)
 
 set(COMMON_CMAKE ${CMAKE_CURRENT_LIST_DIR})
 
 include(${COMMON_CMAKE}/flags.cmake)
 include(${COMMON_CMAKE}/config.cmake)
 include(${COMMON_CMAKE}/modules.cmake)
+include(${COMMON_CMAKE}/deps.cmake)
 include(${COMMON_CMAKE}/lib.cmake)
 
 if(WITH_USB)

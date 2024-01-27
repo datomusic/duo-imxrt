@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 message("TinyUSB component is included.")
 
-set(TINYUSB_SRC ${CMAKE_CURRENT_LIST_DIR}/../../../modules/tinyusb/src)
+set(TINYUSB_SRC ${CMAKE_CURRENT_LIST_DIR}/../../modules/tinyusb/src)
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${TINYUSB_SRC}/class/cdc/cdc_device.c
