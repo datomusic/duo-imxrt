@@ -49,7 +49,6 @@ static void midi_handle_clock() {
 
 static void midi_init() {
   MIDI::init(
-      MIDI_CHANNEL,
       MIDI::Callbacks{.note_on = midi_note_on,
                          .note_off = midi_note_off,
                          .clock = midi_handle_clock,

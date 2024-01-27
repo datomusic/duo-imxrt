@@ -8,14 +8,14 @@ typedef void(SyxCallback)(byte *data, unsigned length);
 typedef void(NoteCallback)(byte channel, byte note, byte velocity);
 
 struct Callbacks {
-  NoteCallback &note_on;
-  NoteCallback &note_off;
-  VoidCallback &clock;
-  VoidCallback &start;
-  VoidCallback &cont;
-  VoidCallback &stop;
-  NoteCallback &cc;
-  SyxCallback &sysex;
+  NoteCallback *note_on;
+  NoteCallback *note_off;
+  VoidCallback *clock;
+  VoidCallback *start;
+  VoidCallback *cont;
+  VoidCallback *stop;
+  NoteCallback *cc;
+  SyxCallback *sysex;
 };
 
 void init(const Callbacks &callbacks);
