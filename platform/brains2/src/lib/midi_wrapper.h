@@ -18,7 +18,7 @@ struct Callbacks {
   SyxCallback &sysex;
 };
 
-void init(byte channel, const Callbacks &callbacks);
+void init(const Callbacks &callbacks);
 void read(byte channel);
 void sendRealTime(midi::MidiType message);
 void sendControlChange(byte cc, byte value, byte channel);

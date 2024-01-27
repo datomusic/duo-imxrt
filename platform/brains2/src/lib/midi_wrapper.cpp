@@ -15,7 +15,7 @@ static MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>>
   serial_midi.function_call;                                                   \
   usb_midi.function_call;
 
-void MIDI::init(const byte channel, const Callbacks &callbacks) {
+void MIDI::init(const Callbacks &callbacks) {
   ALL_TRANSPORTS(begin());
   ALL_TRANSPORTS(setHandleClock(callbacks.clock));
   ALL_TRANSPORTS(setHandleNoteOn(callbacks.note_on));
