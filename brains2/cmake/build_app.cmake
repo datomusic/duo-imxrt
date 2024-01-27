@@ -14,7 +14,6 @@ set(CMAKE_MODULE_PATH
 )
 
 include(flags)
-include(config)
 include(sdk)
 include(deps)
 include(lib)

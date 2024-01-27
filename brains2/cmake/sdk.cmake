@@ -1,3 +1,10 @@
+
+# config to select component, the format is CONFIG_USE_${component}
+set(CONFIG_USE_component_serial_manager_uart_MIMXRT1011 true)
+set(CONFIG_USE_driver_lpuart_MIMXRT1011 true)
+set(CONFIG_USE_middleware_baremetal_MIMXRT1011 true)
+
+
 set(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
     ${SDK_DIR}/devices/MIMXRT1011/drivers
