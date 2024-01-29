@@ -72,7 +72,9 @@ static void init_usb_instance(mp_int_t instance) {
   usb_phy->TX = phytx;
 }
 
-static void init_usb_hardware(void) { init_usb_instance(USB_DEVICE_INSTANCE); }
+static void init_usb_hardware(void) {
+  init_usb_instance(USB_DEVICE_INSTANCE);
+}
 
 void DatoUSB::init() {
   init_usb_hardware();
@@ -83,5 +85,37 @@ extern "C" {
 // Provide the prototypes for the interrupt handlers. The iMX RT SDK doesn't.
 // The SDK only links to them from assembly.
 void USB_OTG1_IRQHandler(void);
-void USB_OTG1_IRQHandler(void) { usb_irq_handler(USB_DEVICE_INSTANCE); }
+void USB_OTG1_IRQHandler(void) {
+  usb_irq_handler(USB_DEVICE_INSTANCE);
+}
+}
+
+// Invoked when received GET_REPORT control request
+// Application must fill buffer report's content and return its length.
+// Return zero will cause the stack to STALL request
+uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id,
+                               hid_report_type_t report_type, uint8_t *buffer,
+                               uint16_t reqlen) {
+  // TODO not Implemented
+  (void)instance;
+  (void)report_id;
+  (void)report_type;
+  (void)buffer;
+  (void)reqlen;
+
+  return 0;
+}
+
+// Invoked when received SET_REPORT control request or
+// received data on OUT endpoint ( Report ID = 0, Type = 0 )
+void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id,
+                           hid_report_type_t report_type, uint8_t const *buffer,
+                           uint16_t bufsize) {
+  // This example doesn't use multiple report and report ID
+  (void)itf;
+  (void)report_id;
+  (void)report_type;
+
+  // echo back anything we received from host
+  tud_hid_report(0, buffer, bufsize);
 }

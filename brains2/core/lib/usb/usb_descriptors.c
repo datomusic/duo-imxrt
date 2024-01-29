@@ -1,4 +1,5 @@
 #include "class/audio/audio.h"
+#include "class/hid/hid_device.h"
 #include "class/midi/midi.h"
 #include "device/usbd.h"
 #include "fsl_ocotp.h"
@@ -44,31 +45,48 @@ uint8_t const *tud_descriptor_device_cb(void) {
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
-enum { ITF_NUM_MIDI = 0, ITF_NUM_MIDI_STREAMING, ITF_NUM_TOTAL };
+enum {
+  ITF_NUM_MIDI = 0,
+  ITF_NUM_MIDI_STREAMING,
+  ITF_NUM_TOTAL
+};
 
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_MIDI_DESC_LEN)
+#define CONFIG_TOTAL_LEN                                                       \
+  (TUD_CONFIG_DESC_LEN + TUD_MIDI_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
 
 #define EPNUM_MIDI_OUT 0x01
 #define EPNUM_MIDI_IN 0x01
 
-uint8_t const desc_fs_configuration[] = {
-    // Config number, interface count, string index, total length, attribute,
-    // power in mA
-    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 500),
+// Config number, interface count, string index, total length, attribute,
+// power in mA
+#define CONF_DESCRIPTOR                                                        \
+  TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 500)
 
-    // Interface number, string index, EP Out & EP In address, EP size
-    TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, (0x80 | EPNUM_MIDI_IN),
-                        64)};
+// Interface number, string index, EP Out & EP In address, EP size
+#define MIDI_DESCRIPTOR_FS                                                     \
+  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, (0x80 | EPNUM_MIDI_IN), \
+                      64)
+
+#define MIDI_DESCRIPTOR_HS                                                     \
+  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, (0x80 | EPNUM_MIDI_IN), \
+                      512)
+
+uint8_t const desc_hid_report[] = {
+    TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE)};
+
+uint8_t const *tud_hid_descriptor_report_cb(uint8_t itf) {
+  return desc_hid_report;
+}
+
+#define HID_DESCRIPTOR                                                         \
+  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 2, HID_ITF_PROTOCOL_NONE,              \
+                           sizeof(desc_hid_report), EPNUM_HID,                 \
+                           0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
+
+uint8_t const desc_fs_configuration[] = {CONF_DESCRIPTOR, MIDI_DESCRIPTOR_FS};
 
 #if TUD_OPT_HIGH_SPEED
-uint8_t const desc_hs_configuration[] = {
-    // Config number, interface count, string index, total length, attribute,
-    // power in mA
-    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 500),
-
-    // Interface number, string index, EP Out & EP In address, EP size
-    TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, (0x80 | EPNUM_MIDI_IN),
-                        512)};
+uint8_t const desc_hs_configuration[] = {CONF_DESCRIPTOR, MIDI_DESCRIPTOR_HS};
 #endif
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
