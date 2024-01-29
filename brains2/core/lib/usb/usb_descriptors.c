@@ -57,6 +57,7 @@ enum {
 
 #define EPNUM_MIDI_OUT 0x01
 #define EPNUM_MIDI_IN 0x01
+#define EPNUM_HID 0x02
 
 // Config number, interface count, string index, total length, attribute,
 // power in mA
@@ -81,8 +82,8 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t itf) {
 
 #define HID_DESCRIPTOR                                                         \
   TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 2, HID_ITF_PROTOCOL_NONE,              \
-                           sizeof(desc_hid_report), ITF_NUM_HID,               \
-                           0x80 | ITF_NUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
+                           sizeof(desc_hid_report), EPNUM_HID,                 \
+                           0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
 
 uint8_t const desc_fs_configuration[] = {CONF_DESCRIPTOR, MIDI_DESCRIPTOR_FS,
                                          HID_DESCRIPTOR};
