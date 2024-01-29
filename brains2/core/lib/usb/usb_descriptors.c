@@ -48,6 +48,7 @@ uint8_t const *tud_descriptor_device_cb(void) {
 enum {
   ITF_NUM_MIDI = 0,
   ITF_NUM_MIDI_STREAMING,
+  ITF_NUM_HID,
   ITF_NUM_TOTAL
 };
 
@@ -80,13 +81,15 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t itf) {
 
 #define HID_DESCRIPTOR                                                         \
   TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 2, HID_ITF_PROTOCOL_NONE,              \
-                           sizeof(desc_hid_report), EPNUM_HID,                 \
-                           0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
+                           sizeof(desc_hid_report), ITF_NUM_HID,               \
+                           0x80 | ITF_NUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
 
-uint8_t const desc_fs_configuration[] = {CONF_DESCRIPTOR, MIDI_DESCRIPTOR_FS};
+uint8_t const desc_fs_configuration[] = {CONF_DESCRIPTOR, MIDI_DESCRIPTOR_FS,
+                                         HID_DESCRIPTOR};
 
 #if TUD_OPT_HIGH_SPEED
-uint8_t const desc_hs_configuration[] = {CONF_DESCRIPTOR, MIDI_DESCRIPTOR_HS};
+uint8_t const desc_hs_configuration[] = {CONF_DESCRIPTOR, MIDI_DESCRIPTOR_HS,
+                                         HID_DESCRIPTOR};
 #endif
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
