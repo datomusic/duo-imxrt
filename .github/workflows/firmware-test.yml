@@ -64,7 +64,7 @@ jobs:
           COMMAND ${{ steps.download_cmake.outputs.cmake_dir }}/cmake
             -B build
             -H.
-          WORKING_DIRECTORY test
+          WORKING_DIRECTORY shared/duo/test
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
@@ -77,7 +77,7 @@ jobs:
       run: |
         execute_process(
           COMMAND ${{ steps.download_cmake.outputs.cmake_dir }}/cmake --build build
-          WORKING_DIRECTORY test
+          WORKING_DIRECTORY shared/duo/test
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
@@ -90,7 +90,7 @@ jobs:
       run: |
         execute_process(
           COMMAND ${{ steps.download_cmake.outputs.cmake_dir }}/ctest
-          WORKING_DIRECTORY test/build
+          WORKING_DIRECTORY shared/duo/test/build
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
