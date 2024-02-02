@@ -127,15 +127,6 @@ void midi_send_cc() {
 void midi_handle_cc(uint8_t channel, uint8_t number, uint8_t value) {
   if(channel == MIDI_CHANNEL) {
     switch(number) {
-      case 65:
-        //turn glide on or off
-        break;
-      case 80:
-        //turn delay on or off
-        break;
-      case 81:
-        //turn crush on or off
-        break;
       case 123: // All notes off
         note_off();
         sequencer.release_all_notes();
