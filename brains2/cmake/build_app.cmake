@@ -13,10 +13,17 @@ set(CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
+
+include(dato_board)
 include(flags)
 include(sdk)
 include(libraries)
 include(core)
+include(app_support)
+
+# All apps build with USB support for now,
+# since we rely on USB-MIDI to enter bootloader.
+set(WITH_USB true)
 
 if(WITH_USB)
   include(add_git_defines)
