@@ -3,6 +3,7 @@
 #include "channel.h"
 #include "flexio_led_driver.h"
 #include "fsl_dmamux.h"
+#include <cstdio>
 
 static const unsigned PIXEL_COUNT = 19;
 static const uint16_t BYTE_COUNT = 3 * PIXEL_COUNT + 3;
@@ -28,6 +29,13 @@ void prepare_write(uint32_t *buffer, const uint16_t length) {
   FLEXIO1->SHIFTSDEN = dma_reg;
 }
 
+static void display() {
+  begin_show();
+  prepare_write(prepped_pixels, BYTE_COUNT);
+  channel.enable();
+  end_show();
+}
+
 namespace LEDs {
 
 void init(void) {
@@ -36,7 +44,15 @@ void init(void) {
   channel.reset();
 }
 
-void setBrightness(int brightness) { _brightness = brightness; }
+void setBrightness(int brightness) {
+  _brightness = brightness;
+}
+
+void clear() {
+  memset(prepped_pixels, 0, sizeof(prepped_pixels));
+  display();
+}
+
 void show(const Pixel *const pixels, uint16_t pixel_count) {
   if (pixel_count > PIXEL_COUNT) {
     pixel_count = PIXEL_COUNT;
@@ -66,9 +82,6 @@ void show(const Pixel *const pixels, uint16_t pixel_count) {
     prepped_pixels[ind] = (spread4(b >> 16) << 3);
   }
 
-  begin_show();
-  prepare_write(prepped_pixels, BYTE_COUNT);
-  channel.enable();
-  end_show();
+  display();
 }
 } // namespace LEDs
