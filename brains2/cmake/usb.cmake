@@ -10,10 +10,10 @@ target_sources(${EXECUTABLE_NAME} PRIVATE
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
   ${USB_DIR}
   ${USB_DIR}/midi_usb_bridge
-  ${DEPS_DIR}/arduino_midi_library/src
-  ${DEPS_DIR}/Arduino-USBMIDI/src
-  ${DEPS_DIR}/tinyusb/src
+  ${LIBRARIES_DIR}/arduino_midi_library/src
+  ${LIBRARIES_DIR}/Arduino-USBMIDI/src
+  ${LIBRARIES_DIR}/tinyusb/src
 )
 
-include(${DEPS_DIR}/tinyusb.cmake)
-include(${DEPS_DIR}/arduino_midi_library/src/component_arduino_midi_library.cmake)
+include(${LIBRARIES_DIR}/tinyusb.cmake)
+include(${LIBRARIES_DIR}/arduino_midi_library/src/component_arduino_midi_library.cmake)
