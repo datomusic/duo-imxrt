@@ -7,17 +7,12 @@ ENABLE_LANGUAGE(ASM)
 
 set(EXECUTABLE_NAME duo-imxrt.elf)
 
-if(NOT DEFINED BOARD)
-    set(BOARD "DUO_BRAINS_2.1")
-endif(NOT DEFINED BOARD)
 add_executable(${EXECUTABLE_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../core/adapters/fast_led/FastLED.cpp
     ${CMAKE_CURRENT_LIST_DIR}/../../../shared/duo/effect_custom_envelope.cpp
     ${CMAKE_CURRENT_LIST_DIR}/../../../shared/duo/seq.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD}/pins.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD}/audio.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
@@ -29,6 +24,9 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
 )
 
 set(WITH_USB true)
-add_definitions("-DDATO_BOARD=\"${BOARD}\"")
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/build_app.cmake)
+
+target_include_directories(${EXECUTABLE_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD}
+)
 

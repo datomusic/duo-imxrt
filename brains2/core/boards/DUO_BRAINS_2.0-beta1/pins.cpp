@@ -1,4 +1,4 @@
-#include "../../pins.h"
+#include "lib/pins.h"
 #include <Arduino.h>
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
