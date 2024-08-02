@@ -15,7 +15,7 @@ const float HEADPHONE_MAIN_GAIN = 0.8f;
 
 const float SPEAKER_MAIN_GAIN = 0.8f;
 const float SPEAKER_DELAY_GAIN = 1.0f;
-const float SPEAKER_KICK_GAIN = 1.0f;
+const float SPEAKER_KICK_GAIN = 0.8f;
 const float SPEAKER_HAT_GAIN = 1.0f;
 
 float MAIN_GAIN      = 0.8f;
