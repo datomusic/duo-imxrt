@@ -6,6 +6,7 @@ set(EXECUTABLE_NAME sample_player.elf)
 
 add_executable(${EXECUTABLE_NAME}
     main.cpp
+    AudioSampleSnare.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE

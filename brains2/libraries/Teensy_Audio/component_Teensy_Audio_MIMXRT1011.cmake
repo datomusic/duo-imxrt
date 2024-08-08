@@ -19,6 +19,8 @@ target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/synth_pinknoise.cpp
     ${CMAKE_CURRENT_LIST_DIR}/synth_simple_drum.cpp
     ${CMAKE_CURRENT_LIST_DIR}/data_bandlimit_step.c
+    ${CMAKE_CURRENT_LIST_DIR}/play_memory.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/data_ulaw.c
 )
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE

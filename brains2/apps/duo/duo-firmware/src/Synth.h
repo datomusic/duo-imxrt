@@ -86,9 +86,9 @@ void audio_init() {
   // Mixer mixes the oscillators - don't add up to more than 0.8 or the output will clip
   #if defined(__IMXRT1011__)
   mixer1.gain(0, 0.2f); // OSC1
-  osc_saw.begin(0.4f, 110, WAVEFORM_BANDLIMIT_SAWTOOTH);
+  osc_saw.begin(0.4f, 400, WAVEFORM_BANDLIMIT_SAWTOOTH);
   osc_pulse.pulseWidth(0.5f);
-  osc_pulse.begin(.5f, 220, WAVEFORM_BANDLIMIT_PULSE);
+  osc_pulse.begin(.5f, 400, WAVEFORM_BANDLIMIT_PULSE);
   #else
   osc_saw.begin(0.4f, 110, WAVEFORM_SAWTOOTH);
   osc_pulse.pulseWidth(0.5f);
