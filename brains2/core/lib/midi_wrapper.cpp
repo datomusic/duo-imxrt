@@ -28,8 +28,12 @@ void MIDI::init(const Callbacks &callbacks) {
   ALL_TRANSPORTS(setHandleSystemExclusive(callbacks.sysex));
 }
 
+void MIDI::read() {
+  ALL_TRANSPORTS(read());
+}
+
 void MIDI::read(const byte channel) {
-  ALL_TRANSPORTS(read(channel));
+  ALL_TRANSPORTS(read());
 }
 
 void MIDI::sendRealTime(const midi::MidiType message) {

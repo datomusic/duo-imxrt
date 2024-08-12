@@ -19,6 +19,7 @@ struct Callbacks {
 };
 
 void init(const Callbacks &callbacks);
+void read();
 void read(byte channel);
 void sendRealTime(midi::MidiType message);
 void sendControlChange(byte cc, byte value, byte channel);

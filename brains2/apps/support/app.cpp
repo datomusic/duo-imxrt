@@ -59,6 +59,11 @@ void init(MIDI::Callbacks midi_callbacks) {
   MIDI::init(MIDI::Callbacks{midi_callbacks});
 }
 
+void update() {
+  DatoUSB::background_update();
+  MIDI::read();
+}
+
 void update(const byte midi_channel) {
   DatoUSB::background_update();
   MIDI::read(midi_channel);
