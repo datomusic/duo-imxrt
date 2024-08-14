@@ -32,6 +32,7 @@
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
 
+
 #define USB_VID 0x16D0 // MCS Electronics
 #define USB_PID 0x10A7 // DUO Brains 2 VID
 

@@ -368,6 +368,7 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   audio_init();
   AudioInterrupts();
 
+  Audio::amp_init();
   Audio::headphone_enable();
   Audio::amp_enable();
 
