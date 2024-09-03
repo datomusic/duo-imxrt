@@ -16,7 +16,7 @@ if on Mac you get an error `usb.core.NoBackendError: No backend available`, plea
 Make sure you have an updated version of the Arm GNU Toolchain installed: https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
 
 Git clone this repository including submodules
-`git clone --recurse-submodules git://github.com/datomusic/duo-imxrt.git`
+`git clone --recurse-submodules https://github.com/datomusic/duo-imxrt.git`
 
 Go into the apps directory
 `cd duo-imxrt/brains2/apps`

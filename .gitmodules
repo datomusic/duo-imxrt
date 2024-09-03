@@ -1,9 +1,9 @@
 [submodule "tinyusb"]
 	path = brains2/libraries/tinyusb
-	url = git@github.com:hathach/tinyusb.git
+	url = https://github.com/hathach/tinyusb
 [submodule "Arduino-USBMIDI"]
 	path = brains2/libraries/Arduino-USBMIDI
-	url = git@github.com:lathoub/Arduino-USBMIDI.git
+	url = https://github.com/lathoub/Arduino-USBMIDI
 [submodule "arduino_midi_library"]
 	path = brains2/libraries/MIDI
 	url = https://github.com/FortySevenEffects/arduino_midi_library
