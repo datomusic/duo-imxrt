@@ -13,7 +13,7 @@ use `python3 update_firmware.py`
 if on Mac you get an error `usb.core.NoBackendError: No backend available`, please install libusb by running `brew install libusb`
 
 ## Building the firmware
-Make sure you have an updated version of the Arm GNU Toolchain installed: https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
+Make sure you have version 12.3.rel1 of the Arm GNU Toolchain for embedded installed: https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads . It has 'eabi' in the filename.
 
 Git clone this repository including submodules
 `git clone --recurse-submodules https://github.com/datomusic/duo-imxrt.git`
@@ -28,7 +28,7 @@ If you get an error saying that `The CMAKE_C_COMPILER: /bin/arm-none-eabi-gcc is
 
 If you get an error along the lines of `Cannot find source file: /duo-imxrt/brains2/libraries/tinyusb/src/class/cdc/cdc_device.c` make sure all submodules are downloaded. You can make sure all submodules are fetched by running `git submodule update --init --recursive`
 
-If the build is successful you can upload it by running `../script/load.sh duo`
+If the build is successful you can upload it by running `../script/send_firmware.sh duo`. You will need all correct python libraries as well so make sure you followed the instruction at "Updating the firmware" to install them.
 
 ## DUO Brains revisions
 The main pcb of the Dato DUO is dubbed Brains. Up until mid 2022 the Brains 1 were based on the NXP K20DX256 microcontroller. Due to ongoing problems with availability of that chip family later Brains 2 are based on NXP iMX RT1010
