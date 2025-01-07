@@ -2,10 +2,10 @@
 #define AUDIO_H_OVLTWHKY
 
 namespace Audio {
-void headphone_enable(void);
-void headphone_disable(void);
-void amp_enable(void);
-void amp_disable(void);
+  void headphone_enable(void);
+  void headphone_disable(void);
+  void amp_enable(void);
+  void amp_disable(void);
 } // namespace Audio
 
 #endif /* end of include guard: AUDIO_H_OVLTWHKY */
