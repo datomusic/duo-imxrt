@@ -1,5 +1,9 @@
 #include "lib/variant.h"
 
+namespace Audio {
+  bool amp_enable_polarity = false;
+}
+
 #define HP_ENABLE_PINMUX IOMUXC_GPIO_AD_11_GPIOMUX_IO25
 #define HP_ENABLE_PORT GPIO1
 #define HP_ENABLE_PIN 25U
@@ -35,6 +39,21 @@ void amp_disable(void) {
   gpio_pin_config_t amp_mute_config = {kGPIO_DigitalOutput, 0};
   GPIO_PinInit(AMP_MUTE_PORT, AMP_MUTE_PIN, &amp_mute_config);
   GPIO_PinWrite(AMP_MUTE_PORT, AMP_MUTE_PIN, 0);
+}
+
+void amp_init(void) {
+  // Configure as input to read current state
+  IOMUXC_SetPinMux(AMP_MUTE_PINMUX, 0U);
+  gpio_pin_config_t amp_mute_config = {kGPIO_DigitalInput, 0};
+  GPIO_PinInit(AMP_MUTE_PORT, AMP_MUTE_PIN, &amp_mute_config);
+  
+  // Read current pin state to determine polarity
+  amp_enable_polarity = GPIO_PinRead(AMP_MUTE_PORT, AMP_MUTE_PIN);
+  
+  // Reconfigure as output with initial state
+  amp_mute_config.direction = kGPIO_DigitalOutput;
+  GPIO_PinInit(AMP_MUTE_PORT, AMP_MUTE_PIN, &amp_mute_config);
+  GPIO_PinWrite(AMP_MUTE_PORT, AMP_MUTE_PIN, amp_enable_polarity ? 1 : 0);
 }
 
 } // namespace Audio
