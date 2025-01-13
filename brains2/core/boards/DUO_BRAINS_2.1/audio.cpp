@@ -23,6 +23,10 @@ void headphone_disable(void) {
   GPIO_PinWrite(HP_ENABLE_PORT, HP_ENABLE_PIN, 0);
 }
 
+void amp_init(void) {
+
+}
+
 void amp_enable(void) {
   IOMUXC_SetPinMux(AMP_MUTE_PINMUX, 0U);
   gpio_pin_config_t amp_mute_config = {kGPIO_DigitalOutput, 0};
