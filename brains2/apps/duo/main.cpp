@@ -288,20 +288,20 @@ static void headphone_jack_check() {
   if (millis() > next_jack_check_time) {
     next_jack_check_time = millis() + jack_check_interval; 
     if(headphone_jack_detected()) {
-    MAIN_GAIN = HEADPHONE_MAIN_GAIN;
-    DELAY_GAIN = HEADPHONE_DELAY_GAIN;
-    KICK_GAIN = HEADPHONE_KICK_GAIN;
-    HAT_GAIN = HEADPHONE_HAT_GAIN;
-    Audio::headphone_enable();
-    Audio::amp_disable();
-  } else {
-    MAIN_GAIN = SPEAKER_MAIN_GAIN;
-    DELAY_GAIN = SPEAKER_DELAY_GAIN;
-    KICK_GAIN = SPEAKER_KICK_GAIN;
-    HAT_GAIN = SPEAKER_HAT_GAIN;
-    Audio::headphone_disable();
-    Audio::amp_enable();
-  }
+      MAIN_GAIN = HEADPHONE_MAIN_GAIN;
+      DELAY_GAIN = HEADPHONE_DELAY_GAIN;
+      KICK_GAIN = HEADPHONE_KICK_GAIN;
+      HAT_GAIN = HEADPHONE_HAT_GAIN;
+      Audio::headphone_enable();
+      Audio::amp_disable();
+    } else {
+      MAIN_GAIN = SPEAKER_MAIN_GAIN;
+      DELAY_GAIN = SPEAKER_DELAY_GAIN;
+      KICK_GAIN = SPEAKER_KICK_GAIN;
+      HAT_GAIN = SPEAKER_HAT_GAIN;
+      Audio::headphone_disable();
+      Audio::amp_enable();
+    }
   }
 }
 
@@ -367,7 +367,7 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   speaker_preamp.gain(SPEAKER_GAIN);
   audio_init();
   AudioInterrupts();
-
+  Audio::amp_init();
   Audio::headphone_enable();
   Audio::amp_enable();
 
