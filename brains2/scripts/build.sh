@@ -29,7 +29,7 @@ if [[ -e "$APP_PATH" ]]; then
   pushd flexspi_nor_$BUILD_TYPE
 
   echo "Generating .bin"
-  ${TOOLCHAIN_DIR}/bin/arm-none-eabi-objcopy -v -O binary \
+  arm-none-eabi-objcopy -v -O binary \
     -j.flash_config \
     -j.ivt \
     -j.interrupts \

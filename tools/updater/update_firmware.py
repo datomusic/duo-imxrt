@@ -70,7 +70,7 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
                 print("Continuing. [Continuous mode]")
             else:
                 input("Please enter bootloader manually, then press Enter.")
-        time.sleep(1)
+        time.sleep(3)
     else:
         print("not entering bootloader as skip_enter_bootloader is set")
            
@@ -78,7 +78,7 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
     if not interface:
         return False
 
-    time.sleep(1)
+    time.sleep(3)
 
     print("Sending flashloader")
     with SDP(interface) as s:
@@ -88,7 +88,7 @@ def update_firmware(firmware_path, data_path, continuous, skip_enter_bootloader=
         s.jump_and_run(flashloader_addr)
 
     print("Sent flashloader. Rebooting.")
-    time.sleep(1)
+    time.sleep(3)
 
     print("Finding mboot interface.")
     boot_interface = find_mboot_interface()
@@ -143,7 +143,7 @@ def main():
         print("Factory flashing [continuous mode].")
         print()
         while True:
-            time.sleep(1)
+            time.sleep(3)
             update_firmware(args.firmware_path, data_path, True, True)
             print()
     else:

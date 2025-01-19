@@ -14,6 +14,7 @@ set(CMAKE_MODULE_PATH
     ${SDK_DIR}/components/serial_manager
     ${SDK_DIR}/components/lists
     ${SDK_DIR}/components/osa
+    ${SDK_DIR}/components/rtt
     ${SDK_DIR}/devices/MIMXRT1011/xip
     ${SDK_DIR}/CMSIS/Core/Include
     ${SDK_DIR}/CMSIS/DSP
@@ -46,3 +47,4 @@ include(CMSIS_DSP_Library)
 include(utilities_misc_utilities_MIMXRT1011)
 include(device_MIMXRT1011_system_MIMXRT1011)
 include(driver_adc_12b1msps_sar_MIMXRT1011)
+include(driver_rtt_MIMXRT1011)
