@@ -19,3 +19,4 @@ armgcc/release/
 compile_commands.json
 *.o
 *.d
+.aider*
