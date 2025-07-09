@@ -1,4 +1,7 @@
 #include "lib/variant.h"
+extern "C" {
+#include "fsl_gpio.h"
+}
 
 #define HP_ENABLE_PINMUX IOMUXC_GPIO_AD_11_GPIOMUX_IO25
 #define HP_ENABLE_PORT GPIO1
@@ -41,7 +44,7 @@ void amp_init(void) {
   IOMUXC_SetPinConfig(AMP_MUTE_PINMUX, IOMUXC_PINCONFIG_DEFAULT);
   gpio_pin_config_t amp_mute_config = {kGPIO_DigitalInput, 0};
   GPIO_PinInit(AMP_MUTE_PORT, AMP_MUTE_PIN, &amp_mute_config);
-  
+
   // An external resistor sets the amp to mute at startup. 
   // Some chips are active high others are active low
   // Read its direction to determine the polarity
