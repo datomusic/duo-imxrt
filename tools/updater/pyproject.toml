@@ -1,0 +1,13 @@
+[project]
+name = "duo-imxrt-updater"
+version = "2.4.0"
+description = "Firmware updater for DUO i.MX RT"
+dependencies = [
+    "python-rtmidi==1.5.8",
+    "spsdk==1.11.0",
+    "pyusb",
+]
+# Avoiding python 3.14 because the wheels are not available for some packages
+requires-python = ">=3.12.0, <3.14"
+
+[tool.uv]

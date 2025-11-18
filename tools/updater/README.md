@@ -1,9 +1,11 @@
 # Installation
+Make sure `uv` [is installed](https://docs.astral.sh/uv/#installation).
+
 To install necessary depencencies:
-`python -m pip install -r requirements.txt`
+`uv sync`
 
 # Usage
-`python update_firmware.py [firmware-file-path]`
+`uv run update_firmware.py [firmware-file-path]`
 
 If `firmware-file-path` is not supplied, the updater defaults to `duo_firmware.bin` in the current directory.
 

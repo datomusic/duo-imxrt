@@ -5,12 +5,12 @@ This repository contains the firmware for the Dato DUO synthesizer serial number
 Grab one of the binaries from https://github.com/datomusic/duo-imxrt/releases
 Make sure you have Python 3 installed
 
-in the commandline, go to the `tools/updater` directory and enter
-`python3 -m pip install -r requirements.txt`
+in the commandline, go to the `tools/updater` directory, make sure uv [is installed](https://docs.astral.sh/uv/#installation)
+and enter `uv sync`
 
-use `python3 update_firmware.py`
+use `uv run update_firmware.py [firmware-file-path]` to start firmware update.
 
-if on Mac you get an error `usb.core.NoBackendError: No backend available`, please install libusb by running `brew install libusb`
+If on Mac you get an error `usb.core.NoBackendError: No backend available`, please install libusb by running `brew install libusb`.
 
 ## Building the firmware
 Make sure you have version 12.3.rel1 of the Arm GNU Toolchain for embedded installed: https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads . It has 'eabi' in the filename.

@@ -1,3 +1,0 @@
-python-rtmidi==1.5.8
-spsdk==1.11.0
-pyusb
