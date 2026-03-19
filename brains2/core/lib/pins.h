@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#define SEQ_1_2
 
 
 #define LED_DATA 32
