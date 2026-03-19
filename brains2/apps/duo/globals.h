@@ -34,6 +34,10 @@ void enter_dfu();
 
 bool power_flag = true;
 
+// LED brightness level (0-9), default is max brightness
+uint8_t led_brightness_level = 9;
+bool brightness_mode = false;
+
 #include "shared/duo/synth_params.h"
 synth_parameters synth;
 

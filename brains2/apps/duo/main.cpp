@@ -65,7 +65,7 @@ static const int led_order[NUM_LEDS] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
                                  11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 
 #define GRB 1
-#define SK6812 1
+#define SK6805 1
 #include "duo-firmware/src/Leds.h"
 #include "shared/duo/Pitch.h"
 
@@ -157,7 +157,42 @@ static void power_off() {
 
 bool is_power_on() { return power_flag; }
 
+static bool btn_down_held = false;
+static bool btn_up_held = false;
+
+static void enter_brightness_mode() {
+  brightness_mode = true;
+}
+
+static void exit_brightness_mode() {
+  brightness_mode = false;
+}
+
+static void check_brightness_combo() {
+  if (btn_down_held && btn_up_held && !brightness_mode) {
+    enter_brightness_mode();
+  }
+}
+
 static void process_key(const char k, const char state) {
+  // In brightness mode, only handle keyboard keys for level selection
+  // and BTN_DOWN/BTN_UP releases to exit
+  if (brightness_mode) {
+    if (state == PRESSED && k >= KEYB_0 && k <= KEYB_9) {
+      led_brightness_level = k - KEYB_0;
+    }
+    if (state == RELEASED) {
+      if (k == BTN_DOWN) {
+        btn_down_held = false;
+        exit_brightness_mode();
+      } else if (k == BTN_UP) {
+        btn_up_held = false;
+        exit_brightness_mode();
+      }
+    }
+    return;
+  }
+
   switch (state) { // Report active key state : IDLE,
                    // PRESSED, HOLD, or RELEASED
     case PRESSED:
@@ -178,14 +213,22 @@ static void process_key(const char k, const char state) {
         }
         double_speed = true;
       } else if (k == BTN_DOWN) {
-        transpose--;
-        if (transpose < -12) {
-          transpose = -24;
+        btn_down_held = true;
+        check_brightness_combo();
+        if (!brightness_mode) {
+          transpose--;
+          if (transpose < -12) {
+            transpose = -24;
+          }
         }
       } else if (k == BTN_UP) {
-        transpose++;
-        if (transpose > 12) {
-          transpose = 24;
+        btn_up_held = true;
+        check_brightness_combo();
+        if (!brightness_mode) {
+          transpose++;
+          if (transpose > 12) {
+            transpose = 24;
+          }
         }
       } else if (k == BTN_SEQ1) {
         if (sequencer.is_running()) {
@@ -223,6 +266,7 @@ static void process_key(const char k, const char state) {
       } else if (k == BTN_SEQ2) {
         double_speed = false;
       } else if (k == BTN_DOWN) {
+        btn_down_held = false;
         if (transpose < -12) {
           transpose = -12;
         }
@@ -230,6 +274,7 @@ static void process_key(const char k, const char state) {
           transpose = 12;
         }
       } else if (k == BTN_UP) {
+        btn_up_held = false;
         if (transpose < -12) {
           transpose = -12;
         }

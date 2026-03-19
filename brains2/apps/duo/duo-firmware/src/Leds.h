@@ -6,9 +6,8 @@
 
 #define COLOR_ORDER GRB
 
-#define LED_TYPE SK6812
-#define CORRECTION_SK6812 0xFFF1E0
-#define CORRECTION_SK6805 0xFFD3E0
+#define LED_TYPE SK6805
+#define LED_CORRECTION 0xFFD3E0
 #define LED_WHITE CRGB(230,255,150)
 
 #define leds(A) physical_leds[led_order[A]]
@@ -16,8 +15,22 @@
 CRGB physical_leds[NUM_LEDS];
 #define led_play physical_leds[0]
 
-#define SK6812_BRIGHTNESS 32
-#define SK6805_BRIGHTNESS 140
+#define MAX_BRIGHTNESS 140
+
+// Maps led_brightness_level (0-9) to FastLED brightness values
+static const uint8_t BRIGHTNESS_TABLE[] = {
+  14, 28, 42, 56, 70, 84, 98, 112, 126, MAX_BRIGHTNESS
+};
+
+static inline uint8_t get_neopixel_brightness() {
+  return BRIGHTNESS_TABLE[led_brightness_level];
+}
+
+// Analog LED brightness scale factor: 0.1 to 1.0 in 0.1 steps
+// Returns value scaled by brightness level
+static inline uint16_t scale_analog_led(uint16_t value) {
+  return (uint16_t)((uint32_t)value * (led_brightness_level + 1) / 10);
+}
 
 /* The black keys have assigned colors. The white keys are shown in gray */
 const CRGB COLORS[] = {
@@ -49,33 +62,21 @@ const CRGB COLORS[] = {
 
 void led_init();
 void led_update();
-void led_data_received();
 void led_deinit();
-
-void led_data_received() {
-    FastLED.setBrightness(SK6805_BRIGHTNESS); 
-    FastLED.setCorrection(CORRECTION_SK6805);
-    detachInterrupt(LED_CLK);
-}
+void led_show_brightness_mode();
 
 void led_init() {
   FastLED.addLeds<LED_TYPE, LED_DATA, COLOR_ORDER>(physical_leds, NUM_LEDS);
-  
-  FastLED.setBrightness(SK6805_BRIGHTNESS); 
-  FastLED.setCorrection(CORRECTION_SK6812);
 
-  // We're going to do a loopback test first to determine brightness
-  //attachInterrupt(LED_CLK, led_data_received, CHANGE);
-  FastLED.clear();
-  physical_leds[NUM_LEDS-1] = CRGB(0xff6805);
-  FastLED.show();
-  
+  FastLED.setBrightness(get_neopixel_brightness());
+  FastLED.setCorrection(LED_CORRECTION);
+
   FastLED.clear();
   FastLED.show();
   /* The 400ms delay introduced by this startup animation prevents
      an audible pop/click at startup
      */
-     
+
   #ifdef DEV_MODE
      physical_leds[0] = CRGB::Blue;
   #endif
@@ -116,8 +117,35 @@ void led_deinit() {
   FastLED.show();
 }
 
+// Shows a bar graph on the step LEDs indicating current brightness level
+void led_show_brightness_mode() {
+  FastLED.setBrightness(get_neopixel_brightness());
+
+  for (uint16_t i = 0; i < 10; i++) {
+    physical_leds[i + 9] = CRGB::Black;
+  }
+  for (int l = 0; l < Sequencer::NUM_STEPS; l++) {
+    if (l <= (int)led_brightness_level) {
+      leds(l) = LED_WHITE;
+    } else {
+      leds(l) = CRGB::Black;
+    }
+  }
+  led_play = CRGB::Black;
+
+  blank_env_led();
+  blank_filter_led();
+  blank_osc_led();
+}
+
 // Updates the LED colour and brightness to match the stored sequence
 void led_update() {
+  if (brightness_mode) {
+    led_show_brightness_mode();
+    return;
+  }
+
+  FastLED.setBrightness(get_neopixel_brightness());
   for (uint16_t i = 0; i < 10; i++) {
     physical_leds[i + 9] = COLORS[SCALE[i] % 24];
   }
@@ -164,9 +192,9 @@ void led_update() {
     }
   }
 
-  write_env_led(peak1.read());
-  write_filter_led(synth.filter);
-  write_osc_led(synth.pulseWidth);
+  write_env_led(scale_analog_led(peak1.read()));
+  write_filter_led(scale_analog_led(synth.filter));
+  write_osc_led(scale_analog_led(synth.pulseWidth));
 }
 
 #endif
