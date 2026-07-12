@@ -30,3 +30,28 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD}
 )
 
+# Persistent storage: littlefs on the tail of the QSPI flash, exposed
+# through the musin filesystem port and newlib stdio.
+include(driver_flexspi_MIMXRT1011)
+include(driver_cache_armv7_m7_MIMXRT1011)
+
+target_sources(${EXECUTABLE_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/filesystem_smoke_test.cpp
+    ${LIBRARIES_DIR}/littlefs/lfs.c
+    ${LIBRARIES_DIR}/littlefs/lfs_util.c
+    ${LIBRARIES_DIR}/musin/settings/settings_manager.cpp
+    ${LIBRARIES_DIR}/musin/ports/imxrt/filesystem/filesystem.cpp
+    ${LIBRARIES_DIR}/musin/ports/imxrt/filesystem/storage_region.cpp
+    ${LIBRARIES_DIR}/musin/ports/imxrt/filesystem/lfs_stdio.c
+    ${SDK_DIR}/components/flash/mflash/mimxrt1011/mflash_drv.c
+)
+
+target_include_directories(${EXECUTABLE_NAME} PRIVATE
+    ${LIBRARIES_DIR}
+    ${LIBRARIES_DIR}/littlefs
+    ${LIBRARIES_DIR}/etl/include
+    ${LIBRARIES_DIR}/musin/ports/imxrt/filesystem
+    ${SDK_DIR}/components/flash/mflash
+    ${SDK_DIR}/components/flash/mflash/mimxrt1011
+)
+

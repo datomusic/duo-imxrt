@@ -10,6 +10,7 @@
 #include "board_audio_output.h"
 #include <Audio.h>
 #include "lib/midi_wrapper.h"
+#include "filesystem_smoke_test.h"
 
 
 #define BENCHMARK(func) digitalWrite(GPIO_SD_13, HIGH); func; digitalWrite(GPIO_SD_13, LOW)
@@ -384,6 +385,11 @@ void init_dma() {
 
 int main(void) {
   board_init();
+
+  // Must run before Serial.begin(): the debug console it reports on shares
+  // LPUART1 with DIN MIDI.
+  filesystem_smoke_test();
+
   init_dma();
 
   Sync::init();
