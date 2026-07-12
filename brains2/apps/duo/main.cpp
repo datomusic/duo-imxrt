@@ -1,6 +1,5 @@
-// Storage headers come first: they pull in ETL, which does not survive the
+// Storage header comes first: it pulls in ETL, which does not survive the
 // min/max macros Arduino.h defines.
-#include "filesystem_smoke_test.h"
 #include "settings_storage.h"
 
 #include "Arduino.h"
@@ -391,10 +390,9 @@ void init_dma() {
 int main(void) {
   board_init();
 
-  // Must run before Serial.begin(): the debug console they report on shares
-  // LPUART1 with DIN MIDI.
+  // Must run before Serial.begin(): the debug console it reports on shares
+  // LPUART1 with DIN MIDI. Mounts the data filesystem and loads settings.
   duo::storage_init();
-  filesystem_smoke_test(duo::filesystem());
 
   init_dma();
 
