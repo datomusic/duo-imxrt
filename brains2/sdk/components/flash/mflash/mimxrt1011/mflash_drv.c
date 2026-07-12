@@ -11,7 +11,7 @@
  *
  * Changes from the original:
  *  - The LUT mirrors the sequence layout and opcodes of the boot config in
- *    sdk/xip/duobrains2_flexspi_nor_config.c (Winbond W25Q, 16 MB: quad read
+ *    sdk/xip/duobrains2_flexspi_nor_config.c (Winbond W25Q16, 2 MB: quad read
  *    0xEB at index 0, sector erase 0x20, single-pad page program 0x02), so
  *    rewriting the full LUT at init leaves XIP AHB reads unchanged.
  *  - Non-XIP init path, quad-enable and QPI sequences removed: this firmware

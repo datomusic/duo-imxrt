@@ -7,8 +7,10 @@
 /*
  * Adapted for Dato DUO Brains 2 (MIMXRT1011) from the mimxrt1021 port in
  * MCUXpresso SDK 2.13.0. The defaults below (4 KB sector, 256 B page,
- * FlexSPI AMBA base 0x60000000) match the duo's 16 MB Winbond W25Q flash
- * as configured in sdk/xip/duobrains2_flexspi_nor_config.c.
+ * FlexSPI AMBA base 0x60000000) match the duo's 2 MB Winbond W25Q16 flash.
+ * Note that sdk/xip/duobrains2_flexspi_nor_config.c declares .sflashA1Size
+ * as 16 MB; the actual part is 16 Mbit (2 MB) and nothing past 0x60200000
+ * is backed by flash.
  */
 
 #ifndef __MFLASH_DRV_H__
