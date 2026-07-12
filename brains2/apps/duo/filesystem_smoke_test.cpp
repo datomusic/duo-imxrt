@@ -1,8 +1,5 @@
 #include "filesystem_smoke_test.h"
 
-#include "musin/filesystem/filesystem.h"
-#include "musin/hal/logger.h"
-
 #include <cstdint>
 #include <cstdio>
 
@@ -10,64 +7,8 @@ extern "C" {
 #include "fsl_debug_console.h"
 }
 
-namespace {
-
-// Minimal logger onto the debug console so Filesystem diagnostics show up.
-class DebugConsoleLogger : public musin::Logger {
-public:
-  void log(musin::LogLevel level, etl::string_view message) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s\r\n", static_cast<int>(message.size()), message.data());
-  }
-  void log(musin::LogLevel level, etl::string_view message,
-           std::int32_t value) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s%ld\r\n", static_cast<int>(message.size()),
-           message.data(), static_cast<long>(value));
-  }
-  void log(musin::LogLevel level, etl::string_view message,
-           std::uint32_t value) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s%lu\r\n", static_cast<int>(message.size()),
-           message.data(), static_cast<unsigned long>(value));
-  }
-  void log(musin::LogLevel level, etl::string_view message,
-           float value) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s%f\r\n", static_cast<int>(message.size()), message.data(),
-           static_cast<double>(value));
-  }
-  void set_level(musin::LogLevel level) override {
-    level_ = level;
-  }
-  musin::LogLevel get_level() const override {
-    return level_;
-  }
-
-private:
-  musin::LogLevel level_ = musin::LogLevel::DEBUG;
-};
-
-} // namespace
-
-void filesystem_smoke_test() {
-  static DebugConsoleLogger logger;
-  static musin::filesystem::Filesystem filesystem(logger);
-
+void filesystem_smoke_test(musin::filesystem::Filesystem &filesystem) {
   PRINTF("[fs] --- littlefs smoke test ---\r\n");
-
-  if (!filesystem.init()) {
-    PRINTF("[fs] FAIL: filesystem init\r\n");
-    return;
-  }
 
   // Bump a boot counter through plain stdio, proving the newlib wiring and
   // persistence across power cycles in one go.

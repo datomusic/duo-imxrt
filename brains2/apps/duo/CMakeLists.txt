@@ -37,6 +37,7 @@ include(driver_cache_armv7_m7_MIMXRT1011)
 
 target_sources(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/filesystem_smoke_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/settings_storage.cpp
     ${LIBRARIES_DIR}/littlefs/lfs.c
     ${LIBRARIES_DIR}/littlefs/lfs_util.c
     ${LIBRARIES_DIR}/musin/settings/settings_manager.cpp
