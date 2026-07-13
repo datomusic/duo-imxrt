@@ -390,8 +390,7 @@ void init_dma() {
 int main(void) {
   board_init();
 
-  // Must run before Serial.begin(): the debug console it reports on shares
-  // LPUART1 with DIN MIDI. Mounts the data filesystem and loads settings.
+  // Mounts the data filesystem and loads settings.
   duo::storage_init();
 
   init_dma();

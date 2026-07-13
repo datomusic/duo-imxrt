@@ -1,12 +1,9 @@
 #include "settings_storage.h"
 
 #include "etl/array.h"
+#include "musin/hal/null_logger.h"
 
 #include <cstdint>
-
-extern "C" {
-#include "fsl_debug_console.h"
-}
 
 namespace duo {
 
@@ -53,52 +50,9 @@ private:
   uint8_t values_[DESCRIPTORS.size()]{};
 };
 
-// Logs onto the debug console (LPUART1, shared with DIN MIDI: readable only
-// until Serial.begin() reconfigures the UART).
-class DebugConsoleLogger : public musin::Logger {
-public:
-  void log(musin::LogLevel level, etl::string_view message) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s\r\n", static_cast<int>(message.size()), message.data());
-  }
-  void log(musin::LogLevel level, etl::string_view message,
-           std::int32_t value) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s%ld\r\n", static_cast<int>(message.size()),
-           message.data(), static_cast<long>(value));
-  }
-  void log(musin::LogLevel level, etl::string_view message,
-           std::uint32_t value) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s%lu\r\n", static_cast<int>(message.size()),
-           message.data(), static_cast<unsigned long>(value));
-  }
-  void log(musin::LogLevel level, etl::string_view message,
-           float value) override {
-    if (level < level_) {
-      return;
-    }
-    PRINTF("[fs] %.*s%f\r\n", static_cast<int>(message.size()), message.data(),
-           static_cast<double>(value));
-  }
-  void set_level(musin::LogLevel level) override {
-    level_ = level;
-  }
-  musin::LogLevel get_level() const override {
-    return level_;
-  }
-
-private:
-  musin::LogLevel level_ = musin::LogLevel::DEBUG;
-};
-
-DebugConsoleLogger g_logger;
+// The debug console shares LPUART1 with DIN MIDI, so nothing may be logged:
+// a connected MIDI device would receive the bytes as MIDI data.
+musin::NullLogger g_logger;
 musin::filesystem::Filesystem g_filesystem(g_logger);
 ValueStore g_value_store;
 musin::settings::SettingsManager
