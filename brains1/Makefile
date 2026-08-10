@@ -1,4 +1,7 @@
-FIRMWARE_PATH = $(abspath $(CURDIR)/../../firmware)
+FIRMWARE_PATH = $(abspath $(CURDIR)/../shared/duo)
+
+# Arduino MIDI library (shared with the Brains 2 build)
+MIDI_LIB_PATH = $(abspath $(CURDIR)/../brains2/libraries/MIDI/src)
 
 # The name of your project (used to name the compiled .hex file)
 TARGET = $(notdir $(CURDIR))
@@ -34,12 +37,13 @@ else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Darwin)
         # path location for the arm-none-eabi compiler (include trailing /!)
-        COMPILERPATH = /opt/homebrew/bin/
-        #COMPILERPATH = $(abspath $(TOOLSPATH))/arm/bin/
+        # Defaults to the newest Arm GNU Toolchain install; override with
+        # make COMPILERPATH=/path/to/arm-none-eabi/bin/
+        COMPILERPATH ?= $(lastword $(sort $(wildcard /Applications/ArmGNUToolchain/*)))/arm-none-eabi/bin/
     endif
     ifeq ($(UNAME_S),Linux)
         # path location for the arm-none-eabi compiler
-        COMPILERPATH =  # empty = on system path
+        COMPILERPATH ?=  # empty = on system path
     endif
 endif
 
@@ -54,10 +58,10 @@ LIBRARYPATH = $(CURDIR)/libraries
 #************************************************************************
 
 # CPPFLAGS = compiler options for C and C++
-CPPFLAGS = -Wall -g -O2 -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -Isrc -I../../ -I"$(FIRMWARE_PATH)" -I$(COREPATH)
+CPPFLAGS = -Wall -g -O2 -mthumb -ffunction-sections -fdata-sections -nostdlib -MMD $(OPTIONS) -DTEENSYDUINO=124 -DF_CPU=$(TEENSY_CORE_SPEED) -Isrc -I../../ -I"$(FIRMWARE_PATH)" -I"$(MIDI_LIB_PATH)" -I$(COREPATH)
 
 # compiler options for C++ only
-CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
+CXXFLAGS = -std=gnu++14 -felide-constructors -fno-exceptions -fno-rtti
 
 # compiler options for C only
 CFLAGS =
@@ -110,7 +114,7 @@ LCPP_FILES := $(wildcard $(LIBRARYPATH)/*/*.cpp) $(wildcard $(LIBRARYPATH)/*/*/*
 TC_FILES := $(wildcard $(COREPATH)/*.c)
 TCPP_FILES := $(wildcard $(COREPATH)/*.cpp)
 C_FILES := $(wildcard src/*.c) $(wildcard src/lib/*.c) $(wildcard $(FIRMWARE_PATH)/*.c)
-CPP_FILES := $(wildcard src/*.cpp) $(wildcard src/lib/*.cpp) $(wildcard $(FIRMWARE_PATH)/*.cpp)
+CPP_FILES := $(wildcard src/*.cpp) $(wildcard src/lib/*.cpp) $(wildcard $(FIRMWARE_PATH)/*.cpp) $(wildcard $(MIDI_LIB_PATH)/*.cpp)
 INO_FILES := $(wildcard src/*.ino) $(wildcard $(FIRMWARE_PATH)/*.ino)
 
 # include paths for libraries
