@@ -262,9 +262,18 @@ def run_loop(firmware_bytes, firmware_path, data_path, use_midi_reset):
                 if find_duo_midi_port(quiet=True) is not None:
                     clear_status()
                     print(f"\n--- board #{flashed + failed + 1} ---")
-                    enter_bootloader()
-                    time.sleep(1)
-                    interface = find_sdp_interface(quiet=True)
+                    try:
+                        # The board can vanish between discovery and the sysex
+                        # write; that is a failed board, not a dead session.
+                        enter_bootloader()
+                        time.sleep(1)
+                        interface = find_sdp_interface(quiet=True)
+                    except KeyboardInterrupt:
+                        raise
+                    except Exception as exc:
+                        interface = None
+                        print(f"  {type(exc).__name__}: {exc}")
+
                     if interface is None:
                         failed += 1
                         print(colour(RED, "FAILED: board did not appear in SDP mode"))
