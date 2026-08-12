@@ -28,16 +28,16 @@ RESET_SYX = [0xF0, 0x7D, 0x64, 0x0B, 0xF7]
 POLL_INTERVAL = 0.5
 MBOOT_TIMEOUT = 10.0
 
-# A freshly flashed board disappears from SDP/MBOOT the instant it resets, but
-# takes a second or two to come back as a normal MIDI device. Absence only
-# counts as "unplugged" once it has held for this long.
+# Wait time (seconds) to confirm board is unplugged.
 REMOVAL_SETTLE = 4.0
 
+# Wait time to confirm unplugged after boot succeeds.
+CONFIRMED_REMOVAL_SETTLE = 1.0
+
+# Max wait time for board to boot into MIDI mode.
+BOOT_TIMEOUT = 8.0
+
 # --- Terminal helpers -----------------------------------------------------
-# Everything transient is drawn on a single line that the next message
-# overwrites, so an idle bench never accumulates scrollback. When stdout is
-# not a terminal (piped to a log file) the transient output is suppressed
-# entirely rather than written as escape-code noise.
 
 SPINNER = "|/-\\"
 USE_ANSI = sys.stdout.isatty()
@@ -50,7 +50,7 @@ def colour(code, text):
 
 
 def status(text):
-    """Draw a transient status line. The next status() or clear_status() erases it."""
+    """Draw a status line in the terminal."""
     if USE_ANSI:
         print(f"\r\033[K{text}", end="", flush=True)
 
@@ -109,7 +109,7 @@ def enter_bootloader():
 
 
 def wait_for_mboot(timeout=MBOOT_TIMEOUT):
-    """Poll for the flashloader to enumerate instead of a blind sleep."""
+    """Wait for the flashloader to enumerate."""
     deadline = time.monotonic() + timeout
     tick = 0
     while time.monotonic() < deadline:
@@ -133,16 +133,23 @@ def duo_present():
     )
 
 
-def wait_for_removal():
-    """Block until the board has been physically unplugged.
+def wait_for_boot(timeout=BOOT_TIMEOUT):
+    """Wait for board to boot into MIDI mode."""
+    deadline = time.monotonic() + timeout
+    tick = 0
+    while time.monotonic() < deadline:
+        if find_duo_midi_port(quiet=True) is not None:
+            clear_status()
+            return True
+        status(colour(DIM, f"  {SPINNER[tick % 4]} waiting for the board to boot..."))
+        tick += 1
+        time.sleep(0.25)
+    clear_status()
+    return False
 
-    A good flash resets the board into its firmware, where it reappears as a
-    DUO MIDI port after a short delay -- so checking SDP/MBOOT alone would let
-    the loop immediately reset and reflash the board it just finished. A failed
-    flash often leaves the board sitting in SDP, which without this would be
-    retried forever. Both cases need the same gate: every mode absent, and
-    absent long enough that a pending re-enumeration would have shown up.
-    """
+
+def wait_for_removal(settle=REMOVAL_SETTLE):
+    """Wait until the board is unplugged."""
     tick = 0
     absent_since = None
     while True:
@@ -150,9 +157,14 @@ def wait_for_removal():
             absent_since = None
         elif absent_since is None:
             absent_since = time.monotonic()
-        elif time.monotonic() - absent_since >= REMOVAL_SETTLE:
+        elif time.monotonic() - absent_since >= settle:
             break
-        status(colour(DIM, f"  {SPINNER[tick % 4]} unplug the board to continue..."))
+        if absent_since is None:
+            message = "unplug the board to continue..."
+        else:
+            remaining = settle - (time.monotonic() - absent_since)
+            message = f"board removed, ready in {remaining:.0f}s"
+        status(colour(DIM, f"  {SPINNER[tick % 4]} {message}"))
         tick += 1
         time.sleep(POLL_INTERVAL)
     clear_status()
@@ -170,7 +182,7 @@ def load_firmware(firmware_path):
 
 
 def flash(interface, firmware_bytes, firmware_path, data_path):
-    """Flash one board that is already in SDP mode. Returns True on success."""
+    """Flash a board in SDP mode. Returns True on success."""
     flashloader_path = f"{data_path}/ivt_flashloader.bin"
     if not exists(flashloader_path):
         print(f"Flashloader not found: {flashloader_path}")
@@ -226,7 +238,7 @@ def flash(interface, firmware_bytes, firmware_path, data_path):
 
 def flash_once(firmware_bytes, firmware_path, data_path,
                skip_enter_bootloader=False, interactive=True):
-    """Single attempt: optionally reset via MIDI, then flash whatever is in SDP."""
+    """Reset board via MIDI (optional) and flash via SDP."""
     if skip_enter_bootloader:
         print("Skipping MIDI bootloader entry.")
     else:
@@ -245,7 +257,7 @@ def flash_once(firmware_bytes, firmware_path, data_path,
 # --- Bench loop -----------------------------------------------------------
 
 def run_loop(firmware_bytes, firmware_path, data_path, use_midi_reset):
-    """Poll quietly; print exactly one block of output per board handled."""
+    """Continuously wait for boards and flash them."""
     flashed = failed = 0
     tick = 0
 
@@ -263,8 +275,6 @@ def run_loop(firmware_bytes, firmware_path, data_path, use_midi_reset):
                     clear_status()
                     print(f"\n--- board #{flashed + failed + 1} ---")
                     try:
-                        # The board can vanish between discovery and the sysex
-                        # write; that is a failed board, not a dead session.
                         enter_bootloader()
                         time.sleep(1)
                         interface = find_sdp_interface(quiet=True)
@@ -298,19 +308,25 @@ def run_loop(firmware_bytes, firmware_path, data_path, use_midi_reset):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
-                # One bad board (unplugged mid-write, dead flash) must not take
-                # the whole bench session down with it.
                 ok = False
                 print(f"\n  {type(exc).__name__}: {exc}")
 
             if ok:
                 flashed += 1
                 print(colour(GREEN, "OK  flashed successfully"))
+                booted = wait_for_boot()
+                if booted:
+                    print(colour(GREEN, "OK  booted into firmware"))
+                else:
+                    print(colour(YELLOW, f"note: no MIDI port within "
+                                         f"{BOOT_TIMEOUT:.0f}s"))
+                wait_for_removal(
+                    CONFIRMED_REMOVAL_SETTLE if booted else REMOVAL_SETTLE
+                )
             else:
                 failed += 1
                 print(colour(RED, "FAILED"))
-
-            wait_for_removal()
+                wait_for_removal()
     except KeyboardInterrupt:
         clear_status()
         print()
