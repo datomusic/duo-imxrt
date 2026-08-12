@@ -39,7 +39,7 @@ bool power_check() {
 
 void power_off() {
   sequencer_stop();
-  MIDI.sendControlChange(123,0,MIDI_CHANNEL);
+  MIDI::sendControlChange(123,0,MIDI_CHANNEL);
   tempo_handler.reset_clock_source();
   transpose = 0;
   AudioNoInterrupts();
@@ -115,8 +115,8 @@ void power_on() {
   amp_disable();
   midi_clock = 0;
   in_setup = true;
-  // Clear note stack
-  note_stack.Clear();
+  // Clear held notes
+  sequencer.release_all_notes();
   // Read the MIDI channel from EEPROM. Lowest four bits
   uint8_t stored_midi_channel = eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
   midi_set_channel(stored_midi_channel);

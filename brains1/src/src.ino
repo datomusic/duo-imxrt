@@ -41,32 +41,20 @@ const uint8_t SCALE_OFFSET_FROM_C3[] { 1,3,6,8,10,13,15,18,20,22 };
 #define HIGH_SAMPLE_RATE 44100
 #define LOW_SAMPLE_RATE 2489
 
-#define INITIAL_VELOCITY 100
-
 #define EEPROM_MIDI_CHANNEL 0
 
 // Globals that should not be globals
-int gate_length_msec = 40;
-
-uint32_t sequencer_clock = 0;
-// Sequencer settings
-uint8_t current_step;
-uint8_t set_key = 9;
 float osc_saw_frequency = 0.;
 float osc_pulse_frequency = 0.;
 float osc_pulse_target_frequency = 0.;
 float osc_saw_target_frequency = 0.;
 uint8_t osc_pulse_midi_note = 0;
 uint8_t note_is_playing = 0;
-bool note_is_triggered = false;
 int transpose = 0;
-bool next_step_is_random = false;
-int tempo_interval;
 bool random_flag = 0;
 bool dfu_flag = 0;
 bool in_setup = true;
 
-int random_offset = 0;
 uint32_t midi_clock = 0;
 uint16_t audio_peak_values = 0UL;
 
@@ -79,7 +67,6 @@ void print_log();
 void note_on(uint8_t midi_note, uint8_t velocity, bool enabled);
 void note_off();
 
-void keyboard_to_note();
 float detune(int note, int amount);
 
 int tempo_interval_msec();
@@ -89,27 +76,35 @@ void enter_dfu();
 #include "synth_params.h"
 synth_parameters synth;
 
-#include "note_stack.h"
-NoteStack<10> note_stack;
-
 #include "pinmap.h"
+#include "lib/midi_wrapper.h"
 
-#define MIDI_SYSEX_DATA_TYPE const uint8_t
+void sequencer_note_on(uint8_t midi_note, uint8_t velocity) {
+  note_on(midi_note + transpose, velocity, true);
+}
+#include "seq.h"
+
+void sequencer_randomize_step_offset(Sequencer::Sequencer &seq) {
+  const uint8_t offset =
+      seq.get_step_offset() + random(1, (Sequencer::NUM_STEPS - 2));
+  seq.set_step_offset(offset);
+}
+
+void sequencer_on_running_advance(Sequencer::Sequencer &seq) {
+  if (random_flag) {
+    sequencer_randomize_step_offset(seq);
+  } else {
+    seq.set_step_offset(0);
+  }
+}
+
+Sequencer::Sequencer
+    sequencer(Sequencer::Output::Callbacks{.note_on = sequencer_note_on,
+                                           .note_off = note_off},
+              sequencer_on_running_advance);
+
+#define MIDI_SYSEX_DATA_TYPE byte
 #include "MidiFunctions.h"
-
-void midi_usb_sysex_callback(MIDI_SYSEX_DATA_TYPE *data, uint16_t length, bool complete){
-  midi_usb_sysex(data, length);
-}
-
-void PlatformMidi::init(){
-  usbMIDI.setHandleSysEx(midi_usb_sysex_callback);
-  usbMIDI.setHandleRealTimeSystem(midi_handle_realtime);
-}
-
-void midi_send_realtime(const midi::MidiType message){
-    MIDI.sendRealTime(message);
-    usbMIDI.sendRealTime(message);
-}
 
 void midi_set_channel(uint8_t channel) {
   if(channel > 0 && channel <= 16) {
@@ -127,9 +122,26 @@ uint8_t midi_get_channel() {
 
 
 #include "TempoHandler.h"
-TempoHandler tempo_handler(synth);
+TempoHandler tempo_handler;
 
 #include "Sequencer.h"
+
+void midi_handle_clock() {
+  tempo_handler.midi_clock_received();
+  midi_clock++;
+}
+
+void midi_init() {
+  MIDI::init(MIDI::Callbacks{.note_on = midi_note_on,
+                             .note_off = midi_note_off,
+                             .clock = midi_handle_clock,
+                             .start = sequencer_start_from_MIDI,
+                             .cont = sequencer_start_from_MIDI,
+                             .stop = sequencer_stop,
+                             .cc = midi_handle_cc,
+                             .sysex = midi_handle_sysex});
+}
+
 #include "Leds.h"
 #include "DrumSynth.h"
 #include "Pitch.h"
@@ -164,12 +176,6 @@ void setup() {
   drum_init();
   touch_init();
 
-  MIDI.setHandleStart(sequencer_restart);
-  MIDI.setHandleContinue(sequencer_restart);
-  MIDI.setHandleStop(sequencer_stop);
-
-  previous_note_on_time = millis();
-
   #ifdef DEV_MODE
     Serial.begin(57600);
     Serial.print("Dato DUO firmware ");
@@ -198,7 +204,7 @@ void loop() {
     #ifdef DEV_MODE
       GPIOA_PSOR |= (1<<1); // Toggle benchmark pin
     #endif
-    midi_handle();
+    MIDI::read(MIDI_CHANNEL);
     sequencer_update();
     #ifdef DEV_MODE
       GPIOA_PCOR |= (1<<1); // Toggle benchmark pin
@@ -206,8 +212,7 @@ void loop() {
 
     // Crude hard coded task switching
     keys_scan(); // 14 or 175us (depending on debounce)
-    keyboard_to_note();  
-    pitch_update();  // ~30us 
+    pitch_update();  // ~30us
     pots_read(); // ~ 100us
 
     synth_update(); // ~ 100us
@@ -218,7 +223,7 @@ void loop() {
     #ifdef DEV_MODE
       GPIOA_PSOR |= (1<<1); // Toggle benchmark pin
     #endif
-    midi_handle();
+    MIDI::read(MIDI_CHANNEL);
     sequencer_update();
     #ifdef DEV_MODE
       GPIOA_PCOR |= (1<<1); // Toggle benchmark pin
@@ -232,32 +237,6 @@ void loop() {
       led_update(); // ~ 2ms
     }
   }
-}
-
-void midi_handle_clock() {
-  tempo_handler.midi_clock_received();
-  midi_clock++;
-}
-
-void midi_handle_realtime(uint8_t type) {
-  switch(type) {
-      case 0xF8: // Clock
-        midi_handle_clock();
-        break;
-      case 0xFA: // Start
-        sequencer_reset_clock();
-        sequencer_start();
-        break;
-      case 0xFC: // Stop
-        sequencer_stop();
-        break;
-      case 0xFB: // Continue
-        sequencer_start();
-        break;
-      case 0xFE: // ActiveSensing
-      case 0xFF: // SystemReset
-        break;
-    }
 }
 
 // Scans the button_matrix and handles step enable and keys
@@ -288,12 +267,13 @@ void keys_scan() {
                     keyboard_set_note(SCALE[k - KEYB_0]);
                   }
                 } else if (k <= STEP_8 && k >= STEP_1) {
-                  step_enable[k-STEP_1] = 1-step_enable[k-STEP_1];
-                  if(!step_enable[k-STEP_1]) { leds(k-STEP_1) = CRGB::Black; }
-                  step_velocity[k-STEP_1] = INITIAL_VELOCITY;
+                  const uint8_t step = k - STEP_1;
+                  if(!sequencer.toggle_step(step)) {
+                    leds(step) = CRGB::Black;
+                  }
                 } else if (k == BTN_SEQ2) {
-                  if(!sequencer_is_running) {
-                    sequencer_advance();
+                  if(!sequencer.is_running()) {
+                    sequencer.advance();
                   }
                   double_speed = true;
                 } else if (k == BTN_DOWN) {
@@ -303,11 +283,11 @@ void keys_scan() {
                   transpose++;
                   if(transpose>12){transpose = 24;}
                 } else if (k == BTN_SEQ1) {
-                  next_step_is_random = true;
-                  if(!sequencer_is_running) {
-                    sequencer_advance();
+                  if(sequencer.is_running()) {
+                    random_flag = true;
+                  } else {
+                    sequencer_randomize_step_offset(sequencer);
                   }
-                  random_flag = true;
                 } else if (k == SEQ_START) {
                   sequencer_toggle_start();
                 }
@@ -346,7 +326,6 @@ void keys_scan() {
                   if(transpose<-12){transpose = -12;}
                   if(transpose>12){transpose = 12;}
                 } else if (k == BTN_SEQ1) {
-                  next_step_is_random = false;
                   random_flag = false;
                 } else if (k == SEQ_START) {
                   #ifdef DEV_MODE
@@ -369,7 +348,7 @@ void keys_scan() {
 
 void pots_read() {
   synth.speed = potRead(TEMPO_POT);
-  synth.gateLength = map(potRead(GATE_POT),0,1023,10,200);
+  synth.gateLength = potRead(GATE_POT);
   
   synth.detune = potRead(OSC_DETUNE_POT);
   synth.release = potRead(AMP_ENV_POT);
@@ -400,28 +379,21 @@ void note_on(uint8_t midi_note, uint8_t velocity, bool enabled) {
 
     AudioInterrupts(); 
 
-    MIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
-    usbMIDI.sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
+    MIDI::sendNoteOn(midi_note, velocity, MIDI_CHANNEL);
     envelope1.noteOn();
     envelope2.noteOn();
   } else {
-    leds((current_step+random_offset)%SEQUENCER_NUM_STEPS) = LED_WHITE;
-
+    leds(sequencer.cur_step_index() % Sequencer::NUM_STEPS) = LED_WHITE;
   }
 }
 
 void note_off() {
   if (note_is_playing) {
-    MIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
-    usbMIDI.sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
-    if(!step_enable[current_step]) {
-      leds(current_step) = CRGB::Black;
-    } else {
-      envelope1.noteOff();
-      envelope2.noteOff();
-    }
+    MIDI::sendNoteOff(note_is_playing, 0, MIDI_CHANNEL);
+    envelope1.noteOff();
+    envelope2.noteOff();
     note_is_playing = 0;
-  } 
+  }
 }
 
 /*

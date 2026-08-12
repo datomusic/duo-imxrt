@@ -198,10 +198,11 @@ void synth_update() {
   osc_pulse.pulseWidth(map(synth.pulseWidth,0,1023,1000,100)/1000.0);
 
   filter1.frequency((synth.filter/2)+30);
-  filter1.resonance(map(synth.resonance,0,1023,70,320)/100.0); // 0.7-3.2 range
+  float filter_resonance = map(synth.resonance,0,1023,70,320)/100.0f; // 0.7-3.2 range
   if(synth.accent) {
     filter_resonance = 4.0f;
   }
+  filter1.resonance(filter_resonance);
 
   envelope1.release(((synth.release*synth.release) >> 11)+30);
 

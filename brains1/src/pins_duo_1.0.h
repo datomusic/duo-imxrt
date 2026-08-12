@@ -1,5 +1,5 @@
-#ifndef PINS_DUO_1.0_H
-#define PINS_DUO_1.0_H
+#ifndef PINS_DUO_1_0_H
+#define PINS_DUO_1_0_H
 
 #include <Arduino.h>
 #include <cstdint>
@@ -144,4 +144,4 @@ int potRead(uint8_t num);
 uint8_t muxDigitalRead(uint8_t channel);
 void pins_init();
 
-#endif /* end of include guard: PINS_DUO_1.0_H */
+#endif /* end of include guard: PINS_DUO_1_0_H */
