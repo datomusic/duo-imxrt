@@ -1,3 +1,7 @@
+// Storage header comes first: it pulls in ETL, which does not survive the
+// min/max macros Arduino.h defines.
+#include "settings_storage.h"
+
 #include "Arduino.h"
 
 #include "syscall_stubs.h"
@@ -339,13 +343,8 @@ static void main_loop(){
 }
 
 static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_preamp){
-  // Read the MIDI channel from EEPROM. Lowest four bits
-  // const uint8_t stored_midi_channel =
-  //     eeprom_read_byte(EEPROM_MIDI_CHANNEL) & 0xf00;
-  const uint8_t stored_midi_channel = 1;
-  // if (midi_get_channel() != stored_midi_channel) {
-  //   eeprom_write_byte(EEPROM_MIDI_CHANNEL, midi_get_channel());
-  // }
+  const uint8_t stored_midi_channel =
+      duo::settings().get(duo::setting_id::MIDI_CHANNEL);
   midi_set_channel(stored_midi_channel);
 
   const uint64_t previous_frame_time = millis();
@@ -356,6 +355,12 @@ static void main_init(AudioAmplifier& headphone_preamp, AudioAmplifier& speaker_
   while(millis() - previous_frame_time < 100) {
     keys_scan();
     /* DatoUSB::background_update(); */
+  }
+  // A keyboard key held during the scan window above selected a new MIDI
+  // channel (see process_key); persist it for the next boot.
+  if (midi_get_channel() != stored_midi_channel) {
+    duo::settings().set(duo::setting_id::MIDI_CHANNEL,
+                        static_cast<uint8_t>(midi_get_channel()));
   }
   midi_init();
   led_init();
@@ -384,6 +389,10 @@ void init_dma() {
 
 int main(void) {
   board_init();
+
+  // Mounts the data filesystem and loads settings.
+  duo::storage_init();
+
   init_dma();
 
   Sync::init();

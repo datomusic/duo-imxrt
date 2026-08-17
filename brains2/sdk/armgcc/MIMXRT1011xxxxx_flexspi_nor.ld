@@ -36,11 +36,18 @@ MEMORY
   m_flash_config        (RX)  : ORIGIN = 0x60000400, LENGTH = 0x00000C00
   m_ivt                 (RX)  : ORIGIN = 0x60001000, LENGTH = 0x00001000
   m_interrupts          (RX)  : ORIGIN = 0x60002000, LENGTH = 0x00000400
-  m_text                (RX)  : ORIGIN = 0x60002400, LENGTH = 0x00FFDC00
+  /* The DUO Brains 2 flash is a 2 MB W25Q16 (0x60000000-0x60200000).
+     The last 64 KB are reserved for the littlefs data filesystem. */
+  m_text                (RX)  : ORIGIN = 0x60002400, LENGTH = 0x001EDC00
   m_qacode              (RX)  : ORIGIN = 0x00000000, LENGTH = 0x00008000
   m_data                (RW)  : ORIGIN = 0x20000000, LENGTH = 0x00008000
   m_data2               (RW)  : ORIGIN = 0x20200000, LENGTH = 0x00010000
 }
+
+/* Data filesystem (littlefs) region: the tail of the 2 MB flash, AHB
+   addresses. Read by musin/ports/imxrt/filesystem/storage_region.cpp. */
+__flash_fs_start = 0x601F0000;
+__flash_fs_end   = 0x60200000;
 
 /* Define output sections */
 SECTIONS
@@ -81,8 +88,10 @@ SECTIONS
   .text :
   {
     . = ALIGN(4);
-    *(.text)                 /* .text sections (code) */
-    *(.text*)                /* .text* sections (code) */
+    /* fsl_flexspi.c is excluded here and placed in .ram_function: it is
+       called while the flash is busy erasing/programming and cannot XIP. */
+    EXCLUDE_FILE(*fsl_flexspi.c.obj *mflash_drv.c.obj) *(.text)                 /* .text sections (code) */
+    EXCLUDE_FILE(*fsl_flexspi.c.obj *mflash_drv.c.obj) *(.text*)                /* .text* sections (code) */
     *(.rodata)               /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)              /* .rodata* sections (constants, strings, etc.) */
     *(.glue_7)               /* glue arm to thumb code */
@@ -202,6 +211,10 @@ SECTIONS
     __ram_function_start__ = .;
     *(CodeQuickAccess)
     *(RamFunction)
+    /* FlexSPI driver must run from RAM: it is called while the flash is
+       busy with erase/program commands and cannot serve XIP reads. */
+    *fsl_flexspi.c.obj(.text* .rodata*)
+    *mflash_drv.c.obj(.text* .rodata*)
     *(.vectorTableRam)
     . = ALIGN(128);
     __ram_function_end__ = .;

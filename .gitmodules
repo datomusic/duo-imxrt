@@ -7,3 +7,9 @@
 [submodule "arduino_midi_library"]
 	path = brains2/libraries/MIDI
 	url = https://github.com/FortySevenEffects/arduino_midi_library
+[submodule "brains2/libraries/littlefs"]
+	path = brains2/libraries/littlefs
+	url = https://github.com/nxp-mcuxpresso/littlefs.git
+[submodule "brains2/libraries/etl"]
+	path = brains2/libraries/etl
+	url = https://github.com/ETLCPP/etl.git
