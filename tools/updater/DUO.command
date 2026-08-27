@@ -31,7 +31,7 @@ header
 
 while true; do
     # The updater polls for boards itself and returns on Ctrl-C.
-    uv run update_firmware.py -f "$FIRMWARE"
+    uv run update_firmware.py --factory "$FIRMWARE"
 
     echo ""
     read -s -p "Session ended. Press ENTER to restart, or Q to quit" -n 1 key
