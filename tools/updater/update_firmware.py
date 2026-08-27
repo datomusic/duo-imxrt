@@ -105,6 +105,11 @@ def enter_bootloader():
     midiout, portname = open_midioutput(duo_port, use_virtual=False)
     print(f"Sending reset signal to {portname} at port {duo_port}")
     midiout.send_message(RESET_SYX)
+    # Release the port before the board re-enumerates. In the bench loop this
+    # runs once per board, and rtmidi holds the device until the object is
+    # collected, not just until close_port().
+    midiout.close_port()
+    del midiout
     return True
 
 
