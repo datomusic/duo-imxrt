@@ -7,8 +7,8 @@ import rtmidi
 from rtmidi.midiutil import open_midioutput
 from os.path import basename, dirname, abspath, exists
 from spsdk.sdp import SDP
-import spsdk.sdp.interfaces.usb as sdp_usb
-import spsdk.mboot.interfaces.usb as mboot_usb
+from spsdk.sdp.interfaces.usb import SdpUSBInterface
+from spsdk.mboot.interfaces.usb import MbootUSBInterface
 from spsdk.mboot import McuBoot
 from firmware_info import print_firmware_info
 
@@ -74,10 +74,10 @@ def find_duo_midi_port(quiet=False):
 
 
 def find_sdp_interface(quiet=False):
-    match sdp_usb.scan_usb(SDP_VID_PID):
+    match SdpUSBInterface.scan(SDP_VID_PID):
         case [interface]:
             if not quiet:
-                print(f"Found {interface.product_name}")
+                print(f"Found {interface.device.product_name}")
             return interface
         case _:
             if not quiet:
@@ -86,7 +86,7 @@ def find_sdp_interface(quiet=False):
 
 
 def find_mboot_interface(quiet=False):
-    match mboot_usb.scan_usb(MBOOT_VID_PID):
+    match MbootUSBInterface.scan(MBOOT_VID_PID):
         case [interface]:
             return interface
         case _:
