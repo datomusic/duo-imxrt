@@ -12,6 +12,6 @@ void FastLED_::clear() {
 void FastLED_::setBrightness(int brightness) {
   LEDs::setBrightness(brightness);
 }
-void FastLED_::setCorrection(int) {
-  // TODO
+void FastLED_::setCorrection(int correction) {
+  LEDs::correction = CRGB(correction);
 }
